@@ -294,6 +294,117 @@ Fields:
 - business meaning: load timestamp for reproducibility and debugging
 - validation rule: ISO 8601 UTC string ending with Z
 
+## team_week_outcomes
+
+Canonical team-week performance outcomes aggregated from team game-level source rows.
+
+Primary key:
+
+- (team_id, nfl_season, nfl_week)
+
+Core required fields (MVP contract):
+
+- team_id
+- nfl_season
+- nfl_week
+- games_played
+- wins
+- losses
+- ties
+- win_pct
+- point_diff_per_game
+- offensive_epa_per_play
+
+Fields:
+
+- name: team_id
+- type: string
+- nullable: no
+- source: data/raw/team_game_stats_source.csv
+- transformation: trimmed from source
+- business meaning: team entity key
+- validation rule: non-empty
+
+- name: nfl_season
+- type: integer-like string
+- nullable: no
+- source: join to nfl_calendar_mapping via game_date
+- transformation: mapped from calendar table
+- business meaning: season associated with team-week outcome
+- validation rule: non-empty and numeric-like
+
+- name: nfl_week
+- type: integer-like string
+- nullable: no
+- source: join to nfl_calendar_mapping via game_date
+- transformation: mapped from calendar table
+- business meaning: week index for team aggregation
+- validation rule: non-empty and numeric-like
+
+- name: games_played
+- type: integer-like string
+- nullable: no
+- source: derived
+- transformation: count of regular-season source rows in week
+- business meaning: denominator for weekly averages
+- validation rule: integer >= 1
+
+- name: wins
+- type: integer-like string
+- nullable: no
+- source: derived
+- transformation: count where points_for > points_against
+- business meaning: weekly wins
+- validation rule: integer >= 0
+
+- name: losses
+- type: integer-like string
+- nullable: no
+- source: derived
+- transformation: count where points_for < points_against
+- business meaning: weekly losses
+- validation rule: integer >= 0
+
+- name: ties
+- type: integer-like string
+- nullable: no
+- source: derived
+- transformation: count where points_for == points_against
+- business meaning: weekly ties
+- validation rule: integer >= 0
+
+- name: win_pct
+- type: numeric string
+- nullable: no
+- source: derived
+- transformation: (wins + 0.5 * ties) / games_played
+- business meaning: weekly win percentage outcome
+- validation rule: numeric in [0, 1]
+
+- name: point_diff_per_game
+- type: numeric string
+- nullable: no
+- source: derived
+- transformation: mean(points_for - points_against)
+- business meaning: scoring margin outcome
+- validation rule: numeric
+
+- name: offensive_epa_per_play
+- type: numeric string
+- nullable: no
+- source: derived from source field offensive_epa_per_play
+- transformation: weekly mean offensive EPA/play
+- business meaning: offensive efficiency outcome
+- validation rule: numeric
+
+- name: aggregated_at
+- type: datetime (UTC)
+- nullable: no
+- source: aggregation runtime
+- transformation: generated timestamp
+- business meaning: load timestamp for reproducibility and debugging
+- validation rule: ISO 8601 UTC string ending with Z
+
 ## Template
 
 For each field, document:

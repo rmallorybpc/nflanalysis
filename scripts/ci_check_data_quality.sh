@@ -10,6 +10,7 @@ required_paths=(
   "data/external/nfl_calendar_mapping.csv"
   "data/processed/movement_events.csv"
   "data/processed/player_dimension.csv"
+  "data/processed/team_week_outcomes.csv"
 )
 
 for path in "${required_paths[@]}"; do
@@ -150,6 +151,54 @@ for row in rows:
   seen.add(player_id)
 
 print(f"validated player dimension rows: {len(rows)}")
+PY
+
+python3 - <<'PY'
+import csv
+
+path = "data/processed/team_week_outcomes.csv"
+required = {
+  "team_id",
+  "nfl_season",
+  "nfl_week",
+  "games_played",
+  "wins",
+  "losses",
+  "ties",
+  "win_pct",
+  "point_diff_per_game",
+  "offensive_epa_per_play",
+  "aggregated_at",
+}
+
+with open(path, newline="", encoding="utf-8") as f:
+  rows = list(csv.DictReader(f))
+
+if not rows:
+  raise SystemExit("team_week_outcomes.csv is empty")
+
+missing = required - set(rows[0].keys())
+if missing:
+  raise SystemExit(f"team_week_outcomes.csv missing required columns: {sorted(missing)}")
+
+seen = set()
+for row in rows:
+  team_id = row["team_id"].strip()
+  season = row["nfl_season"].strip()
+  week = row["nfl_week"].strip()
+  if not team_id or not season or not week:
+    raise SystemExit("team_week_outcomes.csv has empty team_id/nfl_season/nfl_week")
+
+  key = (team_id, season, week)
+  if key in seen:
+    raise SystemExit(f"duplicate team-week key: {key}")
+  seen.add(key)
+
+  win_pct = float(row["win_pct"])
+  if win_pct < 0 or win_pct > 1:
+    raise SystemExit(f"win_pct out of range for {key}: {win_pct}")
+
+print(f"validated team-week outcomes rows: {len(rows)}")
 PY
 
 echo "Data quality contract checks passed."

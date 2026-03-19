@@ -1,0 +1,5 @@
+game_id,game_date,team_id,opponent_team_id,points_for,points_against,offensive_epa_per_play,source
+g_2024_w06_buf_nyj,2024-10-16,BUF,NYJ,27,20,0.145,seed_example
+g_2024_w06_nyj_buf,2024-10-16,NYJ,BUF,20,27,-0.082,seed_example
+g_2024_w09_sea_bal,2023-11-02,SEA,BAL,17,24,-0.091,seed_example
+g_2024_w09_bal_sea,2023-11-02,BAL,SEA,24,17,0.102,seed_example

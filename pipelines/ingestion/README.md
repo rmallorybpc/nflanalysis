@@ -93,3 +93,38 @@ Canonical output columns:
 - active_status
 - source
 - normalized_at
+
+## Team-Week Outcome Aggregation
+
+Aggregate team game-level source rows into canonical team-week outcomes table:
+
+```bash
+/usr/bin/python3 pipelines/ingestion/aggregate_team_week_outcomes.py \
+  --source data/raw/team_game_stats_source.csv \
+  --calendar data/external/nfl_calendar_mapping.csv \
+  --output data/processed/team_week_outcomes.csv
+```
+
+Rebuild output from source (replace mode):
+
+```bash
+/usr/bin/python3 pipelines/ingestion/aggregate_team_week_outcomes.py \
+  --source data/raw/team_game_stats_source.csv \
+  --calendar data/external/nfl_calendar_mapping.csv \
+  --output data/processed/team_week_outcomes.csv \
+  --replace
+```
+
+Canonical output columns:
+
+- team_id
+- nfl_season
+- nfl_week
+- games_played
+- wins
+- losses
+- ties
+- win_pct
+- point_diff_per_game
+- offensive_epa_per_play
+- aggregated_at
