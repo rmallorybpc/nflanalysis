@@ -73,10 +73,125 @@ Core required fields (MVP contract):
 
 - move_id
 - event_date
+- effective_date
 - move_type
 - player_id
 - from_team_id
 - to_team_id
+
+Fields:
+
+- name: move_id
+- type: string
+- nullable: no
+- source: data/raw/movement_events_source.csv
+- transformation: trimmed and used as upsert key
+- business meaning: unique identifier for movement event
+- validation rule: non-empty and unique in output
+
+- name: event_date
+- type: date (ISO 8601 string)
+- nullable: no
+- source: raw source
+- transformation: normalized YYYY-MM-DD
+- business meaning: date movement event is reported
+- validation rule: valid date string
+
+- name: effective_date
+- type: date (ISO 8601 string)
+- nullable: no
+- source: raw source; defaults to event_date
+- transformation: normalized YYYY-MM-DD
+- business meaning: date when move takes effect for roster impact
+- validation rule: must exist in nfl_calendar_mapping.calendar_date
+
+- name: move_type
+- type: string enum (trade, free_agency)
+- nullable: no
+- source: raw source
+- transformation: lowercased with alias normalization
+- business meaning: movement category for attribution
+- validation rule: must be trade or free_agency
+
+- name: player_id
+- type: string
+- nullable: no
+- source: raw source
+- transformation: trimmed
+- business meaning: player entity key
+- validation rule: non-empty
+
+- name: from_team_id
+- type: string
+- nullable: no
+- source: raw source
+- transformation: trimmed
+- business meaning: previous team
+- validation rule: non-empty
+
+- name: to_team_id
+- type: string
+- nullable: no
+- source: raw source
+- transformation: trimmed
+- business meaning: destination team
+- validation rule: non-empty
+
+- name: transaction_detail
+- type: string
+- nullable: yes
+- source: raw source
+- transformation: trimmed free text
+- business meaning: contextual move detail
+- validation rule: optional
+
+- name: source
+- type: string
+- nullable: no
+- source: raw source
+- transformation: defaults to manual_seed when blank
+- business meaning: upstream source marker
+- validation rule: non-empty
+
+- name: nfl_season
+- type: integer-like string
+- nullable: no
+- source: join to nfl_calendar_mapping via effective_date
+- transformation: mapped from calendar table
+- business meaning: NFL season associated with effective_date
+- validation rule: must match joined calendar row
+
+- name: season_phase
+- type: string enum
+- nullable: no
+- source: calendar join
+- transformation: mapped from calendar table
+- business meaning: offseason/preseason/regular/postseason context
+- validation rule: must match joined calendar row
+
+- name: phase_week
+- type: string
+- nullable: yes
+- source: calendar join
+- transformation: mapped from calendar table
+- business meaning: phase-specific week context
+- validation rule: optional for offseason
+
+- name: nfl_week
+- type: integer-like string
+- nullable: yes
+- source: calendar join
+- transformation: mapped from calendar table
+- business meaning: normalized week index used by downstream joins
+- validation rule: optional for offseason; numeric when present
+
+- name: ingested_at
+- type: datetime (UTC)
+- nullable: no
+- source: ingestion runtime
+- transformation: generated timestamp
+- business meaning: load timestamp for reproducibility and debugging
+- validation rule: ISO 8601 UTC string ending with Z
 
 ## Template
 

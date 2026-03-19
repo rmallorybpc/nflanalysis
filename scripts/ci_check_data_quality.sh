@@ -8,6 +8,7 @@ required_paths=(
   "docs/metric-spec.md"
   "api/schemas/movement-impact.schema.json"
   "data/external/nfl_calendar_mapping.csv"
+  "data/processed/movement_events.csv"
 )
 
 for path in "${required_paths[@]}"; do
@@ -64,6 +65,51 @@ for row in rows:
   prev = d
 
 print(f"validated calendar mapping rows: {len(rows)}")
+PY
+
+python3 - <<'PY'
+import csv
+
+path = "data/processed/movement_events.csv"
+required = {
+  "move_id",
+  "event_date",
+  "effective_date",
+  "move_type",
+  "player_id",
+  "from_team_id",
+  "to_team_id",
+  "nfl_season",
+  "season_phase",
+  "nfl_week",
+  "ingested_at",
+}
+allowed_types = {"trade", "free_agency"}
+
+with open(path, newline="", encoding="utf-8") as f:
+  rows = list(csv.DictReader(f))
+
+if not rows:
+  raise SystemExit("movement_events.csv is empty")
+
+missing = required - set(rows[0].keys())
+if missing:
+  raise SystemExit(f"movement_events.csv missing required columns: {sorted(missing)}")
+
+seen = set()
+for row in rows:
+  move_id = row["move_id"].strip()
+  if not move_id:
+    raise SystemExit("movement_events.csv contains empty move_id")
+  if move_id in seen:
+    raise SystemExit(f"movement_events.csv contains duplicate move_id: {move_id}")
+  seen.add(move_id)
+
+  move_type = row["move_type"].strip()
+  if move_type not in allowed_types:
+    raise SystemExit(f"invalid move_type: {move_type}")
+
+print(f"validated movement events rows: {len(rows)}")
 PY
 
 echo "Data quality contract checks passed."
