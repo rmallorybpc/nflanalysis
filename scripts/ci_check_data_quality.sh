@@ -201,4 +201,58 @@ for row in rows:
 print(f"validated team-week outcomes rows: {len(rows)}")
 PY
 
+python3 - <<'PY'
+import csv
+
+
+def read_rows(path: str):
+  with open(path, newline="", encoding="utf-8") as f:
+    return list(csv.DictReader(f))
+
+
+calendar_rows = read_rows("data/external/nfl_calendar_mapping.csv")
+movement_rows = read_rows("data/processed/movement_events.csv")
+player_rows = read_rows("data/processed/player_dimension.csv")
+team_week_rows = read_rows("data/processed/team_week_outcomes.csv")
+
+calendar_by_date = {r["calendar_date"]: r for r in calendar_rows}
+player_ids = {r["player_id"].strip() for r in player_rows}
+
+if "" in player_ids:
+  raise SystemExit("player_dimension.csv contains blank player_id")
+
+for row in movement_rows:
+  move_id = row["move_id"].strip()
+  player_id = row["player_id"].strip()
+  effective_date = row["effective_date"].strip()
+
+  if player_id not in player_ids:
+    raise SystemExit(f"movement_events player_id missing in player_dimension: {move_id} -> {player_id}")
+
+  cal = calendar_by_date.get(effective_date)
+  if cal is None:
+    raise SystemExit(f"movement_events effective_date missing in calendar: {move_id} -> {effective_date}")
+
+  if row["nfl_season"].strip() != cal["nfl_season"].strip():
+    raise SystemExit(f"movement_events nfl_season mismatch calendar for move_id={move_id}")
+
+  if row["season_phase"].strip() != cal["season_phase"].strip():
+    raise SystemExit(f"movement_events season_phase mismatch calendar for move_id={move_id}")
+
+  if row["nfl_week"].strip() != cal["nfl_week"].strip():
+    raise SystemExit(f"movement_events nfl_week mismatch calendar for move_id={move_id}")
+
+for row in team_week_rows:
+  key = (row["team_id"].strip(), row["nfl_season"].strip(), row["nfl_week"].strip())
+  games_played = int(row["games_played"].strip())
+  wins = int(row["wins"].strip())
+  losses = int(row["losses"].strip())
+  ties = int(row["ties"].strip())
+
+  if wins + losses + ties != games_played:
+    raise SystemExit(f"team_week_outcomes W/L/T sum mismatch for key={key}")
+
+print("validated cross-table consistency checks")
+PY
+
 echo "Data quality contract checks passed."
