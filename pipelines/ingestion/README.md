@@ -61,3 +61,35 @@ Canonical output columns:
 - phase_week
 - nfl_week
 - ingested_at
+
+## Player Metadata Normalization
+
+Normalize raw player metadata into canonical player dimension table:
+
+```bash
+/usr/bin/python3 pipelines/ingestion/normalize_player_metadata.py \
+  --source data/raw/player_metadata_source.csv \
+  --output data/processed/player_dimension.csv
+```
+
+Rebuild output from source (replace mode):
+
+```bash
+/usr/bin/python3 pipelines/ingestion/normalize_player_metadata.py \
+  --source data/raw/player_metadata_source.csv \
+  --output data/processed/player_dimension.csv \
+  --replace
+```
+
+Canonical output columns:
+
+- player_id
+- full_name
+- position_group
+- position
+- birth_date
+- rookie_year
+- experience_years
+- active_status
+- source
+- normalized_at

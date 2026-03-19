@@ -193,6 +193,107 @@ Fields:
 - business meaning: load timestamp for reproducibility and debugging
 - validation rule: ISO 8601 UTC string ending with Z
 
+## player_dimension
+
+Canonical player metadata dimension for joins across movement and performance tables.
+
+Primary key:
+
+- (player_id)
+
+Core required fields (MVP contract):
+
+- player_id
+- full_name
+- position_group
+- position
+- birth_date
+- rookie_year
+- experience_years
+- active_status
+
+Fields:
+
+- name: player_id
+- type: string
+- nullable: no
+- source: data/raw/player_metadata_source.csv
+- transformation: trimmed and used as upsert key
+- business meaning: stable player entity identifier
+- validation rule: non-empty and unique in output
+
+- name: full_name
+- type: string
+- nullable: no
+- source: raw source
+- transformation: trimmed
+- business meaning: player display name
+- validation rule: non-empty
+
+- name: position_group
+- type: string enum-like
+- nullable: no
+- source: derived from normalized position
+- transformation: mapped via position-to-group rules
+- business meaning: broad football role grouping for downstream modeling
+- validation rule: non-empty
+
+- name: position
+- type: string
+- nullable: no
+- source: raw source
+- transformation: uppercased position code
+- business meaning: primary listed player position
+- validation rule: non-empty
+
+- name: birth_date
+- type: date (ISO 8601 string)
+- nullable: no
+- source: raw source
+- transformation: normalized YYYY-MM-DD
+- business meaning: player birth date
+- validation rule: valid date string
+
+- name: rookie_year
+- type: integer-like string
+- nullable: no
+- source: raw source
+- transformation: parsed integer and serialized string
+- business meaning: first NFL season for player
+- validation rule: numeric and not in future relative to as-of year
+
+- name: experience_years
+- type: integer-like string
+- nullable: no
+- source: derived
+- transformation: max(as_of_year - rookie_year, 0)
+- business meaning: years of NFL experience at normalization time
+- validation rule: numeric and >= 0
+
+- name: active_status
+- type: string
+- nullable: no
+- source: raw source; defaults to active
+- transformation: lowercased and defaulted
+- business meaning: roster activity status
+- validation rule: non-empty
+
+- name: source
+- type: string
+- nullable: no
+- source: raw source; defaults to manual_seed
+- transformation: trimmed and defaulted
+- business meaning: upstream source marker
+- validation rule: non-empty
+
+- name: normalized_at
+- type: datetime (UTC)
+- nullable: no
+- source: normalization runtime
+- transformation: generated timestamp
+- business meaning: load timestamp for reproducibility and debugging
+- validation rule: ISO 8601 UTC string ending with Z
+
 ## Template
 
 For each field, document:

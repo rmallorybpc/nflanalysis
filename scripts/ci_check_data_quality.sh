@@ -9,6 +9,7 @@ required_paths=(
   "api/schemas/movement-impact.schema.json"
   "data/external/nfl_calendar_mapping.csv"
   "data/processed/movement_events.csv"
+  "data/processed/player_dimension.csv"
 )
 
 for path in "${required_paths[@]}"; do
@@ -110,6 +111,45 @@ for row in rows:
     raise SystemExit(f"invalid move_type: {move_type}")
 
 print(f"validated movement events rows: {len(rows)}")
+PY
+
+python3 - <<'PY'
+import csv
+
+path = "data/processed/player_dimension.csv"
+required = {
+  "player_id",
+  "full_name",
+  "position_group",
+  "position",
+  "birth_date",
+  "rookie_year",
+  "experience_years",
+  "active_status",
+  "source",
+  "normalized_at",
+}
+
+with open(path, newline="", encoding="utf-8") as f:
+  rows = list(csv.DictReader(f))
+
+if not rows:
+  raise SystemExit("player_dimension.csv is empty")
+
+missing = required - set(rows[0].keys())
+if missing:
+  raise SystemExit(f"player_dimension.csv missing required columns: {sorted(missing)}")
+
+seen = set()
+for row in rows:
+  player_id = row["player_id"].strip()
+  if not player_id:
+    raise SystemExit("player_dimension.csv contains empty player_id")
+  if player_id in seen:
+    raise SystemExit(f"player_dimension.csv contains duplicate player_id: {player_id}")
+  seen.add(player_id)
+
+print(f"validated player dimension rows: {len(rows)}")
 PY
 
 echo "Data quality contract checks passed."

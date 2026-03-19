@@ -1,0 +1,4 @@
+player_id,full_name,position,birth_date,rookie_year,active_status,source
+p_001,Marcus Reed,QB,1998-04-12,2021,active,seed_example
+p_002,Jordan Hayes,WR,1996-09-07,2019,active,seed_example
+p_003,Cameron Brooks,CB,1995-02-19,2018,active,seed_example
