@@ -17,6 +17,13 @@ CANONICAL_FIELDS = [
     "roster_churn_rate",
     "inbound_move_count",
     "outbound_move_count",
+    "offense_skill_value_delta",
+    "offense_line_value_delta",
+    "defense_front_value_delta",
+    "defense_second_level_value_delta",
+    "defense_secondary_value_delta",
+    "special_teams_value_delta",
+    "other_value_delta",
     "position_value_delta",
     "schedule_strength_index",
     "feature_version",
@@ -44,6 +51,16 @@ POSITION_WEIGHTS = {
     "LS": 0.4,
 }
 
+POSITION_GROUPS = [
+    "offense_skill",
+    "offense_line",
+    "defense_front",
+    "defense_second_level",
+    "defense_secondary",
+    "special_teams",
+    "other",
+]
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build team-week feature table")
@@ -64,6 +81,12 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("data/processed/team_week_outcomes.csv"),
         help="Canonical team-week outcomes CSV",
+    )
+    parser.add_argument(
+        "--position-weights",
+        type=Path,
+        default=Path("data/external/position_value_weights.csv"),
+        help="CSV mapping position to weight",
     )
     parser.add_argument(
         "--output",
@@ -122,19 +145,41 @@ def position_weight(position: str) -> float:
     return 1.0
 
 
+def load_position_weights(path: Path) -> dict[str, float]:
+    if not path.exists():
+        return dict(POSITION_WEIGHTS)
+
+    rows = read_csv(path)
+    weights = dict(POSITION_WEIGHTS)
+    for row in rows:
+        pos = row.get("position", "").strip().upper()
+        weight_raw = row.get("weight", "").strip()
+        if not pos or not weight_raw:
+            continue
+        try:
+            weights[pos] = float(weight_raw)
+        except ValueError as exc:
+            raise ValueError(f"invalid weight for position {pos}: {weight_raw}") from exc
+
+    return weights
+
+
 def build_features(
     movement_rows: list[dict[str, str]],
     player_rows: list[dict[str, str]],
     outcome_rows: list[dict[str, str]],
+    position_weights: dict[str, float],
     feature_version: str,
     roster_size: float,
     generated_at: str,
 ) -> dict[tuple[str, str, str], dict[str, str]]:
     player_position = {r["player_id"].strip(): r["position"].strip().upper() for r in player_rows}
+    player_group = {r["player_id"].strip(): r["position_group"].strip().lower() for r in player_rows}
 
     inbound_counts: dict[tuple[str, str, str], int] = defaultdict(int)
     outbound_counts: dict[tuple[str, str, str], int] = defaultdict(int)
     value_delta: dict[tuple[str, str, str], float] = defaultdict(float)
+    group_delta: dict[tuple[str, str, str], dict[str, float]] = defaultdict(lambda: defaultdict(float))
 
     for row in movement_rows:
         season = row["nfl_season"].strip()
@@ -143,7 +188,11 @@ def build_features(
             continue
 
         player_id = row["player_id"].strip()
-        weight = position_weight(player_position.get(player_id, ""))
+        pos = player_position.get(player_id, "")
+        weight = position_weights.get(pos, position_weight(pos))
+        group = player_group.get(player_id, "other")
+        if group not in POSITION_GROUPS:
+            group = "other"
 
         to_key = (row["to_team_id"].strip(), season, week)
         from_key = (row["from_team_id"].strip(), season, week)
@@ -152,6 +201,8 @@ def build_features(
         outbound_counts[from_key] += 1
         value_delta[to_key] += weight
         value_delta[from_key] -= weight
+        group_delta[to_key][group] += weight
+        group_delta[from_key][group] -= weight
 
     features: dict[tuple[str, str, str], dict[str, str]] = {}
     for row in outcome_rows:
@@ -167,6 +218,13 @@ def build_features(
             "roster_churn_rate": f"{churn:.6f}",
             "inbound_move_count": str(inbound),
             "outbound_move_count": str(outbound),
+            "offense_skill_value_delta": f"{group_delta.get(key, {}).get('offense_skill', 0.0):.4f}",
+            "offense_line_value_delta": f"{group_delta.get(key, {}).get('offense_line', 0.0):.4f}",
+            "defense_front_value_delta": f"{group_delta.get(key, {}).get('defense_front', 0.0):.4f}",
+            "defense_second_level_value_delta": f"{group_delta.get(key, {}).get('defense_second_level', 0.0):.4f}",
+            "defense_secondary_value_delta": f"{group_delta.get(key, {}).get('defense_secondary', 0.0):.4f}",
+            "special_teams_value_delta": f"{group_delta.get(key, {}).get('special_teams', 0.0):.4f}",
+            "other_value_delta": f"{group_delta.get(key, {}).get('other', 0.0):.4f}",
             "position_value_delta": f"{value_delta.get(key, 0.0):.4f}",
             "schedule_strength_index": f"{0.0:.4f}",
             "feature_version": feature_version,
@@ -186,12 +244,14 @@ def main() -> None:
     movement_rows = read_csv(args.movement)
     player_rows = read_csv(args.players)
     outcome_rows = read_csv(args.outcomes)
+    position_weights = load_position_weights(args.position_weights)
 
     generated_at = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     incoming = build_features(
         movement_rows,
         player_rows,
         outcome_rows,
+        position_weights=position_weights,
         feature_version=args.feature_version,
         roster_size=args.roster_size,
         generated_at=generated_at,

@@ -8,6 +8,7 @@ required_paths=(
   "docs/metric-spec.md"
   "api/schemas/movement-impact.schema.json"
   "data/external/nfl_calendar_mapping.csv"
+  "data/external/position_value_weights.csv"
   "data/processed/movement_events.csv"
   "data/processed/player_dimension.csv"
   "data/processed/team_week_outcomes.csv"
@@ -220,6 +221,13 @@ required = {
   "roster_churn_rate",
   "inbound_move_count",
   "outbound_move_count",
+  "offense_skill_value_delta",
+  "offense_line_value_delta",
+  "defense_front_value_delta",
+  "defense_second_level_value_delta",
+  "defense_secondary_value_delta",
+  "special_teams_value_delta",
+  "other_value_delta",
   "position_value_delta",
   "schedule_strength_index",
   "feature_version",
@@ -252,10 +260,22 @@ for row in rows:
   churn = float(row["roster_churn_rate"])
   inbound = int(row["inbound_move_count"])
   outbound = int(row["outbound_move_count"])
+  total_delta = float(row["position_value_delta"])
+  group_sum = (
+    float(row["offense_skill_value_delta"]) +
+    float(row["offense_line_value_delta"]) +
+    float(row["defense_front_value_delta"]) +
+    float(row["defense_second_level_value_delta"]) +
+    float(row["defense_secondary_value_delta"]) +
+    float(row["special_teams_value_delta"]) +
+    float(row["other_value_delta"])
+  )
   if churn < 0:
     raise SystemExit(f"negative roster_churn_rate for key={key}")
   if inbound < 0 or outbound < 0:
     raise SystemExit(f"negative move count for key={key}")
+  if abs(group_sum - total_delta) > 0.0002:
+    raise SystemExit(f"position group deltas do not sum to position_value_delta for key={key}")
 
 print(f"validated team-week feature rows: {len(rows)}")
 PY

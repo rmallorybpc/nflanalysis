@@ -421,6 +421,13 @@ Core required fields (MVP contract):
 - roster_churn_rate
 - inbound_move_count
 - outbound_move_count
+- offense_skill_value_delta
+- offense_line_value_delta
+- defense_front_value_delta
+- defense_second_level_value_delta
+- defense_secondary_value_delta
+- special_teams_value_delta
+- other_value_delta
 - position_value_delta
 - schedule_strength_index
 - feature_version
@@ -474,6 +481,62 @@ Fields:
 - transformation: count of outgoing movement events by team-week
 - business meaning: departure volume signal
 - validation rule: integer >= 0
+
+- name: offense_skill_value_delta
+- type: numeric string
+- nullable: no
+- source: movement_events + player_dimension
+- transformation: weighted net inbound minus outbound value for offense_skill group
+- business meaning: net impact signal for QB/RB/WR/TE group movement
+- validation rule: numeric
+
+- name: offense_line_value_delta
+- type: numeric string
+- nullable: no
+- source: movement_events + player_dimension
+- transformation: weighted net inbound minus outbound value for offense_line group
+- business meaning: net impact signal for OL movement
+- validation rule: numeric
+
+- name: defense_front_value_delta
+- type: numeric string
+- nullable: no
+- source: movement_events + player_dimension
+- transformation: weighted net inbound minus outbound value for defense_front group
+- business meaning: net impact signal for DL/EDGE movement
+- validation rule: numeric
+
+- name: defense_second_level_value_delta
+- type: numeric string
+- nullable: no
+- source: movement_events + player_dimension
+- transformation: weighted net inbound minus outbound value for second-level defense group
+- business meaning: net impact signal for LB movement
+- validation rule: numeric
+
+- name: defense_secondary_value_delta
+- type: numeric string
+- nullable: no
+- source: movement_events + player_dimension
+- transformation: weighted net inbound minus outbound value for secondary group
+- business meaning: net impact signal for CB/S movement
+- validation rule: numeric
+
+- name: special_teams_value_delta
+- type: numeric string
+- nullable: no
+- source: movement_events + player_dimension
+- transformation: weighted net inbound minus outbound value for special_teams group
+- business meaning: net impact signal for ST specialist movement
+- validation rule: numeric
+
+- name: other_value_delta
+- type: numeric string
+- nullable: no
+- source: movement_events + player_dimension
+- transformation: weighted net inbound minus outbound value for uncategorized positions
+- business meaning: catch-all net impact signal for unmapped positions
+- validation rule: numeric
 
 - name: position_value_delta
 - type: numeric string
