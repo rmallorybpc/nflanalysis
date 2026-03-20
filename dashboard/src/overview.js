@@ -15,19 +15,20 @@ function setCard(el, title, value, meta) {
 
 function renderCards(payload) {
   const cards = payload.cards;
+  const confidenceLabel = (flag) => (flag ? "Low confidence" : "High confidence");
 
   setCard(
     document.getElementById("topPositiveCard"),
     `Top Positive (${cards.top_positive_team.team_id})`,
     fmt(cards.top_positive_team.mis_value),
-    `MISz ${fmt(cards.top_positive_team.mis_z)} | 90% [${fmt(cards.top_positive_team.interval_90.low)}, ${fmt(cards.top_positive_team.interval_90.high)}]`
+    `MISz ${fmt(cards.top_positive_team.mis_z)} | 90% [${fmt(cards.top_positive_team.interval_90.low)}, ${fmt(cards.top_positive_team.interval_90.high)}] | ${confidenceLabel(cards.top_positive_team.low_confidence_flag)}`
   );
 
   setCard(
     document.getElementById("topNegativeCard"),
     `Top Negative (${cards.top_negative_team.team_id})`,
     fmt(cards.top_negative_team.mis_value),
-    `MISz ${fmt(cards.top_negative_team.mis_z)} | 90% [${fmt(cards.top_negative_team.interval_90.low)}, ${fmt(cards.top_negative_team.interval_90.high)}]`
+    `MISz ${fmt(cards.top_negative_team.mis_z)} | 90% [${fmt(cards.top_negative_team.interval_90.low)}, ${fmt(cards.top_negative_team.interval_90.high)}] | ${confidenceLabel(cards.top_negative_team.low_confidence_flag)}`
   );
 
   setCard(
