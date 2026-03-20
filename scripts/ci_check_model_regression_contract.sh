@@ -397,4 +397,7 @@ python3 -m unittest dashboard.tests.test_overview_payload
 python3 -m unittest dashboard.tests.test_team_detail_payload
 python3 -m unittest dashboard.tests.test_scenario_sandbox_payload
 
+chmod +x scripts/ci_check_dashboard_contracts.sh
+./scripts/ci_check_dashboard_contracts.sh
+
 echo "Model regression contract checks passed."
