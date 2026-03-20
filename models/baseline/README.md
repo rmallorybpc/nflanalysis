@@ -29,3 +29,26 @@ Counterfactual logic:
 
 - Sets movement-driven feature columns to zero while preserving schedule strength.
 - MIS is computed as observed_prediction - counterfactual_prediction.
+
+## Issue #12: Time-Based Backtest Split Framework
+
+Run chronological train/validation/test backtest splits and evaluate metrics:
+
+```bash
+/usr/bin/python3 models/baseline/backtest_time_splits.py \
+  --features data/processed/team_week_features.csv \
+  --outcomes data/processed/team_week_outcomes.csv \
+  --splits-output data/processed/backtest_splits.csv \
+  --metrics-output models/artifacts/backtest_metrics.csv \
+  --predictions-output models/artifacts/backtest_predictions.csv \
+  --model-version baseline-ridge-v0.1.0-backtest \
+  --alpha 1.0 \
+  --train-ratio 0.6 \
+  --val-ratio 0.2
+```
+
+Backtest outputs:
+
+- data/processed/backtest_splits.csv
+- models/artifacts/backtest_metrics.csv
+- models/artifacts/backtest_predictions.csv
