@@ -132,6 +132,14 @@ Estimate marginal team performance impact of player movement, not just correlati
 
 ## 6) Dashboard Requirements
 
+### Live Pages (Local Preview)
+
+After starting the static server from `dashboard/src`, open:
+
+- [Overview](http://localhost:4173)
+- [Team Detail](http://localhost:4173/team.html)
+- [Scenario Sandbox](http://localhost:4173/scenario.html)
+
 ### Core Pages
 
 - Overview
