@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rmallorybpc.github.io/nflanalysis/schemas/team-detail.schema.json",
+  "title": "Team Detail Dashboard API Schema",
+  "type": "object",
+  "required": [
+    "team_id",
+    "season",
+    "generated_at",
+    "cards",
+    "timeline",
+    "charts"
+  ],
+  "properties": {
+    "team_id": {
+      "type": "string"
+    },
+    "season": {
+      "type": "integer",
+      "minimum": 2000
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cards": {
+      "type": "object",
+      "required": [
+        "current_mis",
+        "inbound_move_count",
+        "outbound_move_count",
+        "net_position_value_delta"
+      ],
+      "properties": {
+        "current_mis": {
+           "$ref": "#/$defs/TeamEstimateCard"
+        },
+        "inbound_move_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "outbound_move_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "net_position_value_delta": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+            "$ref": "#/$defs/MovementTimelineEvent"
+      }
+    },
+    "charts": {
+      "type": "object",
+      "required": [
+        "mis_trend",
+        "position_group_delta"
+      ],
+      "properties": {
+        "mis_trend": {
+          "type": "array",
+          "items": {
+              "$ref": "#/$defs/MisTrendPoint"
+          }
+        },
+        "position_group_delta": {
+          "type": "array",
+          "items": {
+              "$ref": "#/$defs/PositionGroupPoint"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "Interval": {
+      "type": "object",
+      "required": [
+        "low",
+        "high"
+      ],
+      "properties": {
+        "low": {
+          "type": "number"
+        },
+        "high": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TeamEstimateCard": {
+      "type": "object",
+      "required": [
+        "outcome_name",
+        "mis_value",
+        "mis_z",
+        "interval_50",
+        "interval_90",
+        "low_confidence_flag",
+        "model_version",
+        "data_version"
+      ],
+      "properties": {
+        "outcome_name": {
+          "type": "string",
+          "enum": [
+            "win_pct",
+            "point_diff_per_game",
+            "offensive_epa_per_play"
+          ]
+        },
+        "mis_value": {
+          "type": "number"
+        },
+        "mis_z": {
+          "type": "number"
+        },
+        "interval_50": {
+            "$ref": "#/$defs/Interval"
+        },
+        "interval_90": {
+            "$ref": "#/$defs/Interval"
+        },
+        "low_confidence_flag": {
+          "type": "boolean"
+        },
+        "model_version": {
+          "type": "string"
+        },
+        "data_version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MovementTimelineEvent": {
+      "type": "object",
+      "required": [
+        "move_id",
+        "event_date",
+        "effective_date",
+        "nfl_week",
+        "move_type",
+        "player_id",
+        "from_team_id",
+        "to_team_id",
+        "impact_estimate"
+      ],
+      "properties": {
+        "move_id": {
+          "type": "string"
+        },
+        "event_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "effective_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "nfl_week": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 23
+        },
+        "move_type": {
+          "type": "string",
+          "enum": [
+            "trade",
+            "free_agency"
+          ]
+        },
+        "player_id": {
+          "type": "string"
+        },
+        "from_team_id": {
+          "type": "string"
+        },
+        "to_team_id": {
+          "type": "string"
+        },
+        "impact_estimate": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MisTrendPoint": {
+      "type": "object",
+      "required": [
+        "nfl_week",
+        "outcome_name",
+        "mis_value",
+        "interval_90"
+      ],
+      "properties": {
+        "nfl_week": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 23
+        },
+        "outcome_name": {
+          "type": "string",
+          "enum": [
+            "win_pct",
+            "point_diff_per_game",
+            "offensive_epa_per_play"
+          ]
+        },
+        "mis_value": {
+          "type": "number"
+        },
+        "interval_90": {
+          "$ref": "#/$defs/Interval"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PositionGroupPoint": {
+      "type": "object",
+      "required": [
+        "position_group",
+        "value_delta"
+      ],
+      "properties": {
+        "position_group": {
+          "type": "string"
+        },
+        "value_delta": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

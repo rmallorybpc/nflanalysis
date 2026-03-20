@@ -48,6 +48,26 @@ if [[ ! -f api/tests/test_counterfactual_service.py ]]; then
   exit 1
 fi
 
+if [[ ! -f api/schemas/movement-impact.schema.json ]]; then
+  echo "Missing api/schemas/movement-impact.schema.json"
+  exit 1
+fi
+
+if [[ ! -f api/schemas/overview-dashboard.schema.json ]]; then
+  echo "Missing api/schemas/overview-dashboard.schema.json"
+  exit 1
+fi
+
+if [[ ! -f api/schemas/team-detail.schema.json ]]; then
+  echo "Missing api/schemas/team-detail.schema.json"
+  exit 1
+fi
+
+if [[ ! -f api/schemas/scenario-sandbox.schema.json ]]; then
+  echo "Missing api/schemas/scenario-sandbox.schema.json"
+  exit 1
+fi
+
 if [[ ! -f data/processed/model_outputs.csv ]]; then
   echo "Missing data/processed/model_outputs.csv"
   exit 1
@@ -271,6 +291,30 @@ if missing:
   raise SystemExit(f"hierarchical_effects.csv missing columns: {sorted(missing)}")
 
 print(f"validated hierarchical artifacts: outputs={len(rows)} effects={len(effect_rows)}")
+PY
+
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+schema_paths = [
+  Path("api/schemas/movement-impact.schema.json"),
+  Path("api/schemas/overview-dashboard.schema.json"),
+  Path("api/schemas/team-detail.schema.json"),
+  Path("api/schemas/scenario-sandbox.schema.json"),
+]
+
+for path in schema_paths:
+  with path.open(encoding="utf-8") as f:
+    payload = json.load(f)
+  required_top_level = {"$schema", "$id", "title", "type", "properties"}
+  missing = required_top_level - set(payload.keys())
+  if missing:
+    raise SystemExit(f"{path} missing top-level fields: {sorted(missing)}")
+  if payload.get("type") != "object":
+    raise SystemExit(f"{path} must have top-level type=object")
+
+print(f"validated api schema files: {len(schema_paths)}")
 PY
 
 python3 -m unittest api.tests.test_counterfactual_service
