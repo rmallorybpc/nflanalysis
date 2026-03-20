@@ -40,6 +40,13 @@ grep -q "nfl_calendar_mapping" docs/data-dictionary.md || {
   exit 1
 }
 
+for section in nfl_calendar_mapping movement_events player_dimension team_week_outcomes team_week_features model_outputs; do
+  grep -q "## ${section}" docs/data-dictionary.md || {
+    echo "data-dictionary.md missing section: ${section}"
+    exit 1
+  }
+done
+
 python3 - <<'PY'
 import csv
 from datetime import date

@@ -405,6 +405,257 @@ Fields:
 - business meaning: load timestamp for reproducibility and debugging
 - validation rule: ISO 8601 UTC string ending with Z
 
+## team_week_features
+
+Canonical feature table keyed by team-week for model training and inference.
+
+Primary key:
+
+- (team_id, nfl_season, nfl_week)
+
+Core required fields (MVP contract):
+
+- team_id
+- nfl_season
+- nfl_week
+- roster_churn_rate
+- inbound_move_count
+- outbound_move_count
+- position_value_delta
+- schedule_strength_index
+- feature_version
+
+Fields:
+
+- name: team_id
+- type: string
+- nullable: no
+- source: derived joins from canonical processed tables
+- transformation: pass-through key
+- business meaning: team entity key
+- validation rule: non-empty
+
+- name: nfl_season
+- type: integer-like string
+- nullable: no
+- source: derived joins from canonical processed tables
+- transformation: pass-through key
+- business meaning: season key for feature row
+- validation rule: non-empty and numeric-like
+
+- name: nfl_week
+- type: integer-like string
+- nullable: no
+- source: derived joins from canonical processed tables
+- transformation: pass-through key
+- business meaning: week key for feature row
+- validation rule: non-empty and numeric-like
+
+- name: roster_churn_rate
+- type: numeric string
+- nullable: no
+- source: movement_events + roster snapshot logic
+- transformation: normalized movement count over roster baseline
+- business meaning: week-level roster turnover intensity
+- validation rule: numeric and >= 0
+
+- name: inbound_move_count
+- type: integer-like string
+- nullable: no
+- source: movement_events
+- transformation: count of incoming movement events by team-week
+- business meaning: acquisition volume signal
+- validation rule: integer >= 0
+
+- name: outbound_move_count
+- type: integer-like string
+- nullable: no
+- source: movement_events
+- transformation: count of outgoing movement events by team-week
+- business meaning: departure volume signal
+- validation rule: integer >= 0
+
+- name: position_value_delta
+- type: numeric string
+- nullable: no
+- source: movement_events + player_dimension
+- transformation: weighted inbound minus outbound positional value estimate
+- business meaning: net talent movement signal for a team-week
+- validation rule: numeric
+
+- name: schedule_strength_index
+- type: numeric string
+- nullable: no
+- source: team_week_outcomes and opponent history features
+- transformation: normalized opponent-quality indicator
+- business meaning: schedule difficulty control
+- validation rule: numeric
+
+- name: feature_version
+- type: string
+- nullable: no
+- source: feature pipeline runtime
+- transformation: semantic version tag
+- business meaning: reproducible feature set identifier
+- validation rule: non-empty
+
+## model_outputs
+
+Canonical model output table for observed and counterfactual estimates.
+
+Primary key:
+
+- (team_id, nfl_season, nfl_week, outcome_name, model_version)
+
+Core required fields (MVP contract):
+
+- team_id
+- nfl_season
+- nfl_week
+- outcome_name
+- observed_prediction
+- counterfactual_prediction
+- mis_value
+- mis_z
+- interval_50_low
+- interval_50_high
+- interval_90_low
+- interval_90_high
+- low_confidence_flag
+- model_version
+- data_version
+- generated_at
+
+Fields:
+
+- name: team_id
+- type: string
+- nullable: no
+- source: model inference output keyed to canonical entities
+- transformation: pass-through key
+- business meaning: team entity key
+- validation rule: non-empty
+
+- name: nfl_season
+- type: integer-like string
+- nullable: no
+- source: model inference output
+- transformation: pass-through key
+- business meaning: season key for estimate
+- validation rule: non-empty and numeric-like
+
+- name: nfl_week
+- type: integer-like string
+- nullable: no
+- source: model inference output
+- transformation: pass-through key
+- business meaning: week key for estimate
+- validation rule: non-empty and numeric-like
+
+- name: outcome_name
+- type: string enum (win_pct, point_diff_per_game, offensive_epa_per_play)
+- nullable: no
+- source: model target configuration
+- transformation: validated against allowed outcomes
+- business meaning: target metric for prediction row
+- validation rule: one of allowed enum values
+
+- name: observed_prediction
+- type: numeric string
+- nullable: no
+- source: model inference output
+- transformation: predicted value under observed movement
+- business meaning: expected outcome with observed roster events
+- validation rule: numeric
+
+- name: counterfactual_prediction
+- type: numeric string
+- nullable: no
+- source: model inference output
+- transformation: predicted value under no-move scenario
+- business meaning: baseline expected outcome without movement events
+- validation rule: numeric
+
+- name: mis_value
+- type: numeric string
+- nullable: no
+- source: derived from model output
+- transformation: observed_prediction - counterfactual_prediction
+- business meaning: movement impact score in native outcome units
+- validation rule: numeric
+
+- name: mis_z
+- type: numeric string
+- nullable: no
+- source: derived from model output
+- transformation: season-outcome standardized MIS
+- business meaning: cross-season comparable impact score
+- validation rule: numeric
+
+- name: interval_50_low
+- type: numeric string
+- nullable: no
+- source: model uncertainty output
+- transformation: lower bound of 50% interval
+- business meaning: uncertainty bound for estimate
+- validation rule: numeric and <= interval_50_high
+
+- name: interval_50_high
+- type: numeric string
+- nullable: no
+- source: model uncertainty output
+- transformation: upper bound of 50% interval
+- business meaning: uncertainty bound for estimate
+- validation rule: numeric and >= interval_50_low
+
+- name: interval_90_low
+- type: numeric string
+- nullable: no
+- source: model uncertainty output
+- transformation: lower bound of 90% interval
+- business meaning: uncertainty bound for estimate
+- validation rule: numeric and <= interval_90_high
+
+- name: interval_90_high
+- type: numeric string
+- nullable: no
+- source: model uncertainty output
+- transformation: upper bound of 90% interval
+- business meaning: uncertainty bound for estimate
+- validation rule: numeric and >= interval_90_low
+
+- name: low_confidence_flag
+- type: boolean-like string
+- nullable: no
+- source: derived from interval width threshold rule
+- transformation: true when estimate uncertainty exceeds threshold
+- business meaning: confidence indicator for dashboard presentation
+- validation rule: one of true/false
+
+- name: model_version
+- type: string
+- nullable: no
+- source: model runtime metadata
+- transformation: pass-through metadata
+- business meaning: reproducible model artifact identifier
+- validation rule: non-empty
+
+- name: data_version
+- type: string
+- nullable: no
+- source: model runtime metadata
+- transformation: pass-through metadata
+- business meaning: reproducible input data version identifier
+- validation rule: non-empty
+
+- name: generated_at
+- type: datetime (UTC)
+- nullable: no
+- source: model runtime
+- transformation: generated timestamp
+- business meaning: inference generation time
+- validation rule: ISO 8601 UTC string ending with Z
+
 ## Template
 
 For each field, document:
