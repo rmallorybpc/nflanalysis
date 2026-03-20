@@ -11,6 +11,7 @@ required_paths=(
   "data/processed/movement_events.csv"
   "data/processed/player_dimension.csv"
   "data/processed/team_week_outcomes.csv"
+  "data/processed/team_week_features.csv"
 )
 
 for path in "${required_paths[@]}"; do
@@ -211,6 +212,57 @@ PY
 python3 - <<'PY'
 import csv
 
+path = "data/processed/team_week_features.csv"
+required = {
+  "team_id",
+  "nfl_season",
+  "nfl_week",
+  "roster_churn_rate",
+  "inbound_move_count",
+  "outbound_move_count",
+  "position_value_delta",
+  "schedule_strength_index",
+  "feature_version",
+  "generated_at",
+}
+
+with open(path, newline="", encoding="utf-8") as f:
+  rows = list(csv.DictReader(f))
+
+if not rows:
+  raise SystemExit("team_week_features.csv is empty")
+
+missing = required - set(rows[0].keys())
+if missing:
+  raise SystemExit(f"team_week_features.csv missing required columns: {sorted(missing)}")
+
+seen = set()
+for row in rows:
+  team_id = row["team_id"].strip()
+  season = row["nfl_season"].strip()
+  week = row["nfl_week"].strip()
+  if not team_id or not season or not week:
+    raise SystemExit("team_week_features.csv has empty team_id/nfl_season/nfl_week")
+
+  key = (team_id, season, week)
+  if key in seen:
+    raise SystemExit(f"duplicate feature key: {key}")
+  seen.add(key)
+
+  churn = float(row["roster_churn_rate"])
+  inbound = int(row["inbound_move_count"])
+  outbound = int(row["outbound_move_count"])
+  if churn < 0:
+    raise SystemExit(f"negative roster_churn_rate for key={key}")
+  if inbound < 0 or outbound < 0:
+    raise SystemExit(f"negative move count for key={key}")
+
+print(f"validated team-week feature rows: {len(rows)}")
+PY
+
+python3 - <<'PY'
+import csv
+
 
 def read_rows(path: str):
   with open(path, newline="", encoding="utf-8") as f:
@@ -221,6 +273,7 @@ calendar_rows = read_rows("data/external/nfl_calendar_mapping.csv")
 movement_rows = read_rows("data/processed/movement_events.csv")
 player_rows = read_rows("data/processed/player_dimension.csv")
 team_week_rows = read_rows("data/processed/team_week_outcomes.csv")
+feature_rows = read_rows("data/processed/team_week_features.csv")
 
 calendar_by_date = {r["calendar_date"]: r for r in calendar_rows}
 player_ids = {r["player_id"].strip() for r in player_rows}
@@ -258,6 +311,16 @@ for row in team_week_rows:
 
   if wins + losses + ties != games_played:
     raise SystemExit(f"team_week_outcomes W/L/T sum mismatch for key={key}")
+
+feature_keys = {(r["team_id"].strip(), r["nfl_season"].strip(), r["nfl_week"].strip()) for r in feature_rows}
+outcome_keys = {(r["team_id"].strip(), r["nfl_season"].strip(), r["nfl_week"].strip()) for r in team_week_rows}
+
+if feature_keys != outcome_keys:
+  missing = sorted(outcome_keys - feature_keys)
+  extra = sorted(feature_keys - outcome_keys)
+  raise SystemExit(
+    f"team_week_features keys mismatch outcomes; missing={missing[:3]} extra={extra[:3]}"
+  )
 
 print("validated cross-table consistency checks")
 PY
