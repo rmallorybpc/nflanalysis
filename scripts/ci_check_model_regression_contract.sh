@@ -63,13 +63,38 @@ if [[ ! -f dashboard/src/overview.js ]]; then
   exit 1
 fi
 
+if [[ ! -f dashboard/src/team.html ]]; then
+  echo "Missing dashboard/src/team.html"
+  exit 1
+fi
+
+if [[ ! -f dashboard/src/team.css ]]; then
+  echo "Missing dashboard/src/team.css"
+  exit 1
+fi
+
+if [[ ! -f dashboard/src/team.js ]]; then
+  echo "Missing dashboard/src/team.js"
+  exit 1
+fi
+
 if [[ ! -f dashboard/public/overview.sample.json ]]; then
   echo "Missing dashboard/public/overview.sample.json"
   exit 1
 fi
 
+if [[ ! -f dashboard/public/team-detail.sample.json ]]; then
+  echo "Missing dashboard/public/team-detail.sample.json"
+  exit 1
+fi
+
 if [[ ! -f dashboard/tests/test_overview_payload.py ]]; then
   echo "Missing dashboard/tests/test_overview_payload.py"
+  exit 1
+fi
+
+if [[ ! -f dashboard/tests/test_team_detail_payload.py ]]; then
+  echo "Missing dashboard/tests/test_team_detail_payload.py"
   exit 1
 fi
 
@@ -344,5 +369,6 @@ PY
 
 python3 -m unittest api.tests.test_counterfactual_service
 python3 -m unittest dashboard.tests.test_overview_payload
+python3 -m unittest dashboard.tests.test_team_detail_payload
 
 echo "Model regression contract checks passed."

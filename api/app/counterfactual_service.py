@@ -240,6 +240,131 @@ class CounterfactualService:
             "_counterfactual_prediction": round(counterfactual, 6),
         }
 
+    def build_team_detail_payload(self, team_id: str, season: int) -> dict[str, Any]:
+        """Build team detail dashboard payload using schema contract fields."""
+
+        team_rows = [
+            row
+            for row in self.model_rows
+            if row["team_id"].strip() == team_id and int(row["nfl_season"]) == season
+        ]
+        if not team_rows:
+            raise ValueError(f"no model outputs found for team_id={team_id} season={season}")
+
+        team_rows.sort(key=lambda row: int(row["nfl_week"]))
+        latest_week = int(team_rows[-1]["nfl_week"])
+        latest_rows = [row for row in team_rows if int(row["nfl_week"]) == latest_week]
+
+        win_pct_row = next((row for row in latest_rows if row["outcome_name"].strip() == "win_pct"), latest_rows[0])
+
+        features = _read_csv(Path("data/processed/team_week_features.csv"))
+        feature_row = next(
+            (
+                row
+                for row in features
+                if row["team_id"].strip() == team_id
+                and int(row["nfl_season"]) == season
+                and int(row["nfl_week"]) == latest_week
+            ),
+            None,
+        )
+        if feature_row is None:
+            raise ValueError(f"missing feature row for team_id={team_id} season={season} week={latest_week}")
+
+        movement_rows = _read_csv(Path("data/processed/movement_events.csv"))
+        relevant_moves = []
+        for row in movement_rows:
+            if row.get("season_phase", "").strip() != "regular":
+                continue
+            if row.get("nfl_season", "").strip() != str(season):
+                continue
+            if row.get("to_team_id", "").strip() != team_id and row.get("from_team_id", "").strip() != team_id:
+                continue
+
+            sign = 1.0 if row.get("to_team_id", "").strip() == team_id else -1.0
+            player_id = row.get("player_id", "").strip()
+            impact = sign * self.effect_map.get(("win_pct", "player", player_id), 0.0)
+
+            relevant_moves.append(
+                {
+                    "move_id": row.get("move_id", "").strip(),
+                    "event_date": row.get("event_date", "").strip(),
+                    "effective_date": row.get("effective_date", "").strip(),
+                    "nfl_week": int(row.get("nfl_week", "0") or "0"),
+                    "move_type": row.get("move_type", "").strip(),
+                    "player_id": player_id,
+                    "from_team_id": row.get("from_team_id", "").strip(),
+                    "to_team_id": row.get("to_team_id", "").strip(),
+                    "impact_estimate": round(impact, 6),
+                }
+            )
+
+        relevant_moves.sort(key=lambda row: (row["nfl_week"], row["event_date"], row["move_id"]))
+
+        trend_rows = [
+            row
+            for row in team_rows
+            if row["outcome_name"].strip() in {"win_pct", "point_diff_per_game", "offensive_epa_per_play"}
+        ]
+        trend_rows.sort(key=lambda row: (int(row["nfl_week"]), row["outcome_name"]))
+
+        mis_trend = [
+            {
+                "nfl_week": int(row["nfl_week"]),
+                "outcome_name": row["outcome_name"].strip(),
+                "mis_value": round(_to_float(row["mis_value"], "mis_value"), 6),
+                "interval_90": _interval(
+                    _to_float(row["interval_90_low"], "interval_90_low"),
+                    _to_float(row["interval_90_high"], "interval_90_high"),
+                ),
+            }
+            for row in trend_rows
+        ]
+
+        position_group_delta = [
+            {"position_group": "offense_skill", "value_delta": round(_to_float(feature_row["offense_skill_value_delta"], "offense_skill_value_delta"), 6)},
+            {"position_group": "offense_line", "value_delta": round(_to_float(feature_row["offense_line_value_delta"], "offense_line_value_delta"), 6)},
+            {"position_group": "defense_front", "value_delta": round(_to_float(feature_row["defense_front_value_delta"], "defense_front_value_delta"), 6)},
+            {"position_group": "defense_second_level", "value_delta": round(_to_float(feature_row["defense_second_level_value_delta"], "defense_second_level_value_delta"), 6)},
+            {"position_group": "defense_secondary", "value_delta": round(_to_float(feature_row["defense_secondary_value_delta"], "defense_secondary_value_delta"), 6)},
+            {"position_group": "special_teams", "value_delta": round(_to_float(feature_row["special_teams_value_delta"], "special_teams_value_delta"), 6)},
+            {"position_group": "other", "value_delta": round(_to_float(feature_row["other_value_delta"], "other_value_delta"), 6)},
+        ]
+
+        current_mis = {
+            "outcome_name": win_pct_row["outcome_name"].strip(),
+            "mis_value": round(_to_float(win_pct_row["mis_value"], "mis_value"), 6),
+            "mis_z": round(_to_float(win_pct_row["mis_z"], "mis_z"), 6),
+            "interval_50": _interval(
+                _to_float(win_pct_row["interval_50_low"], "interval_50_low"),
+                _to_float(win_pct_row["interval_50_high"], "interval_50_high"),
+            ),
+            "interval_90": _interval(
+                _to_float(win_pct_row["interval_90_low"], "interval_90_low"),
+                _to_float(win_pct_row["interval_90_high"], "interval_90_high"),
+            ),
+            "low_confidence_flag": win_pct_row["low_confidence_flag"].strip().lower() == "true",
+            "model_version": win_pct_row["model_version"].strip(),
+            "data_version": win_pct_row["data_version"].strip(),
+        }
+
+        return {
+            "team_id": team_id,
+            "season": season,
+            "generated_at": win_pct_row["generated_at"].strip(),
+            "cards": {
+                "current_mis": current_mis,
+                "inbound_move_count": int(_to_float(feature_row["inbound_move_count"], "inbound_move_count")),
+                "outbound_move_count": int(_to_float(feature_row["outbound_move_count"], "outbound_move_count")),
+                "net_position_value_delta": round(_to_float(feature_row["position_value_delta"], "position_value_delta"), 6),
+            },
+            "timeline": relevant_moves,
+            "charts": {
+                "mis_trend": mis_trend,
+                "position_group_delta": position_group_delta,
+            },
+        }
+
     def simulate(
         self,
         *,

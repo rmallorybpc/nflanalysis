@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NFL Team Detail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./team.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="hero">
+        <p class="label">Team Detail</p>
+        <h1 id="title">Team --</h1>
+        <p id="meta">Season --</p>
+      </header>
+
+      <section class="cards">
+        <article class="card" id="cardCurrent"></article>
+        <article class="card" id="cardMoves"></article>
+        <article class="card" id="cardPosition"></article>
+      </section>
+
+      <section class="grid">
+        <article class="panel">
+          <h2>Movement Timeline</h2>
+          <div id="timeline" class="timeline"></div>
+        </article>
+        <article class="panel">
+          <h2>MIS Trend</h2>
+          <div id="trend" class="trend"></div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <h2>Position Group Delta</h2>
+        <div id="position" class="position"></div>
+      </section>
+    </main>
+
+    <template id="timelineTemplate">
+      <div class="timeline-item">
+        <div class="timeline-week"></div>
+        <div class="timeline-content"></div>
+      </div>
+    </template>
+
+    <template id="trendTemplate">
+      <div class="trend-row">
+        <div class="trend-label"></div>
+        <div class="trend-track"><div class="trend-fill"></div></div>
+        <div class="trend-value"></div>
+      </div>
+    </template>
+
+    <template id="positionTemplate">
+      <div class="position-row">
+        <div class="position-label"></div>
+        <div class="position-value"></div>
+      </div>
+    </template>
+
+    <script type="module" src="./team.js"></script>
+  </body>
+</html>

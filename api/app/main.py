@@ -70,6 +70,23 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # pylint: disable=broad-except
                 self._write_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
                 return
+        if parsed.path == "/v1/dashboard/team-detail":
+            try:
+                params = parse_qs(parsed.query)
+                team_id = params.get("team_id", [None])[0]
+                if not team_id:
+                    raise ValueError("team_id query param is required")
+                season_raw = params.get("season", [None])[0]
+                if season_raw is None:
+                    season = max(int(row["nfl_season"]) for row in SERVICE.model_rows)
+                else:
+                    season = int(season_raw)
+                payload = SERVICE.build_team_detail_payload(team_id=str(team_id).strip(), season=season)
+                self._write_json(HTTPStatus.OK, payload)
+                return
+            except Exception as exc:  # pylint: disable=broad-except
+                self._write_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+                return
         self._write_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
 
     def do_POST(self) -> None:  # noqa: N802

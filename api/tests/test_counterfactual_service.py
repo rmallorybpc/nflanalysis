@@ -105,6 +105,26 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertGreaterEqual(len(charts["league_ranking"]), 1)
         self.assertGreaterEqual(len(charts["outcome_distribution"]), 1)
 
+    def test_team_detail_payload_contains_required_sections(self) -> None:
+        payload = self.service.build_team_detail_payload(team_id="BUF", season=2024)
+
+        self.assertEqual(payload["team_id"], "BUF")
+        self.assertEqual(payload["season"], 2024)
+        self.assertIn("generated_at", payload)
+        self.assertIn("cards", payload)
+        self.assertIn("timeline", payload)
+        self.assertIn("charts", payload)
+
+        cards = payload["cards"]
+        self.assertIn("current_mis", cards)
+        self.assertIn("inbound_move_count", cards)
+        self.assertIn("outbound_move_count", cards)
+        self.assertIn("net_position_value_delta", cards)
+
+        charts = payload["charts"]
+        self.assertGreaterEqual(len(charts["mis_trend"]), 1)
+        self.assertGreaterEqual(len(charts["position_group_delta"]), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

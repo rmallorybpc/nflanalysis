@@ -41,3 +41,15 @@ Response contract:
 
 - Top-level keys: `team_impact`, `scenario_output`
 - Includes estimate-level uncertainty (`interval_50`, `interval_90`) and confidence flags.
+
+Overview dashboard payload:
+
+```bash
+curl -s "http://localhost:8080/v1/dashboard/overview?season=2024"
+```
+
+Team detail payload:
+
+```bash
+curl -s "http://localhost:8080/v1/dashboard/team-detail?team_id=BUF&season=2024"
+```
