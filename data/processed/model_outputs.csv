@@ -1,0 +1,13 @@
+team_id,nfl_season,nfl_week,outcome_name,observed_prediction,counterfactual_prediction,mis_value,mis_z,interval_50_low,interval_50_high,interval_90_low,interval_90_high,low_confidence_flag,model_version,data_version,generated_at
+BAL,2023,9,offensive_epa_per_play,0.110138,0.034508,0.075630,0.884521,0.066444,0.084816,0.053210,0.098050,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
+BAL,2023,9,point_diff_per_game,6.661189,1.088784,5.572406,0.988118,5.383531,5.761280,5.111429,6.033382,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
+BAL,2023,9,win_pct,0.975799,0.577770,0.398029,0.988118,0.384538,0.411520,0.365102,0.430956,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
+BUF,2024,6,offensive_epa_per_play,0.128858,0.034508,0.094350,1.103459,0.085164,0.103536,0.071930,0.116770,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
+BUF,2024,6,point_diff_per_game,6.794419,1.088784,5.705636,1.011743,5.516761,5.894510,5.244659,6.166612,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
+BUF,2024,6,win_pct,0.985316,0.577770,0.407545,1.011743,0.394054,0.421036,0.374619,0.440472,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
+NYJ,2024,6,offensive_epa_per_play,-0.091858,0.002492,-0.094350,-1.103459,-0.103536,-0.085164,-0.116770,-0.071930,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
+NYJ,2024,6,point_diff_per_game,-6.794419,-1.088784,-5.705636,-1.011743,-5.894510,-5.516761,-6.166612,-5.244659,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
+NYJ,2024,6,win_pct,0.014684,0.422230,-0.407545,-1.011743,-0.421036,-0.394054,-0.440472,-0.374619,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
+SEA,2023,9,offensive_epa_per_play,-0.073138,0.002492,-0.075630,-0.884521,-0.084816,-0.066444,-0.098050,-0.053210,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
+SEA,2023,9,point_diff_per_game,-6.661189,-1.088784,-5.572406,-0.988118,-5.761280,-5.383531,-6.033382,-5.111429,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
+SEA,2023,9,win_pct,0.024201,0.422230,-0.398029,-0.988118,-0.411520,-0.384538,-0.430956,-0.365102,true,baseline-ridge-v0.1.0,features-0.3.0,2026-03-20T14:43:18Z
