@@ -33,6 +33,21 @@ if [[ ! -f models/hierarchical/train_hierarchical_model.py ]]; then
   exit 1
 fi
 
+if [[ ! -f api/app/counterfactual_service.py ]]; then
+  echo "Missing api/app/counterfactual_service.py"
+  exit 1
+fi
+
+if [[ ! -f api/app/main.py ]]; then
+  echo "Missing api/app/main.py"
+  exit 1
+fi
+
+if [[ ! -f api/tests/test_counterfactual_service.py ]]; then
+  echo "Missing api/tests/test_counterfactual_service.py"
+  exit 1
+fi
+
 if [[ ! -f data/processed/model_outputs.csv ]]; then
   echo "Missing data/processed/model_outputs.csv"
   exit 1
@@ -257,5 +272,7 @@ if missing:
 
 print(f"validated hierarchical artifacts: outputs={len(rows)} effects={len(effect_rows)}")
 PY
+
+python3 -m unittest api.tests.test_counterfactual_service
 
 echo "Model regression contract checks passed."
