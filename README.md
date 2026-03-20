@@ -132,13 +132,13 @@ Estimate marginal team performance impact of player movement, not just correlati
 
 ## 6) Dashboard Requirements
 
-### Live Pages (Local Preview)
+### Live Pages
 
-After starting the static server from `dashboard/src`, open:
+Main branch live pages:
 
-- [Overview](http://localhost:4173)
-- [Team Detail](http://localhost:4173/team.html)
-- [Scenario Sandbox](http://localhost:4173/scenario.html)
+- [Overview](https://rmallorybpc.github.io/nflanalysis/dashboard/src/)
+- [Team Detail](https://rmallorybpc.github.io/nflanalysis/dashboard/src/team.html)
+- [Scenario Sandbox](https://rmallorybpc.github.io/nflanalysis/dashboard/src/scenario.html)
 
 ### Core Pages
 
