@@ -53,8 +53,8 @@ function renderEstimates(containerId, rows) {
   rows.forEach((row) => {
     const node = template.content.firstElementChild.cloneNode(true);
     node.querySelector(".estimate-outcome").textContent = row.outcome_name;
-    node.querySelector(".estimate-mis").textContent = fmt(row.mis_value);
-    node.querySelector(".estimate-int").textContent = `90% [${fmt(row.interval_90.low)}, ${fmt(row.interval_90.high)}]`;
+    node.querySelector(".estimate-mis").textContent = `${fmt(row.mis_value)} (z ${fmt(row.mis_z)})`;
+    node.querySelector(".estimate-int").textContent = `Median ${fmt(row.median)} | 50% [${fmt(row.interval_50.low)}, ${fmt(row.interval_50.high)}] | 90% [${fmt(row.interval_90.low)}, ${fmt(row.interval_90.high)}] | ${row.low_confidence_flag ? "Low confidence" : "High confidence"}`;
     container.appendChild(node);
   });
 }

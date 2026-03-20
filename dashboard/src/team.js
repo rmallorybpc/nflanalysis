@@ -15,7 +15,7 @@ function renderCards(payload) {
     document.getElementById("cardCurrent"),
     "Current MIS",
     fmt(cards.current_mis.mis_value),
-    `${cards.current_mis.outcome_name} | z ${fmt(cards.current_mis.mis_z)}`
+    `${cards.current_mis.outcome_name} | z ${fmt(cards.current_mis.mis_z)} | 50% [${fmt(cards.current_mis.interval_50.low)}, ${fmt(cards.current_mis.interval_50.high)}] | 90% [${fmt(cards.current_mis.interval_90.low)}, ${fmt(cards.current_mis.interval_90.high)}] | ${cards.current_mis.low_confidence_flag ? "Low confidence" : "High confidence"}`
   );
   setCard(
     document.getElementById("cardMoves"),
@@ -68,7 +68,7 @@ function renderTrend(payload) {
       row.mis_value >= 0
         ? "linear-gradient(90deg, #0f7f7c, #57b7a9)"
         : "linear-gradient(90deg, #cf6330, #ef9a66)";
-    node.querySelector(".trend-value").textContent = fmt(row.mis_value);
+    node.querySelector(".trend-value").textContent = `${fmt(row.mis_value)} | 90% [${fmt(row.interval_90.low)}, ${fmt(row.interval_90.high)}]`;
     container.appendChild(node);
   });
 }
