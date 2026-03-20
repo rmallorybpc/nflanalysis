@@ -1,0 +1,4 @@
+test_name,team_id,nfl_season,nfl_week,outcome_name,value,generated_at
+placebo,ALL,ALL,ALL,win_pct,0.402787,2026-03-20T14:58:08Z
+placebo,ALL,ALL,ALL,point_diff_per_game,5.639021,2026-03-20T14:58:08Z
+placebo,ALL,ALL,ALL,offensive_epa_per_play,0.084990,2026-03-20T14:58:08Z

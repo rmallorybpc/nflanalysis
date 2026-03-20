@@ -1,0 +1,10 @@
+test_name,outcome_name,statistic_name,statistic_value,n_units,notes,generated_at
+pretrend,win_pct,mean_pretrend_slope,0.000000,0,lower absolute slope suggests better pre-trend balance,2026-03-20T14:58:08Z
+pretrend,point_diff_per_game,mean_pretrend_slope,0.000000,0,lower absolute slope suggests better pre-trend balance,2026-03-20T14:58:08Z
+pretrend,offensive_epa_per_play,mean_pretrend_slope,0.000000,0,lower absolute slope suggests better pre-trend balance,2026-03-20T14:58:08Z
+placebo,win_pct,one_sided_p_value,1.000000,200,fraction of placebo means >= actual treated mean |MIS|,2026-03-20T14:58:08Z
+placebo,win_pct,actual_treated_mean_abs_mis,0.402787,4,reference value used against placebo distribution,2026-03-20T14:58:08Z
+placebo,point_diff_per_game,one_sided_p_value,1.000000,200,fraction of placebo means >= actual treated mean |MIS|,2026-03-20T14:58:08Z
+placebo,point_diff_per_game,actual_treated_mean_abs_mis,5.639021,4,reference value used against placebo distribution,2026-03-20T14:58:08Z
+placebo,offensive_epa_per_play,one_sided_p_value,1.000000,200,fraction of placebo means >= actual treated mean |MIS|,2026-03-20T14:58:08Z
+placebo,offensive_epa_per_play,actual_treated_mean_abs_mis,0.084990,4,reference value used against placebo distribution,2026-03-20T14:58:08Z

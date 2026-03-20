@@ -52,3 +52,24 @@ Backtest outputs:
 - data/processed/backtest_splits.csv
 - models/artifacts/backtest_metrics.csv
 - models/artifacts/backtest_predictions.csv
+
+## Issue #13: Pre-Trend and Placebo Validation
+
+Run pre-trend and placebo diagnostics on movement impact estimates:
+
+```bash
+/usr/bin/python3 models/baseline/validate_pretrend_placebo.py \
+  --movement data/processed/movement_events.csv \
+  --outcomes data/processed/team_week_outcomes.csv \
+  --model-outputs data/processed/model_outputs.csv \
+  --summary-output models/artifacts/pretrend_placebo_summary.csv \
+  --detail-output models/artifacts/pretrend_placebo_details.csv \
+  --pretrend-lookback 2 \
+  --placebo-iterations 200 \
+  --seed 42
+```
+
+Validation outputs:
+
+- models/artifacts/pretrend_placebo_summary.csv
+- models/artifacts/pretrend_placebo_details.csv

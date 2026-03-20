@@ -23,6 +23,11 @@ if [[ ! -f models/baseline/backtest_time_splits.py ]]; then
   exit 1
 fi
 
+if [[ ! -f models/baseline/validate_pretrend_placebo.py ]]; then
+  echo "Missing models/baseline/validate_pretrend_placebo.py"
+  exit 1
+fi
+
 if [[ ! -f data/processed/model_outputs.csv ]]; then
   echo "Missing data/processed/model_outputs.csv"
   exit 1
@@ -45,6 +50,16 @@ fi
 
 if [[ ! -f models/artifacts/backtest_predictions.csv ]]; then
   echo "Missing models/artifacts/backtest_predictions.csv"
+  exit 1
+fi
+
+if [[ ! -f models/artifacts/pretrend_placebo_summary.csv ]]; then
+  echo "Missing models/artifacts/pretrend_placebo_summary.csv"
+  exit 1
+fi
+
+if [[ ! -f models/artifacts/pretrend_placebo_details.csv ]]; then
+  echo "Missing models/artifacts/pretrend_placebo_details.csv"
   exit 1
 fi
 
@@ -133,6 +148,39 @@ for row in metric_rows:
     raise SystemExit("backtest_metrics.csv contains non-positive n_rows")
 
 print(f"validated backtest artifacts: splits={len(split_rows)} metrics={len(metric_rows)}")
+PY
+
+python3 - <<'PY'
+import csv
+
+summary_path = "models/artifacts/pretrend_placebo_summary.csv"
+detail_path = "models/artifacts/pretrend_placebo_details.csv"
+
+with open(summary_path, newline="", encoding="utf-8") as f:
+  summary_rows = list(csv.DictReader(f))
+if not summary_rows:
+  raise SystemExit("pretrend_placebo_summary.csv is empty")
+
+required_summary = {"test_name", "outcome_name", "statistic_name", "statistic_value", "n_units", "notes", "generated_at"}
+missing = required_summary - set(summary_rows[0].keys())
+if missing:
+  raise SystemExit(f"pretrend_placebo_summary.csv missing columns: {sorted(missing)}")
+
+test_names = {r["test_name"].strip() for r in summary_rows}
+if not {"pretrend", "placebo"}.issubset(test_names):
+  raise SystemExit(f"pretrend_placebo_summary.csv missing test groups: {test_names}")
+
+with open(detail_path, newline="", encoding="utf-8") as f:
+  detail_rows = list(csv.DictReader(f))
+if not detail_rows:
+  raise SystemExit("pretrend_placebo_details.csv is empty")
+
+required_detail = {"test_name", "team_id", "nfl_season", "nfl_week", "outcome_name", "value", "generated_at"}
+missing = required_detail - set(detail_rows[0].keys())
+if missing:
+  raise SystemExit(f"pretrend_placebo_details.csv missing columns: {sorted(missing)}")
+
+print(f"validated pretrend/placebo artifacts: summary={len(summary_rows)} details={len(detail_rows)}")
 PY
 
 echo "Model regression contract checks passed."
