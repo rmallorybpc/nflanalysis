@@ -28,6 +28,11 @@ if [[ ! -f models/baseline/validate_pretrend_placebo.py ]]; then
   exit 1
 fi
 
+if [[ ! -f models/hierarchical/train_hierarchical_model.py ]]; then
+  echo "Missing models/hierarchical/train_hierarchical_model.py"
+  exit 1
+fi
+
 if [[ ! -f data/processed/model_outputs.csv ]]; then
   echo "Missing data/processed/model_outputs.csv"
   exit 1
@@ -60,6 +65,16 @@ fi
 
 if [[ ! -f models/artifacts/pretrend_placebo_details.csv ]]; then
   echo "Missing models/artifacts/pretrend_placebo_details.csv"
+  exit 1
+fi
+
+if [[ ! -f data/processed/model_outputs_hierarchical.csv ]]; then
+  echo "Missing data/processed/model_outputs_hierarchical.csv"
+  exit 1
+fi
+
+if [[ ! -f models/artifacts/hierarchical_effects.csv ]]; then
+  echo "Missing models/artifacts/hierarchical_effects.csv"
   exit 1
 fi
 
@@ -181,6 +196,66 @@ if missing:
   raise SystemExit(f"pretrend_placebo_details.csv missing columns: {sorted(missing)}")
 
 print(f"validated pretrend/placebo artifacts: summary={len(summary_rows)} details={len(detail_rows)}")
+PY
+
+python3 - <<'PY'
+import csv
+
+path = "data/processed/model_outputs_hierarchical.csv"
+required = {
+  "team_id",
+  "nfl_season",
+  "nfl_week",
+  "outcome_name",
+  "observed_prediction",
+  "counterfactual_prediction",
+  "mis_value",
+  "mis_z",
+  "interval_50_low",
+  "interval_50_high",
+  "interval_90_low",
+  "interval_90_high",
+  "low_confidence_flag",
+  "model_version",
+  "data_version",
+  "generated_at",
+}
+
+with open(path, newline="", encoding="utf-8") as f:
+  rows = list(csv.DictReader(f))
+if not rows:
+  raise SystemExit("model_outputs_hierarchical.csv is empty")
+
+missing = required - set(rows[0].keys())
+if missing:
+  raise SystemExit(f"model_outputs_hierarchical.csv missing columns: {sorted(missing)}")
+
+allowed_outcomes = {"win_pct", "point_diff_per_game", "offensive_epa_per_play"}
+for row in rows:
+  if row["outcome_name"].strip() not in allowed_outcomes:
+    raise SystemExit(f"invalid outcome_name in model_outputs_hierarchical.csv: {row['outcome_name']}")
+
+effects_path = "models/artifacts/hierarchical_effects.csv"
+with open(effects_path, newline="", encoding="utf-8") as f:
+  effect_rows = list(csv.DictReader(f))
+if not effect_rows:
+  raise SystemExit("hierarchical_effects.csv is empty")
+
+required_effect = {
+  "outcome_name",
+  "effect_type",
+  "effect_key",
+  "raw_mean",
+  "count",
+  "shrunk_effect",
+  "prior_strength",
+  "trained_at",
+}
+missing = required_effect - set(effect_rows[0].keys())
+if missing:
+  raise SystemExit(f"hierarchical_effects.csv missing columns: {sorted(missing)}")
+
+print(f"validated hierarchical artifacts: outputs={len(rows)} effects={len(effect_rows)}")
 PY
 
 echo "Model regression contract checks passed."
