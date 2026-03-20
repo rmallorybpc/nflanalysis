@@ -53,3 +53,26 @@ Team detail payload:
 ```bash
 curl -s "http://localhost:8080/v1/dashboard/team-detail?team_id=BUF&season=2024"
 ```
+
+Scenario sandbox payload:
+
+```bash
+curl -s -X POST http://localhost:8080/v1/dashboard/scenario-sandbox \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "team_id": "BUF",
+    "season": 2024,
+    "week": 6,
+    "scenario_id": "sandbox-demo",
+    "applied_moves": [
+      {
+        "move_id": "custom_002",
+        "player_id": "p_003",
+        "from_team_id": "NYJ",
+        "to_team_id": "BUF",
+        "move_type": "trade",
+        "action": "add"
+      }
+    ]
+  }'
+```

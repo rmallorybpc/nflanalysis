@@ -417,3 +417,67 @@ class CounterfactualService:
             },
         }
         return result
+
+    def build_scenario_sandbox_payload(
+        self,
+        *,
+        team_id: str,
+        season: int,
+        week: int | None,
+        scenario_id: str,
+        moves: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Build scenario sandbox payload with baseline/scenario estimates and deltas."""
+
+        result = self.simulate(
+            team_id=team_id,
+            season=season,
+            week=week,
+            scenario_id=scenario_id,
+            moves=moves,
+        )
+
+        baseline = result["team_impact"]["estimates"]
+        scenario = result["scenario_output"]["estimates"]
+        baseline_by_outcome = {row["outcome_name"]: row for row in baseline}
+        scenario_by_outcome = {row["outcome_name"]: row for row in scenario}
+
+        delta_summary = []
+        for outcome in OUTCOME_ORDER:
+            if outcome not in baseline_by_outcome or outcome not in scenario_by_outcome:
+                continue
+
+            b = baseline_by_outcome[outcome]
+            s = scenario_by_outcome[outcome]
+            delta = float(s["mis_value"]) - float(b["mis_value"])
+            d90_low = float(s["interval_90"]["low"]) - float(b["interval_90"]["low"])
+            d90_high = float(s["interval_90"]["high"]) - float(b["interval_90"]["high"])
+
+            if delta > 1e-9:
+                direction = "positive"
+            elif delta < -1e-9:
+                direction = "negative"
+            else:
+                direction = "neutral"
+
+            delta_summary.append(
+                {
+                    "outcome_name": outcome,
+                    "mis_delta": round(delta, 6),
+                    "direction": direction,
+                    "interval_90_delta": _interval(d90_low, d90_high),
+                }
+            )
+
+        run_timestamp = scenario[0]["run_timestamp"] if scenario else baseline[0]["run_timestamp"]
+        return {
+            "scenario_id": scenario_id,
+            "team_id": team_id,
+            "season": season,
+            "period": result["team_impact"]["period"],
+            "applied_moves": moves,
+            "baseline_estimates": baseline,
+            "scenario_estimates": scenario,
+            "delta_summary": delta_summary,
+            "generated_at": run_timestamp,
+        }

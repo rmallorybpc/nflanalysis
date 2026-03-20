@@ -51,3 +51,29 @@ Open in browser:
 ```bash
 "$BROWSER" http://localhost:4173/team.html
 ```
+
+## Issue #19: Scenario Sandbox With Uncertainty Output
+
+Scenario sandbox assets are implemented under `dashboard/src`:
+
+- `scenario.html`
+- `scenario.css`
+- `scenario.js`
+
+Data source priority:
+
+1. Live API endpoint: `POST /v1/dashboard/scenario-sandbox`
+2. Fallback fixture: `dashboard/public/scenario-sandbox.sample.json`
+
+Quick local preview:
+
+```bash
+cd dashboard/src
+/usr/bin/python3 -m http.server 4173
+```
+
+Open in browser:
+
+```bash
+"$BROWSER" http://localhost:4173/scenario.html
+```

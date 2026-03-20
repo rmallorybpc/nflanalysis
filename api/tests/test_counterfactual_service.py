@@ -125,6 +125,37 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertGreaterEqual(len(charts["mis_trend"]), 1)
         self.assertGreaterEqual(len(charts["position_group_delta"]), 1)
 
+    def test_scenario_sandbox_payload_contains_delta_summary(self) -> None:
+        payload = self.service.build_scenario_sandbox_payload(
+            team_id="BUF",
+            season=2024,
+            week=6,
+            scenario_id="sandbox-add-p003",
+            moves=[
+                {
+                    "move_id": "custom_002",
+                    "player_id": "p_003",
+                    "from_team_id": "NYJ",
+                    "to_team_id": "BUF",
+                    "move_type": "trade",
+                    "action": "add",
+                }
+            ],
+        )
+
+        self.assertEqual(payload["scenario_id"], "sandbox-add-p003")
+        self.assertEqual(payload["team_id"], "BUF")
+        self.assertEqual(payload["season"], 2024)
+        self.assertTrue(payload["period"].startswith("week_"))
+
+        self.assertGreaterEqual(len(payload["baseline_estimates"]), 1)
+        self.assertGreaterEqual(len(payload["scenario_estimates"]), 1)
+        self.assertGreaterEqual(len(payload["delta_summary"]), 1)
+
+        delta_by_outcome = {row["outcome_name"]: row for row in payload["delta_summary"]}
+        self.assertEqual(delta_by_outcome["win_pct"]["direction"], "positive")
+        self.assertGreater(delta_by_outcome["win_pct"]["mis_delta"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

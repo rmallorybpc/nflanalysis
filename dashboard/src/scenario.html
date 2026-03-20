@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NFL Scenario Sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./scenario.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <p class="kicker">Scenario Sandbox</p>
+        <h1>Counterfactual Move Lab</h1>
+        <p>Test add/remove moves and inspect model deltas with uncertainty ranges.</p>
+      </header>
+
+      <section class="controls panel">
+        <h2>Scenario Inputs</h2>
+        <div class="control-grid">
+          <label>Team
+            <input id="teamId" value="BUF" />
+          </label>
+          <label>Season
+            <input id="season" type="number" value="2024" />
+          </label>
+          <label>Week
+            <input id="week" type="number" value="6" />
+          </label>
+          <label>Scenario ID
+            <input id="scenarioId" value="sandbox-demo" />
+          </label>
+        </div>
+
+        <h3>Move</h3>
+        <div class="control-grid move-grid">
+          <label>Player ID
+            <input id="playerId" value="p_003" />
+          </label>
+          <label>From Team
+            <input id="fromTeam" value="NYJ" />
+          </label>
+          <label>To Team
+            <input id="toTeam" value="BUF" />
+          </label>
+          <label>Move Type
+            <select id="moveType">
+              <option value="trade">trade</option>
+              <option value="free_agency">free_agency</option>
+            </select>
+          </label>
+          <label>Action
+            <select id="action">
+              <option value="add">add</option>
+              <option value="remove">remove</option>
+            </select>
+          </label>
+        </div>
+        <button id="runBtn" type="button">Run Scenario</button>
+      </section>
+
+      <section class="panel">
+        <h2>Delta Summary</h2>
+        <div id="deltaSummary" class="delta-grid"></div>
+      </section>
+
+      <section class="grid">
+        <article class="panel">
+          <h2>Baseline Estimates</h2>
+          <div id="baseline" class="estimate-list"></div>
+        </article>
+        <article class="panel">
+          <h2>Scenario Estimates</h2>
+          <div id="scenario" class="estimate-list"></div>
+        </article>
+      </section>
+    </main>
+
+    <template id="estimateTemplate">
+      <div class="estimate-row">
+        <div class="estimate-outcome"></div>
+        <div class="estimate-mis"></div>
+        <div class="estimate-int"></div>
+      </div>
+    </template>
+
+    <template id="deltaTemplate">
+      <div class="delta-card">
+        <div class="delta-outcome"></div>
+        <div class="delta-value"></div>
+        <div class="delta-range"></div>
+      </div>
+    </template>
+
+    <script type="module" src="./scenario.js"></script>
+  </body>
+</html>

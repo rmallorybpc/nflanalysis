@@ -38,6 +38,11 @@ def _parse_payload(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _parse_sandbox_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    parsed = _parse_payload(payload)
+    return parsed
+
+
 class CounterfactualHandler(BaseHTTPRequestHandler):
     """Handler for counterfactual simulation endpoint."""
 
@@ -90,7 +95,7 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
         self._write_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
 
     def do_POST(self) -> None:  # noqa: N802
-        if self.path != "/v1/counterfactual/simulate":
+        if self.path not in {"/v1/counterfactual/simulate", "/v1/dashboard/scenario-sandbox"}:
             self._write_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
             return
 
@@ -98,14 +103,24 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", "0"))
             raw_body = self.rfile.read(length)
             payload = json.loads(raw_body.decode("utf-8"))
-            args = _parse_payload(payload)
-            response = SERVICE.simulate(
-                team_id=args["team_id"],
-                season=args["season"],
-                week=args["week"],
-                scenario_id=args["scenario_id"],
-                moves=args["moves"],
-            )
+            if self.path == "/v1/counterfactual/simulate":
+                args = _parse_payload(payload)
+                response = SERVICE.simulate(
+                    team_id=args["team_id"],
+                    season=args["season"],
+                    week=args["week"],
+                    scenario_id=args["scenario_id"],
+                    moves=args["moves"],
+                )
+            else:
+                args = _parse_sandbox_payload(payload)
+                response = SERVICE.build_scenario_sandbox_payload(
+                    team_id=args["team_id"],
+                    season=args["season"],
+                    week=args["week"],
+                    scenario_id=args["scenario_id"],
+                    moves=args["moves"],
+                )
             self._write_json(HTTPStatus.OK, response)
         except Exception as exc:  # pylint: disable=broad-except
             self._write_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
