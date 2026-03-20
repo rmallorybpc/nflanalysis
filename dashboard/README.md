@@ -23,7 +23,7 @@ cd dashboard/src
 Open in browser:
 
 ```bash
-"$BROWSER" http://localhost:4173
+"$BROWSER" https://rmallorybpc.github.io/nflanalysis/dashboard/src/
 ```
 
 ## Issue #18: Team Detail Page With Movement Timeline
@@ -49,7 +49,7 @@ cd dashboard/src
 Open in browser:
 
 ```bash
-"$BROWSER" http://localhost:4173/team.html
+"$BROWSER" https://rmallorybpc.github.io/nflanalysis/dashboard/src/team.html
 ```
 
 ## Issue #19: Scenario Sandbox With Uncertainty Output
@@ -75,5 +75,5 @@ cd dashboard/src
 Open in browser:
 
 ```bash
-"$BROWSER" http://localhost:4173/scenario.html
+"$BROWSER" https://rmallorybpc.github.io/nflanalysis/dashboard/src/scenario.html
 ```
