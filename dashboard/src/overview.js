@@ -87,6 +87,56 @@ function renderDistribution(payload) {
     });
 }
 
+function renderScope(payload) {
+  const scope = payload.scope;
+  const scopeList = document.getElementById("scopeList");
+  const moveTypes = scope.included_move_types.join(", ");
+  const outcomes = scope.outcomes.join(", ");
+  const geos = scope.geography_dimensions.join(", ");
+
+  scopeList.innerHTML = `
+    <div class="scope-pill">Seasons: ${scope.season_range.start}-${scope.season_range.end} (${scope.season_count})</div>
+    <div class="scope-pill">Teams tracked: ${scope.team_count}</div>
+    <div class="scope-pill">Move types: ${moveTypes}</div>
+    <div class="scope-pill">Move counts: trade ${scope.move_type_counts.trade}, free_agency ${scope.move_type_counts.free_agency}</div>
+    <div class="scope-pill">Outcomes: ${outcomes}</div>
+    <div class="scope-pill">Geography: ${geos}</div>
+  `;
+}
+
+function renderSeasonCoverage(payload) {
+  const points = payload.charts.season_coverage;
+  const container = document.getElementById("seasonCoverageChart");
+  const template = document.getElementById("seasonCoverageRowTemplate");
+  container.innerHTML = "";
+
+  const maxTeams = Math.max(...points.map((point) => point.team_count), 1);
+  points.forEach((point) => {
+    const node = template.content.firstElementChild.cloneNode(true);
+    node.querySelector(".bar-label").textContent = String(point.season);
+    node.querySelector(".bar-fill").style.width = `${Math.max((point.team_count / maxTeams) * 100, 4)}%`;
+    node.querySelector(".bar-fill").style.background = "linear-gradient(90deg, #2458a4, #57b7a9)";
+    node.querySelector(".bar-value").textContent = `${point.team_count} teams | W${point.latest_week}`;
+    container.appendChild(node);
+  });
+}
+
+function renderGeography(payload) {
+  const rows = payload.charts.geography_impact_profile;
+  const container = document.getElementById("geographyChart");
+  const template = document.getElementById("geoRowTemplate");
+  container.innerHTML = "";
+
+  rows.forEach((row) => {
+    const node = template.content.firstElementChild.cloneNode(true);
+    node.querySelector(".geo-scope").textContent = row.move_scope;
+    node.querySelector(".geo-outcome").textContent = row.outcome_name;
+    node.querySelector(".geo-count").textContent = `${row.move_count} moves`;
+    node.querySelector(".geo-impact").textContent = fmt(row.avg_abs_impact);
+    container.appendChild(node);
+  });
+}
+
 function applyMeta(payload) {
   document.getElementById("seasonLabel").textContent = `Season: ${payload.season}`;
   document.getElementById("generatedLabel").textContent = `Generated: ${payload.generated_at}`;
@@ -115,6 +165,9 @@ async function main() {
   renderCards(payload);
   renderRanking(payload);
   renderDistribution(payload);
+  renderScope(payload);
+  renderSeasonCoverage(payload);
+  renderGeography(payload);
 }
 
 main().catch((err) => {

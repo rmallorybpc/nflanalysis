@@ -18,8 +18,18 @@ class OverviewPayloadTests(unittest.TestCase):
 
         self.assertIn("season", payload)
         self.assertIn("generated_at", payload)
+        self.assertIn("scope", payload)
         self.assertIn("cards", payload)
         self.assertIn("charts", payload)
+
+        scope = payload["scope"]
+        self.assertIn("season_range", scope)
+        self.assertIn("season_count", scope)
+        self.assertIn("team_count", scope)
+        self.assertIn("included_move_types", scope)
+        self.assertIn("move_type_counts", scope)
+        self.assertIn("outcomes", scope)
+        self.assertIn("geography_dimensions", scope)
 
         cards = payload["cards"]
         self.assertIn("top_positive_team", cards)
@@ -30,6 +40,8 @@ class OverviewPayloadTests(unittest.TestCase):
         charts = payload["charts"]
         self.assertGreaterEqual(len(charts["league_ranking"]), 1)
         self.assertGreaterEqual(len(charts["outcome_distribution"]), 1)
+        self.assertGreaterEqual(len(charts["season_coverage"]), 1)
+        self.assertGreaterEqual(len(charts["geography_impact_profile"]), 1)
 
 
 if __name__ == "__main__":

@@ -10,6 +10,41 @@ from typing import Any
 
 OUTCOME_ORDER = ["win_pct", "point_diff_per_game", "offensive_epa_per_play"]
 
+TEAM_GEO = {
+    "ARI": ("NFC", "West"),
+    "ATL": ("NFC", "South"),
+    "BAL": ("AFC", "North"),
+    "BUF": ("AFC", "East"),
+    "CAR": ("NFC", "South"),
+    "CHI": ("NFC", "North"),
+    "CIN": ("AFC", "North"),
+    "CLE": ("AFC", "North"),
+    "DAL": ("NFC", "East"),
+    "DEN": ("AFC", "West"),
+    "DET": ("NFC", "North"),
+    "GB": ("NFC", "North"),
+    "HOU": ("AFC", "South"),
+    "IND": ("AFC", "South"),
+    "JAX": ("AFC", "South"),
+    "KC": ("AFC", "West"),
+    "LV": ("AFC", "West"),
+    "LAC": ("AFC", "West"),
+    "LAR": ("NFC", "West"),
+    "MIA": ("AFC", "East"),
+    "MIN": ("NFC", "North"),
+    "NE": ("AFC", "East"),
+    "NO": ("NFC", "South"),
+    "NYG": ("NFC", "East"),
+    "NYJ": ("AFC", "East"),
+    "PHI": ("NFC", "East"),
+    "PIT": ("AFC", "North"),
+    "SEA": ("NFC", "West"),
+    "SF": ("NFC", "West"),
+    "TB": ("NFC", "South"),
+    "TEN": ("AFC", "South"),
+    "WAS": ("NFC", "East"),
+}
+
 
 def _to_float(value: str, field_name: str) -> float:
     try:
@@ -27,6 +62,21 @@ def _read_csv(path: Path) -> list[dict[str, str]]:
 
 def _interval(low: float, high: float) -> dict[str, float]:
     return {"low": round(low, 6), "high": round(high, 6)}
+
+
+def _move_scope(from_team: str, to_team: str) -> str:
+    from_geo = TEAM_GEO.get(from_team)
+    to_geo = TEAM_GEO.get(to_team)
+    if from_geo is None or to_geo is None:
+        return "unknown"
+
+    from_conf, from_div = from_geo
+    to_conf, to_div = to_geo
+    if from_conf != to_conf:
+        return "cross_conference"
+    if from_div != to_div:
+        return "cross_division"
+    return "same_division"
 
 
 @dataclass
@@ -87,6 +137,73 @@ class CounterfactualService:
             std = variance ** 0.5
             stats[outcome] = (mean, std if std > 0 else 1.0)
         return stats
+
+    def _available_seasons(self) -> list[int]:
+        return sorted({int(row["nfl_season"]) for row in self.model_rows})
+
+    def _build_season_coverage(self, seasons: list[int]) -> list[dict[str, int]]:
+        points: list[dict[str, int]] = []
+        for season in seasons:
+            season_rows = [row for row in self.model_rows if int(row["nfl_season"]) == season]
+            if not season_rows:
+                continue
+            latest_week = max(int(row["nfl_week"]) for row in season_rows)
+            latest_rows = [row for row in season_rows if int(row["nfl_week"]) == latest_week]
+            team_count = len({row["team_id"].strip() for row in latest_rows if row["outcome_name"].strip() == "win_pct"})
+            points.append(
+                {
+                    "season": season,
+                    "latest_week": latest_week,
+                    "team_count": team_count,
+                }
+            )
+        return points
+
+    def _build_geography_impact_profile(self, seasons: list[int]) -> list[dict[str, Any]]:
+        movement_rows = _read_csv(Path("data/processed/movement_events.csv"))
+        allowed_scopes = ["same_division", "cross_division", "cross_conference"]
+
+        buckets: dict[tuple[str, str], list[float]] = {
+            (scope, outcome): []
+            for scope in allowed_scopes
+            for outcome in OUTCOME_ORDER
+        }
+
+        allowed_seasons = {str(season) for season in seasons}
+        for row in movement_rows:
+            if row.get("nfl_season", "").strip() not in allowed_seasons:
+                continue
+            move_type = row.get("move_type", "").strip()
+            if move_type not in {"trade", "free_agency"}:
+                continue
+
+            scope = _move_scope(
+                row.get("from_team_id", "").strip(),
+                row.get("to_team_id", "").strip(),
+            )
+            if scope not in allowed_scopes:
+                continue
+
+            player_id = row.get("player_id", "").strip()
+            for outcome in OUTCOME_ORDER:
+                effect = abs(self.effect_map.get((outcome, "player", player_id), 0.0))
+                buckets[(scope, outcome)].append(effect)
+
+        points: list[dict[str, Any]] = []
+        for scope in allowed_scopes:
+            for outcome in OUTCOME_ORDER:
+                values = buckets[(scope, outcome)]
+                count = len(values)
+                avg_abs = sum(values) / count if count else 0.0
+                points.append(
+                    {
+                        "move_scope": scope,
+                        "outcome_name": outcome,
+                        "move_count": count,
+                        "avg_abs_impact": round(avg_abs, 6),
+                    }
+                )
+        return points
 
     def _team_base_rows(self, team_id: str, season: int, week: int | None) -> list[dict[str, str]]:
         rows = [
@@ -196,9 +313,30 @@ class CounterfactualService:
             for (outcome, label), count in sorted(distribution.items())
         ]
 
+        available_seasons = self._available_seasons()
+        season_coverage = self._build_season_coverage(available_seasons)
+        geography_profile = self._build_geography_impact_profile(available_seasons)
+        move_type_counts = {"trade": 0, "free_agency": 0}
+        for row in _read_csv(Path("data/processed/movement_events.csv")):
+            move_type = row.get("move_type", "").strip()
+            if move_type in move_type_counts:
+                move_type_counts[move_type] += 1
+
         return {
             "season": season,
             "generated_at": rank_rows[0]["generated_at"].strip(),
+            "scope": {
+                "season_range": {
+                    "start": available_seasons[0],
+                    "end": available_seasons[-1],
+                },
+                "season_count": len(available_seasons),
+                "team_count": len({row["team_id"].strip() for row in self.model_rows}),
+                "included_move_types": ["trade", "free_agency"],
+                "move_type_counts": move_type_counts,
+                "outcomes": OUTCOME_ORDER,
+                "geography_dimensions": ["team", "division", "conference"],
+            },
             "cards": {
                 "top_positive_team": to_card(rank_rows[0]),
                 "top_negative_team": to_card(rank_rows[-1]),
@@ -208,6 +346,8 @@ class CounterfactualService:
             "charts": {
                 "league_ranking": ranking_points,
                 "outcome_distribution": dist_points,
+                "season_coverage": season_coverage,
+                "geography_impact_profile": geography_profile,
             },
         }
 
