@@ -1,0 +1,170 @@
+:root {
+  --bg: #f5f0e9;
+  --ink: #1b2430;
+  --muted: #536274;
+  --panel: rgba(255, 255, 255, 0.9);
+  --line: rgba(17, 36, 58, 0.15);
+  --pos: #0f8f5f;
+  --neg: #c5532f;
+  --neu: #2a6798;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Archivo, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 8% 12%, #f1b37e 0, transparent 28%),
+    radial-gradient(circle at 90% 22%, #78b2cf 0, transparent 30%),
+    linear-gradient(155deg, #fbf5ea, #d8e7ef);
+  min-height: 100vh;
+}
+
+.page { max-width: 1140px; margin: 0 auto; padding: 1.1rem 1rem 2.4rem; }
+
+.hero {
+  border-radius: 16px;
+  padding: 1.1rem;
+  background: linear-gradient(120deg, #1a2d48, #2d6c84);
+  color: #eef5fb;
+}
+
+.kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.77rem;
+  color: #a8c6dc;
+}
+
+h1 { margin: 0.2rem 0; }
+
+.panel {
+  margin-top: 0.8rem;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 0.9rem;
+}
+
+.controls h2,
+.controls h3 { margin: 0 0 0.45rem; }
+
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.move-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+input,
+select,
+button {
+  font: inherit;
+}
+
+input,
+select {
+  border: 1px solid #c9d4de;
+  border-radius: 9px;
+  padding: 0.44rem 0.52rem;
+  background: white;
+}
+
+button {
+  margin-top: 0.55rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  background: linear-gradient(90deg, #1d6cb2, #178b61);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.delta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.delta-card {
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  padding: 0.7rem;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.delta-outcome {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.delta-value {
+  margin-top: 0.28rem;
+  font-size: 1.55rem;
+  font-weight: 800;
+}
+
+.delta-value.positive { color: var(--pos); }
+.delta-value.negative { color: var(--neg); }
+.delta-value.neutral { color: var(--neu); }
+
+.delta-range {
+  margin-top: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.grid {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.estimate-list {
+  display: grid;
+  gap: 0.44rem;
+}
+
+.estimate-row {
+  display: grid;
+  grid-template-columns: 150px 96px 1fr;
+  gap: 0.48rem;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.3rem;
+}
+
+.estimate-outcome,
+.estimate-mis,
+.estimate-int {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 980px) {
+  .control-grid,
+  .move-grid,
+  .delta-grid,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .estimate-row {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+}

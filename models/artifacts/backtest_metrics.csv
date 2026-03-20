@@ -1,0 +1,10 @@
+outcome_name,split,rmse,mae,n_rows,model_version,generated_at
+offensive_epa_per_play,test,0.147449,0.147449,1,baseline-ridge-v0.1.0-backtest,2026-03-20T14:53:28Z
+offensive_epa_per_play,train,0.002910,0.002910,2,baseline-ridge-v0.1.0-backtest,2026-03-20T14:53:28Z
+offensive_epa_per_play,validation,0.199449,0.199449,1,baseline-ridge-v0.1.0-backtest,2026-03-20T14:53:28Z
+point_diff_per_game,test,11.348613,11.348613,1,baseline-ridge-v0.1.0-backtest,2026-03-20T14:53:28Z
+point_diff_per_game,train,0.211098,0.211098,2,baseline-ridge-v0.1.0-backtest,2026-03-20T14:53:28Z
+point_diff_per_game,validation,11.348613,11.348613,1,baseline-ridge-v0.1.0-backtest,2026-03-20T14:53:28Z
+win_pct,test,0.810615,0.810615,1,baseline-ridge-v0.1.0-backtest,2026-03-20T14:53:28Z
+win_pct,train,0.015078,0.015078,2,baseline-ridge-v0.1.0-backtest,2026-03-20T14:53:28Z
+win_pct,validation,0.810615,0.810615,1,baseline-ridge-v0.1.0-backtest,2026-03-20T14:53:28Z

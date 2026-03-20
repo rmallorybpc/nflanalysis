@@ -1,0 +1,5 @@
+team_id,nfl_season,nfl_week,roster_churn_rate,inbound_move_count,outbound_move_count,offense_skill_value_delta,offense_line_value_delta,defense_front_value_delta,defense_second_level_value_delta,defense_secondary_value_delta,special_teams_value_delta,other_value_delta,position_value_delta,schedule_strength_index,feature_version,generated_at
+BAL,2023,9,0.018868,1,0,0.0000,0.0000,0.0000,0.0000,2.7000,0.0000,0.0000,2.7000,-1.0000,0.3.0,2026-03-20T14:40:03Z
+BUF,2024,6,0.018868,0,1,-4.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,-4.0000,-1.0000,0.3.0,2026-03-20T14:40:03Z
+NYJ,2024,6,0.018868,1,0,4.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,4.0000,1.0000,0.3.0,2026-03-20T14:40:03Z
+SEA,2023,9,0.018868,0,1,0.0000,0.0000,0.0000,0.0000,-2.7000,0.0000,0.0000,-2.7000,1.0000,0.3.0,2026-03-20T14:40:03Z

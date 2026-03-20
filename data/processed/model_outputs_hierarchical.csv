@@ -1,0 +1,13 @@
+team_id,nfl_season,nfl_week,outcome_name,observed_prediction,counterfactual_prediction,mis_value,mis_z,interval_50_low,interval_50_high,interval_90_low,interval_90_high,low_confidence_flag,model_version,data_version,generated_at
+BAL,2023,9,offensive_epa_per_play,0.110093,0.034508,0.075585,0.870974,0.067695,0.083475,0.056329,0.094841,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z
+BAL,2023,9,point_diff_per_game,6.771303,1.088784,5.682519,0.992119,5.555029,5.810009,5.371360,5.993678,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z
+BAL,2023,9,win_pct,0.983664,0.577770,0.405894,0.992119,0.396788,0.415001,0.383669,0.428120,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z
+BUF,2024,6,offensive_epa_per_play,0.131504,0.034508,0.096996,1.117695,0.089106,0.104886,0.077740,0.116252,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z
+BUF,2024,6,point_diff_per_game,6.861233,1.088784,5.772449,1.007820,5.644959,5.899939,5.461290,6.083608,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z
+BUF,2024,6,win_pct,0.990088,0.577770,0.412318,1.007820,0.403211,0.421424,0.390092,0.434543,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z
+NYJ,2024,6,offensive_epa_per_play,-0.091254,0.002492,-0.093746,-1.080245,-0.101636,-0.085856,-0.113002,-0.074490,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z
+NYJ,2024,6,point_diff_per_game,-6.861233,-1.088784,-5.772449,-1.007820,-5.899939,-5.644959,-6.083608,-5.461290,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z
+NYJ,2024,6,win_pct,0.009912,0.422230,-0.412318,-1.007820,-0.421424,-0.403211,-0.434543,-0.390092,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z
+SEA,2023,9,offensive_epa_per_play,-0.076343,0.002492,-0.078835,-0.908424,-0.086725,-0.070945,-0.098091,-0.059579,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z
+SEA,2023,9,point_diff_per_game,-6.771303,-1.088784,-5.682519,-0.992119,-5.810009,-5.555029,-5.993678,-5.371360,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z
+SEA,2023,9,win_pct,0.016336,0.422230,-0.405894,-0.992119,-0.415001,-0.396788,-0.428120,-0.383669,true,hierarchical-eb-v0.1.0,features-0.3.0,2026-03-20T15:02:39Z

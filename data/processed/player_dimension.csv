@@ -1,0 +1,4 @@
+player_id,full_name,position_group,position,birth_date,rookie_year,experience_years,active_status,source,normalized_at
+p_001,Marcus Reed,offense_skill,QB,1998-04-12,2021,5,active,seed_example,2026-03-19T20:38:56Z
+p_002,Jordan Hayes,offense_skill,WR,1996-09-07,2019,7,active,seed_example,2026-03-19T20:38:56Z
+p_003,Cameron Brooks,defense_secondary,CB,1995-02-19,2018,8,active,seed_example,2026-03-19T20:38:56Z

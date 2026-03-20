@@ -1,0 +1,5 @@
+team_id,nfl_season,nfl_week,time_index,split,generated_at
+BAL,2023,9,2023-09,train,2026-03-20T14:53:28Z
+SEA,2023,9,2023-09,train,2026-03-20T14:53:28Z
+BUF,2024,6,2024-06,validation,2026-03-20T14:53:28Z
+NYJ,2024,6,2024-06,test,2026-03-20T14:53:28Z

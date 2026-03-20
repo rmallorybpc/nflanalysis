@@ -1,0 +1,100 @@
+{
+  "team_id": "BUF",
+  "season": 2024,
+  "generated_at": "2026-03-20T15:02:39Z",
+  "cards": {
+    "current_mis": {
+      "outcome_name": "win_pct",
+      "mis_value": 0.412318,
+      "mis_z": 1.00782,
+      "interval_50": {
+        "low": 0.403211,
+        "high": 0.421424
+      },
+      "interval_90": {
+        "low": 0.390092,
+        "high": 0.434543
+      },
+      "low_confidence_flag": true,
+      "model_version": "hierarchical-eb-v0.1.0",
+      "data_version": "features-0.3.0"
+    },
+    "inbound_move_count": 0,
+    "outbound_move_count": 1,
+    "net_position_value_delta": -4.0
+  },
+  "timeline": [
+    {
+      "move_id": "2024_trade_001",
+      "event_date": "2024-10-15",
+      "effective_date": "2024-10-16",
+      "nfl_week": 6,
+      "move_type": "trade",
+      "player_id": "p_001",
+      "from_team_id": "BUF",
+      "to_team_id": "NYJ",
+      "impact_estimate": 0.002937
+    }
+  ],
+  "charts": {
+    "mis_trend": [
+      {
+        "nfl_week": 6,
+        "outcome_name": "offensive_epa_per_play",
+        "mis_value": 0.096996,
+        "interval_90": {
+          "low": 0.07774,
+          "high": 0.116252
+        }
+      },
+      {
+        "nfl_week": 6,
+        "outcome_name": "point_diff_per_game",
+        "mis_value": 5.772449,
+        "interval_90": {
+          "low": 5.46129,
+          "high": 6.083608
+        }
+      },
+      {
+        "nfl_week": 6,
+        "outcome_name": "win_pct",
+        "mis_value": 0.412318,
+        "interval_90": {
+          "low": 0.390092,
+          "high": 0.434543
+        }
+      }
+    ],
+    "position_group_delta": [
+      {
+        "position_group": "offense_skill",
+        "value_delta": -4.0
+      },
+      {
+        "position_group": "offense_line",
+        "value_delta": 0.0
+      },
+      {
+        "position_group": "defense_front",
+        "value_delta": 0.0
+      },
+      {
+        "position_group": "defense_second_level",
+        "value_delta": 0.0
+      },
+      {
+        "position_group": "defense_secondary",
+        "value_delta": 0.0
+      },
+      {
+        "position_group": "special_teams",
+        "value_delta": 0.0
+      },
+      {
+        "position_group": "other",
+        "value_delta": 0.0
+      }
+    ]
+  }
+}

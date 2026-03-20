@@ -1,0 +1,13 @@
+team_id,nfl_season,nfl_week,split,outcome_name,actual,predicted,error,generated_at
+NYJ,2024,6,test,offensive_epa_per_play,-0.082000,0.065449,-0.147449,2026-03-20T14:53:28Z
+BAL,2023,9,train,offensive_epa_per_play,0.102000,0.099090,0.002910,2026-03-20T14:53:28Z
+SEA,2023,9,train,offensive_epa_per_play,-0.091000,-0.088090,-0.002910,2026-03-20T14:53:28Z
+BUF,2024,6,validation,offensive_epa_per_play,0.145000,-0.054449,0.199449,2026-03-20T14:53:28Z
+NYJ,2024,6,test,point_diff_per_game,-7.000000,4.348613,-11.348613,2026-03-20T14:53:28Z
+BAL,2023,9,train,point_diff_per_game,7.000000,6.788902,0.211098,2026-03-20T14:53:28Z
+SEA,2023,9,train,point_diff_per_game,-7.000000,-6.788902,-0.211098,2026-03-20T14:53:28Z
+BUF,2024,6,validation,point_diff_per_game,7.000000,-4.348613,11.348613,2026-03-20T14:53:28Z
+NYJ,2024,6,test,win_pct,0.000000,0.810615,-0.810615,2026-03-20T14:53:28Z
+BAL,2023,9,train,win_pct,1.000000,0.984922,0.015078,2026-03-20T14:53:28Z
+SEA,2023,9,train,win_pct,0.000000,0.015078,-0.015078,2026-03-20T14:53:28Z
+BUF,2024,6,validation,win_pct,1.000000,0.189385,0.810615,2026-03-20T14:53:28Z

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NFL Movement Impact Overview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="noise-layer" aria-hidden="true"></div>
+    <main class="layout">
+      <header class="hero">
+        <p class="kicker">NFL Analysis</p>
+        <h1>Movement Impact Overview</h1>
+        <p class="subhead">
+          League-wide signal for player movement impact, calibrated with uncertainty intervals and confidence flags.
+        </p>
+        <div class="hero-meta">
+          <span id="seasonLabel">Season: --</span>
+          <span id="generatedLabel">Generated: --</span>
+        </div>
+      </header>
+
+      <section class="cards" aria-label="overview cards">
+        <article class="metric-card positive" id="topPositiveCard"></article>
+        <article class="metric-card negative" id="topNegativeCard"></article>
+        <article class="metric-card neutral" id="leagueCard"></article>
+      </section>
+
+      <section class="panel-grid">
+        <article class="panel" aria-labelledby="rankingTitle">
+          <div class="panel-header">
+            <h2 id="rankingTitle">League Ranking</h2>
+            <p>Ordered by win_pct movement impact</p>
+          </div>
+          <div id="rankingChart" class="bar-list"></div>
+        </article>
+
+        <article class="panel" aria-labelledby="distributionTitle">
+          <div class="panel-header">
+            <h2 id="distributionTitle">Outcome Distribution</h2>
+            <p>MIS<sup>z</sup> band counts by outcome</p>
+          </div>
+          <div id="distributionChart" class="stack-list"></div>
+        </article>
+      </section>
+    </main>
+
+    <template id="rankingRowTemplate">
+      <div class="bar-row">
+        <div class="bar-label"></div>
+        <div class="bar-track"><div class="bar-fill"></div></div>
+        <div class="bar-value"></div>
+      </div>
+    </template>
+
+    <template id="distributionRowTemplate">
+      <div class="stack-row">
+        <div class="stack-label"></div>
+        <div class="stack-values"></div>
+      </div>
+    </template>
+
+    <script type="module" src="./overview.js"></script>
+  </body>
+</html>

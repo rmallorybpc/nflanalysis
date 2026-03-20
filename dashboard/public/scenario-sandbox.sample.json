@@ -1,0 +1,158 @@
+{
+  "scenario_id": "sandbox-demo",
+  "team_id": "BUF",
+  "season": 2024,
+  "period": "week_6",
+  "applied_moves": [
+    {
+      "move_id": "ui_custom_001",
+      "player_id": "p_003",
+      "from_team_id": "NYJ",
+      "to_team_id": "BUF",
+      "move_type": "trade",
+      "action": "add"
+    }
+  ],
+  "baseline_estimates": [
+    {
+      "outcome_name": "win_pct",
+      "mis_value": 0.412318,
+      "mis_z": 1.00782,
+      "median": 0.412318,
+      "interval_50": {
+        "low": 0.403211,
+        "high": 0.421424
+      },
+      "interval_90": {
+        "low": 0.390092,
+        "high": 0.434543
+      },
+      "low_confidence_flag": true,
+      "model_version": "hierarchical-eb-v0.1.0",
+      "data_version": "features-0.3.0",
+      "run_timestamp": "2026-03-20T15:02:39Z"
+    },
+    {
+      "outcome_name": "point_diff_per_game",
+      "mis_value": 5.772449,
+      "mis_z": 1.00782,
+      "median": 5.772449,
+      "interval_50": {
+        "low": 5.644959,
+        "high": 5.899939
+      },
+      "interval_90": {
+        "low": 5.46129,
+        "high": 6.083608
+      },
+      "low_confidence_flag": true,
+      "model_version": "hierarchical-eb-v0.1.0",
+      "data_version": "features-0.3.0",
+      "run_timestamp": "2026-03-20T15:02:39Z"
+    },
+    {
+      "outcome_name": "offensive_epa_per_play",
+      "mis_value": 0.096996,
+      "mis_z": 1.117695,
+      "median": 0.096996,
+      "interval_50": {
+        "low": 0.089106,
+        "high": 0.104886
+      },
+      "interval_90": {
+        "low": 0.07774,
+        "high": 0.116252
+      },
+      "low_confidence_flag": true,
+      "model_version": "hierarchical-eb-v0.1.0",
+      "data_version": "features-0.3.0",
+      "run_timestamp": "2026-03-20T15:02:39Z"
+    }
+  ],
+  "scenario_estimates": [
+    {
+      "outcome_name": "win_pct",
+      "mis_value": 0.420183,
+      "mis_z": 1.027128,
+      "median": 0.420183,
+      "interval_50": {
+        "low": 0.411076,
+        "high": 0.429289
+      },
+      "interval_90": {
+        "low": 0.397957,
+        "high": 0.442408
+      },
+      "low_confidence_flag": true,
+      "model_version": "hierarchical-eb-v0.1.0",
+      "data_version": "features-0.3.0",
+      "run_timestamp": "2026-03-20T15:02:39Z"
+    },
+    {
+      "outcome_name": "point_diff_per_game",
+      "mis_value": 5.882563,
+      "mis_z": 1.027044,
+      "median": 5.882563,
+      "interval_50": {
+        "low": 5.755073,
+        "high": 6.010053
+      },
+      "interval_90": {
+        "low": 5.571404,
+        "high": 6.193722
+      },
+      "low_confidence_flag": true,
+      "model_version": "hierarchical-eb-v0.1.0",
+      "data_version": "features-0.3.0",
+      "run_timestamp": "2026-03-20T15:02:39Z"
+    },
+    {
+      "outcome_name": "offensive_epa_per_play",
+      "mis_value": 0.099641,
+      "mis_z": 1.148172,
+      "median": 0.099641,
+      "interval_50": {
+        "low": 0.091751,
+        "high": 0.107531
+      },
+      "interval_90": {
+        "low": 0.080385,
+        "high": 0.118897
+      },
+      "low_confidence_flag": true,
+      "model_version": "hierarchical-eb-v0.1.0",
+      "data_version": "features-0.3.0",
+      "run_timestamp": "2026-03-20T15:02:39Z"
+    }
+  ],
+  "delta_summary": [
+    {
+      "outcome_name": "win_pct",
+      "mis_delta": 0.007865,
+      "direction": "positive",
+      "interval_90_delta": {
+        "low": 0.007865,
+        "high": 0.007865
+      }
+    },
+    {
+      "outcome_name": "point_diff_per_game",
+      "mis_delta": 0.110114,
+      "direction": "positive",
+      "interval_90_delta": {
+        "low": 0.110114,
+        "high": 0.110114
+      }
+    },
+    {
+      "outcome_name": "offensive_epa_per_play",
+      "mis_delta": 0.002645,
+      "direction": "positive",
+      "interval_90_delta": {
+        "low": 0.002645,
+        "high": 0.002645
+      }
+    }
+  ],
+  "generated_at": "2026-03-20T15:02:39Z"
+}
