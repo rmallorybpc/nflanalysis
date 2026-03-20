@@ -8,10 +8,12 @@ Build canonical team-week features from processed movement, player, and outcome 
 /usr/bin/python3 pipelines/features/build_team_week_features.py \
   --movement data/processed/movement_events.csv \
   --players data/processed/player_dimension.csv \
+  --team-games data/raw/team_game_stats_source.csv \
+  --calendar data/external/nfl_calendar_mapping.csv \
   --outcomes data/processed/team_week_outcomes.csv \
   --position-weights data/external/position_value_weights.csv \
   --output data/processed/team_week_features.csv \
-  --feature-version 0.1.0 \
+  --feature-version 0.3.0 \
   --replace
 ```
 
@@ -36,4 +38,4 @@ Notes:
 - `roster_churn_rate` is normalized by roster baseline (default 53).
 - Position weights are configurable via `data/external/position_value_weights.csv`.
 - Group deltas sum to `position_value_delta`.
-- `schedule_strength_index` is currently a placeholder baseline value and will be replaced in Issue #10.
+- `schedule_strength_index` is opponent-adjusted and normalized around 0.5 baseline opponent win rate.

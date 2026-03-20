@@ -30,4 +30,5 @@ Behavior:
 - Feature rows are generated for each key present in team_week_outcomes.
 - Upsert behavior is keyed by (team_id, nfl_season, nfl_week).
 - Position-group deltas are weighted net inbound minus outbound movement per group.
+- schedule_strength_index is computed from prior-week opponent win rates and normalized around 0.5.
 - `--replace` rebuilds output from current inputs.

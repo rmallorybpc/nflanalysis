@@ -550,7 +550,7 @@ Fields:
 - type: numeric string
 - nullable: no
 - source: team_week_outcomes and opponent history features
-- transformation: normalized opponent-quality indicator
+- transformation: opponent-adjusted prior-week win-rate average normalized around 0.5 baseline
 - business meaning: schedule difficulty control
 - validation rule: numeric
 

@@ -277,6 +277,10 @@ for row in rows:
   if abs(group_sum - total_delta) > 0.0002:
     raise SystemExit(f"position group deltas do not sum to position_value_delta for key={key}")
 
+  schedule_strength = float(row["schedule_strength_index"])
+  if schedule_strength < -1.0 or schedule_strength > 1.0:
+    raise SystemExit(f"schedule_strength_index out of range [-1,1] for key={key}")
+
 print(f"validated team-week feature rows: {len(rows)}")
 PY
 
@@ -341,6 +345,15 @@ if feature_keys != outcome_keys:
   raise SystemExit(
     f"team_week_features keys mismatch outcomes; missing={missing[:3]} extra={extra[:3]}"
   )
+
+all_zero_schedule = True
+for row in feature_rows:
+  if abs(float(row["schedule_strength_index"].strip())) > 0.000001:
+    all_zero_schedule = False
+    break
+
+if all_zero_schedule:
+  raise SystemExit("team_week_features schedule_strength_index is all zero; check Issue #10 logic")
 
 print("validated cross-table consistency checks")
 PY
