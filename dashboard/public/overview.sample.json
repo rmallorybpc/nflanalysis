@@ -1,6 +1,32 @@
 {
   "season": 2024,
   "generated_at": "2026-03-20T15:02:39Z",
+  "scope": {
+    "season_range": {
+      "start": 2023,
+      "end": 2024
+    },
+    "season_count": 2,
+    "team_count": 4,
+    "included_move_types": [
+      "trade",
+      "free_agency"
+    ],
+    "move_type_counts": {
+      "trade": 2,
+      "free_agency": 1
+    },
+    "outcomes": [
+      "win_pct",
+      "point_diff_per_game",
+      "offensive_epa_per_play"
+    ],
+    "geography_dimensions": [
+      "team",
+      "division",
+      "conference"
+    ]
+  },
   "cards": {
     "top_positive_team": {
       "team_id": "BUF",
@@ -76,6 +102,74 @@
         "outcome_name": "offensive_epa_per_play",
         "bin_label": "<= -1.0",
         "count": 1
+      }
+    ],
+    "season_coverage": [
+      {
+        "season": 2023,
+        "latest_week": 9,
+        "team_count": 2
+      },
+      {
+        "season": 2024,
+        "latest_week": 6,
+        "team_count": 2
+      }
+    ],
+    "geography_impact_profile": [
+      {
+        "move_scope": "same_division",
+        "outcome_name": "win_pct",
+        "move_count": 2,
+        "avg_abs_impact": 0.003671
+      },
+      {
+        "move_scope": "same_division",
+        "outcome_name": "point_diff_per_game",
+        "move_count": 2,
+        "avg_abs_impact": 0.051395
+      },
+      {
+        "move_scope": "same_division",
+        "outcome_name": "offensive_epa_per_play",
+        "move_count": 2,
+        "avg_abs_impact": 0.000786
+      },
+      {
+        "move_scope": "cross_division",
+        "outcome_name": "win_pct",
+        "move_count": 0,
+        "avg_abs_impact": 0.0
+      },
+      {
+        "move_scope": "cross_division",
+        "outcome_name": "point_diff_per_game",
+        "move_count": 0,
+        "avg_abs_impact": 0.0
+      },
+      {
+        "move_scope": "cross_division",
+        "outcome_name": "offensive_epa_per_play",
+        "move_count": 0,
+        "avg_abs_impact": 0.0
+      },
+      {
+        "move_scope": "cross_conference",
+        "outcome_name": "win_pct",
+        "move_count": 1,
+        "avg_abs_impact": 0.0121
+      },
+      {
+        "move_scope": "cross_conference",
+        "outcome_name": "point_diff_per_game",
+        "move_count": 1,
+        "avg_abs_impact": 0.169405
+      },
+      {
+        "move_scope": "cross_conference",
+        "outcome_name": "offensive_epa_per_play",
+        "move_count": 1,
+        "avg_abs_impact": 0.002431
       }
     ]
   }

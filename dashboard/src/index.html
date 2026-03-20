@@ -50,6 +50,25 @@
           <div id="distributionChart" class="stack-list"></div>
         </article>
       </section>
+
+      <section class="panel-grid">
+        <article class="panel" aria-labelledby="scopeTitle">
+          <div class="panel-header">
+            <h2 id="scopeTitle">MVP Scope Coverage</h2>
+            <p>Season range, move types, outcomes, and geography dimensions currently tracked.</p>
+          </div>
+          <div id="scopeList" class="scope-list"></div>
+          <div id="seasonCoverageChart" class="bar-list"></div>
+        </article>
+
+        <article class="panel" aria-labelledby="geographyTitle">
+          <div class="panel-header">
+            <h2 id="geographyTitle">Geography Impact Profile</h2>
+            <p>Average absolute movement impact by same-division, cross-division, and cross-conference moves.</p>
+          </div>
+          <div id="geographyChart" class="geo-list"></div>
+        </article>
+      </section>
     </main>
 
     <template id="rankingRowTemplate">
@@ -64,6 +83,23 @@
       <div class="stack-row">
         <div class="stack-label"></div>
         <div class="stack-values"></div>
+      </div>
+    </template>
+
+    <template id="seasonCoverageRowTemplate">
+      <div class="bar-row">
+        <div class="bar-label"></div>
+        <div class="bar-track"><div class="bar-fill"></div></div>
+        <div class="bar-value"></div>
+      </div>
+    </template>
+
+    <template id="geoRowTemplate">
+      <div class="geo-row">
+        <div class="geo-scope"></div>
+        <div class="geo-outcome"></div>
+        <div class="geo-count"></div>
+        <div class="geo-impact"></div>
       </div>
     </template>
 

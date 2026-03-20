@@ -215,6 +215,41 @@ h1 {
   justify-content: flex-end;
 }
 
+.scope-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.8rem;
+}
+
+.scope-pill {
+  padding: 0.28rem 0.5rem;
+  border-radius: 999px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.73rem;
+  background: rgba(16, 37, 58, 0.08);
+}
+
+.geo-list {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.geo-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 0.55rem;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.35rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.76rem;
+}
+
+.geo-impact {
+  font-weight: 600;
+}
+
 .pill {
   padding: 0.2rem 0.45rem;
   border-radius: 999px;
@@ -252,5 +287,10 @@ h1 {
 
   .bar-row {
     grid-template-columns: 56px 1fr 68px;
+  }
+
+  .geo-row {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
   }
 }

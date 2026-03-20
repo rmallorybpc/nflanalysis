@@ -6,6 +6,7 @@
   "required": [
     "season",
     "generated_at",
+    "scope",
     "cards",
     "charts"
   ],
@@ -17,6 +18,9 @@
     "generated_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "scope": {
+      "$ref": "#/$defs/OverviewScope"
     },
     "cards": {
       "type": "object",
@@ -48,7 +52,9 @@
       "type": "object",
       "required": [
         "league_ranking",
-        "outcome_distribution"
+        "outcome_distribution",
+        "season_coverage",
+        "geography_impact_profile"
       ],
       "properties": {
         "league_ranking": {
@@ -63,6 +69,20 @@
           "minItems": 1,
           "items": {
               "$ref": "#/$defs/OutcomeDistributionPoint"
+          }
+        },
+        "season_coverage": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/SeasonCoveragePoint"
+          }
+        },
+        "geography_impact_profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/GeographyImpactPoint"
           }
         }
       },
@@ -177,6 +197,146 @@
         },
         "count": {
           "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "OverviewScope": {
+      "type": "object",
+      "required": [
+        "season_range",
+        "season_count",
+        "team_count",
+        "included_move_types",
+        "move_type_counts",
+        "outcomes",
+        "geography_dimensions"
+      ],
+      "properties": {
+        "season_range": {
+          "type": "object",
+          "required": [
+            "start",
+            "end"
+          ],
+          "properties": {
+            "start": {
+              "type": "integer"
+            },
+            "end": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "season_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "team_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "included_move_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["trade", "free_agency"]
+          }
+        },
+        "move_type_counts": {
+          "type": "object",
+          "required": [
+            "trade",
+            "free_agency"
+          ],
+          "properties": {
+            "trade": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "free_agency": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "outcomes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "win_pct",
+              "point_diff_per_game",
+              "offensive_epa_per_play"
+            ]
+          }
+        },
+        "geography_dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["team", "division", "conference"]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "SeasonCoveragePoint": {
+      "type": "object",
+      "required": [
+        "season",
+        "latest_week",
+        "team_count"
+      ],
+      "properties": {
+        "season": {
+          "type": "integer"
+        },
+        "latest_week": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "team_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "GeographyImpactPoint": {
+      "type": "object",
+      "required": [
+        "move_scope",
+        "outcome_name",
+        "move_count",
+        "avg_abs_impact"
+      ],
+      "properties": {
+        "move_scope": {
+          "type": "string",
+          "enum": [
+            "same_division",
+            "cross_division",
+            "cross_conference"
+          ]
+        },
+        "outcome_name": {
+          "type": "string",
+          "enum": [
+            "win_pct",
+            "point_diff_per_game",
+            "offensive_epa_per_play"
+          ]
+        },
+        "move_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "avg_abs_impact": {
+          "type": "number",
           "minimum": 0
         }
       },
