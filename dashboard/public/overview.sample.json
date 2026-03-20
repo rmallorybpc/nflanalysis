@@ -1,0 +1,82 @@
+{
+  "season": 2024,
+  "generated_at": "2026-03-20T15:02:39Z",
+  "cards": {
+    "top_positive_team": {
+      "team_id": "BUF",
+      "outcome_name": "win_pct",
+      "mis_value": 0.412318,
+      "mis_z": 1.00782,
+      "interval_90": {
+        "low": 0.390092,
+        "high": 0.434543
+      },
+      "low_confidence_flag": true,
+      "model_version": "hierarchical-eb-v0.1.0",
+      "data_version": "features-0.3.0"
+    },
+    "top_negative_team": {
+      "team_id": "NYJ",
+      "outcome_name": "win_pct",
+      "mis_value": -0.412318,
+      "mis_z": -1.00782,
+      "interval_90": {
+        "low": -0.434543,
+        "high": -0.390092
+      },
+      "low_confidence_flag": true,
+      "model_version": "hierarchical-eb-v0.1.0",
+      "data_version": "features-0.3.0"
+    },
+    "league_net_mis": 0.0,
+    "high_confidence_share": 0.0
+  },
+  "charts": {
+    "league_ranking": [
+      {
+        "rank": 1,
+        "team_id": "BUF",
+        "mis_value": 0.412318,
+        "mis_z": 1.00782
+      },
+      {
+        "rank": 2,
+        "team_id": "NYJ",
+        "mis_value": -0.412318,
+        "mis_z": -1.00782
+      }
+    ],
+    "outcome_distribution": [
+      {
+        "outcome_name": "win_pct",
+        "bin_label": ">= 1.0",
+        "count": 1
+      },
+      {
+        "outcome_name": "win_pct",
+        "bin_label": "<= -1.0",
+        "count": 1
+      },
+      {
+        "outcome_name": "point_diff_per_game",
+        "bin_label": ">= 1.0",
+        "count": 1
+      },
+      {
+        "outcome_name": "point_diff_per_game",
+        "bin_label": "<= -1.0",
+        "count": 1
+      },
+      {
+        "outcome_name": "offensive_epa_per_play",
+        "bin_label": ">= 1.0",
+        "count": 1
+      },
+      {
+        "outcome_name": "offensive_epa_per_play",
+        "bin_label": "<= -1.0",
+        "count": 1
+      }
+    ]
+  }
+}

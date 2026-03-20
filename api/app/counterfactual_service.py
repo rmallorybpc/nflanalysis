@@ -133,6 +133,84 @@ class CounterfactualService:
 
         return adjustment
 
+    def build_overview_payload(self, season: int) -> dict[str, Any]:
+        """Build overview dashboard payload using canonical schema fields."""
+
+        season_rows = [row for row in self.model_rows if int(row["nfl_season"]) == season]
+        if not season_rows:
+            raise ValueError(f"no model outputs found for season={season}")
+
+        latest_week = max(int(row["nfl_week"]) for row in season_rows)
+        latest_rows = [row for row in season_rows if int(row["nfl_week"]) == latest_week]
+        rank_rows = [row for row in latest_rows if row["outcome_name"].strip() == "win_pct"]
+        rank_rows.sort(key=lambda row: _to_float(row["mis_value"], "mis_value"), reverse=True)
+
+        if not rank_rows:
+            raise ValueError("no ranking rows available for win_pct outcome")
+
+        def to_card(row: dict[str, str]) -> dict[str, Any]:
+            return {
+                "team_id": row["team_id"].strip(),
+                "outcome_name": row["outcome_name"].strip(),
+                "mis_value": round(_to_float(row["mis_value"], "mis_value"), 6),
+                "mis_z": round(_to_float(row["mis_z"], "mis_z"), 6),
+                "interval_90": _interval(
+                    _to_float(row["interval_90_low"], "interval_90_low"),
+                    _to_float(row["interval_90_high"], "interval_90_high"),
+                ),
+                "low_confidence_flag": row["low_confidence_flag"].strip().lower() == "true",
+                "model_version": row["model_version"].strip(),
+                "data_version": row["data_version"].strip(),
+            }
+
+        league_net_mis = sum(_to_float(row["mis_value"], "mis_value") for row in rank_rows)
+        high_conf_count = sum(1 for row in rank_rows if row["low_confidence_flag"].strip().lower() == "false")
+        high_conf_share = high_conf_count / len(rank_rows)
+
+        ranking_points = []
+        for index, row in enumerate(rank_rows, start=1):
+            ranking_points.append(
+                {
+                    "rank": index,
+                    "team_id": row["team_id"].strip(),
+                    "mis_value": round(_to_float(row["mis_value"], "mis_value"), 6),
+                    "mis_z": round(_to_float(row["mis_z"], "mis_z"), 6),
+                }
+            )
+
+        bins = [(-99.0, -1.0, "<= -1.0"), (-1.0, -0.3, "-1.0 to -0.3"), (-0.3, 0.3, "-0.3 to 0.3"), (0.3, 1.0, "0.3 to 1.0"), (1.0, 99.0, ">= 1.0")]
+        distribution: dict[tuple[str, str], int] = {}
+        for row in latest_rows:
+            outcome = row["outcome_name"].strip()
+            mis_z = _to_float(row["mis_z"], "mis_z")
+            label = ">= 1.0"
+            for low, high, bin_label in bins:
+                if low <= mis_z < high or (bin_label == ">= 1.0" and mis_z >= 1.0):
+                    label = bin_label
+                    break
+            key = (outcome, label)
+            distribution[key] = distribution.get(key, 0) + 1
+
+        dist_points = [
+            {"outcome_name": outcome, "bin_label": label, "count": count}
+            for (outcome, label), count in sorted(distribution.items())
+        ]
+
+        return {
+            "season": season,
+            "generated_at": rank_rows[0]["generated_at"].strip(),
+            "cards": {
+                "top_positive_team": to_card(rank_rows[0]),
+                "top_negative_team": to_card(rank_rows[-1]),
+                "league_net_mis": round(league_net_mis, 6),
+                "high_confidence_share": round(high_conf_share, 6),
+            },
+            "charts": {
+                "league_ranking": ranking_points,
+                "outcome_distribution": dist_points,
+            },
+        }
+
     def _build_estimate(self, row: dict[str, str], adjustment: float) -> dict[str, Any]:
         outcome_name = row["outcome_name"].strip()
         mis_value = _to_float(row["mis_value"], "mis_value") + adjustment

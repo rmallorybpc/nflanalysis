@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from urllib.parse import parse_qs, urlparse
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -51,9 +52,24 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self) -> None:  # noqa: N802
-        if self.path == "/health":
+        parsed = urlparse(self.path)
+        if parsed.path == "/health":
             self._write_json(HTTPStatus.OK, {"status": "ok"})
             return
+        if parsed.path == "/v1/dashboard/overview":
+            try:
+                params = parse_qs(parsed.query)
+                season_raw = params.get("season", [None])[0]
+                if season_raw is None:
+                    season = max(int(row["nfl_season"]) for row in SERVICE.model_rows)
+                else:
+                    season = int(season_raw)
+                payload = SERVICE.build_overview_payload(season=season)
+                self._write_json(HTTPStatus.OK, payload)
+                return
+            except Exception as exc:  # pylint: disable=broad-except
+                self._write_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+                return
         self._write_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
 
     def do_POST(self) -> None:  # noqa: N802

@@ -87,6 +87,24 @@ class CounterfactualServiceTests(unittest.TestCase):
             baseline_by_outcome["win_pct"]["mis_value"],
         )
 
+    def test_overview_payload_contains_required_sections(self) -> None:
+        payload = self.service.build_overview_payload(season=2024)
+
+        self.assertEqual(payload["season"], 2024)
+        self.assertIn("generated_at", payload)
+        self.assertIn("cards", payload)
+        self.assertIn("charts", payload)
+
+        cards = payload["cards"]
+        self.assertIn("top_positive_team", cards)
+        self.assertIn("top_negative_team", cards)
+        self.assertIn("league_net_mis", cards)
+        self.assertIn("high_confidence_share", cards)
+
+        charts = payload["charts"]
+        self.assertGreaterEqual(len(charts["league_ranking"]), 1)
+        self.assertGreaterEqual(len(charts["outcome_distribution"]), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
