@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:8080/v1/dashboard/scenario-sandbox";
+const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
+const API_URL = `${API_BASE}/v1/dashboard/scenario-sandbox`;
 const FALLBACK_URL = "../public/scenario-sandbox.sample.json";
 
 function fmt(num) {

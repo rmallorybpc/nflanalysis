@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from urllib.parse import parse_qs, urlparse
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -14,6 +15,11 @@ from api.app.counterfactual_service import CounterfactualService
 
 
 SERVICE = CounterfactualService()
+ALLOWED_ORIGINS = {
+    origin.strip()
+    for origin in os.getenv("ALLOWED_ORIGIN", "").split(",")
+    if origin.strip()
+}
 
 
 def _parse_payload(payload: dict[str, Any]) -> dict[str, Any]:
@@ -48,13 +54,34 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
 
     server_version = "nflanalysis-counterfactual/0.1"
 
+    def _allowed_origin(self) -> str | None:
+        origin = self.headers.get("Origin", "").strip()
+        if origin and origin in ALLOWED_ORIGINS:
+            return origin
+        return None
+
+    def _set_cors_headers(self) -> None:
+        allowed_origin = self._allowed_origin()
+        if allowed_origin is None:
+            return
+        self.send_header("Access-Control-Allow-Origin", allowed_origin)
+        self.send_header("Vary", "Origin")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
     def _write_json(self, status: int, body: dict[str, Any]) -> None:
         data = json.dumps(body).encode("utf-8")
         self.send_response(status)
+        self._set_cors_headers()
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
+
+    def do_OPTIONS(self) -> None:  # noqa: N802
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self._set_cors_headers()
+        self.end_headers()
 
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
@@ -137,6 +164,7 @@ def main() -> None:
     args = parse_args()
     server = ThreadingHTTPServer((args.host, args.port), CounterfactualHandler)
     print(f"Serving counterfactual API on http://{args.host}:{args.port}")
+    print(f"Allowed CORS origins: {sorted(ALLOWED_ORIGINS)}")
     server.serve_forever()
 
 

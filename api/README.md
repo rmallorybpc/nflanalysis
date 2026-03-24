@@ -8,6 +8,11 @@ Run the local HTTP service:
 /usr/bin/python3 -m api.app.main --host 0.0.0.0 --port 8080
 ```
 
+Environment variables:
+
+- `ALLOWED_ORIGIN`: comma-separated list of allowed CORS origins.
+  - Example: `https://rmallorybpc.github.io`
+
 Health check:
 
 ```bash
