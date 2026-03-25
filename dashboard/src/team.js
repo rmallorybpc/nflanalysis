@@ -1,6 +1,60 @@
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
-const API_URL = `${API_BASE}/v1/dashboard/team-detail?team_id=BUF&season=2024`;
 const FALLBACK_URL = "../public/team-detail.sample.json";
+
+const state = {
+  teamId: "BUF",
+  season: 2024,
+};
+
+function toTeamId(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .slice(0, 3);
+}
+
+function buildTeamDetailUrl(teamId, season) {
+  const params = new URLSearchParams({
+    team_id: teamId,
+    season: String(season),
+  });
+  return `${API_BASE}/v1/dashboard/team-detail?${params.toString()}`;
+}
+
+function syncControls() {
+  document.getElementById("teamInput").value = state.teamId;
+  document.getElementById("seasonInput").value = String(state.season);
+  const overviewLink = document.getElementById("overviewLink");
+  overviewLink.href = `./index.html?season=${state.season}&team_id=${state.teamId}`;
+}
+
+function parseQueryState() {
+  const params = new URLSearchParams(window.location.search);
+  const queryTeam = toTeamId(params.get("team_id"));
+  if (queryTeam) {
+    state.teamId = queryTeam;
+  }
+  const querySeason = Number(params.get("season"));
+  if (Number.isFinite(querySeason) && querySeason > 0) {
+    state.season = Math.trunc(querySeason);
+  }
+}
+
+function writeQueryState() {
+  const params = new URLSearchParams({
+    team_id: state.teamId,
+    season: String(state.season),
+  });
+  window.history.replaceState({}, "", `?${params.toString()}`);
+}
+
+function readControlState() {
+  const rawSeason = Number(document.getElementById("seasonInput").value);
+  const nextSeason = Number.isFinite(rawSeason) && rawSeason > 0 ? Math.trunc(rawSeason) : state.season;
+  const nextTeam = toTeamId(document.getElementById("teamInput").value) || state.teamId;
+  state.season = nextSeason;
+  state.teamId = nextTeam;
+}
 
 function fmt(num) {
   return Number(num).toFixed(3);
@@ -94,9 +148,10 @@ function applyMeta(payload) {
   document.getElementById("meta").textContent = `Season ${payload.season} | Generated ${payload.generated_at}`;
 }
 
-async function loadData() {
+async function loadData(teamId, season) {
+  const apiUrl = buildTeamDetailUrl(teamId, season);
   try {
-    const live = await fetch(API_URL);
+    const live = await fetch(apiUrl);
     if (live.ok) {
       return live.json();
     }
@@ -111,13 +166,37 @@ async function loadData() {
   return fallback.json();
 }
 
-async function main() {
-  const payload = await loadData();
+async function refreshTeamDetail() {
+  readControlState();
+  syncControls();
+  writeQueryState();
+  const payload = await loadData(state.teamId, state.season);
   applyMeta(payload);
   renderCards(payload);
   renderTimeline(payload);
   renderTrend(payload);
   renderPosition(payload);
+}
+
+function bindControls() {
+  document.getElementById("reloadBtn").addEventListener("click", () => {
+    refreshTeamDetail().catch((err) => console.error(err));
+  });
+
+  document.getElementById("teamInput").addEventListener("input", (event) => {
+    const normalized = toTeamId(event.target.value);
+    if (normalized) {
+      state.teamId = normalized;
+      syncControls();
+    }
+  });
+}
+
+async function main() {
+  parseQueryState();
+  syncControls();
+  bindControls();
+  await refreshTeamDetail();
 }
 
 main().catch((err) => console.error(err));
