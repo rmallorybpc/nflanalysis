@@ -2,13 +2,106 @@ const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").rep
 const API_URL = `${API_BASE}/v1/dashboard/scenario-sandbox`;
 const FALLBACK_URL = "../public/scenario-sandbox.sample.json";
 
+const TEAM_IDS = [
+  "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
+  "DAL", "DEN", "DET", "GB", "HOU", "IND", "JAX", "KC",
+  "LAC", "LAR", "LV", "MIA", "MIN", "NE", "NO", "NYG",
+  "NYJ", "PHI", "PIT", "SEA", "SF", "TB", "TEN", "WAS",
+];
+
+const state = {
+  teamId: "BUF",
+  season: 2024,
+};
+
+function toTeamId(value) {
+  const normalized = String(value || "")
+    .trim()
+    .toUpperCase()
+    .slice(0, 3);
+  return TEAM_IDS.includes(normalized) ? normalized : "";
+}
+
+function ensureTeamOptions(selectId) {
+  const select = document.getElementById(selectId);
+  if (select.options.length > 0) {
+    return;
+  }
+
+  TEAM_IDS.forEach((teamId) => {
+    const option = document.createElement("option");
+    option.value = teamId;
+    option.textContent = teamId;
+    select.appendChild(option);
+  });
+}
+
+function parseQueryState() {
+  const params = new URLSearchParams(window.location.search);
+  const teamId = toTeamId(params.get("team_id"));
+  const season = Number(params.get("season"));
+  if (teamId) {
+    state.teamId = teamId;
+  }
+  if (Number.isFinite(season) && season > 0) {
+    state.season = Math.trunc(season);
+  }
+}
+
+function syncControls() {
+  ensureTeamOptions("teamId");
+  ensureTeamOptions("fromTeam");
+  ensureTeamOptions("toTeam");
+
+  document.getElementById("teamId").value = state.teamId;
+  document.getElementById("season").value = String(state.season);
+  const toTeamSelect = document.getElementById("toTeam");
+  const fromTeamSelect = document.getElementById("fromTeam");
+  if (!toTeamId(toTeamSelect.value)) {
+    toTeamSelect.value = state.teamId;
+  }
+  if (!toTeamId(fromTeamSelect.value)) {
+    fromTeamSelect.value = "NYJ";
+  }
+  updateNavLinks();
+}
+
+function updateNavLinks() {
+  const params = new URLSearchParams({
+    team_id: state.teamId,
+    season: String(state.season),
+  });
+  const query = params.toString();
+  document.getElementById("overviewLink").href = `./index.html?${query}`;
+  document.getElementById("teamLink").href = `./team.html?${query}`;
+}
+
+function writeQueryState() {
+  const params = new URLSearchParams({
+    team_id: state.teamId,
+    season: String(state.season),
+  });
+  window.history.replaceState({}, "", `?${params.toString()}`);
+}
+
+function syncStateFromControls() {
+  const teamId = toTeamId(document.getElementById("teamId").value);
+  const season = Number(document.getElementById("season").value);
+  if (teamId) {
+    state.teamId = teamId;
+  }
+  if (Number.isFinite(season) && season > 0) {
+    state.season = Math.trunc(season);
+  }
+}
+
 function fmt(num) {
   return Number(num).toFixed(3);
 }
 
 function payloadFromInputs() {
   return {
-    team_id: document.getElementById("teamId").value.trim(),
+    team_id: document.getElementById("teamId").value,
     season: Number(document.getElementById("season").value),
     week: Number(document.getElementById("week").value),
     scenario_id: document.getElementById("scenarioId").value.trim(),
@@ -16,8 +109,8 @@ function payloadFromInputs() {
       {
         move_id: "ui_custom_001",
         player_id: document.getElementById("playerId").value.trim(),
-        from_team_id: document.getElementById("fromTeam").value.trim(),
-        to_team_id: document.getElementById("toTeam").value.trim(),
+        from_team_id: document.getElementById("fromTeam").value,
+        to_team_id: document.getElementById("toTeam").value,
         move_type: document.getElementById("moveType").value,
         action: document.getElementById("action").value,
       },
@@ -77,6 +170,10 @@ function renderDeltas(rows) {
 }
 
 async function runScenario() {
+  syncStateFromControls();
+  syncControls();
+  writeQueryState();
+
   const payload = payloadFromInputs();
   const data = await fetchScenario(payload);
   renderDeltas(data.delta_summary);
@@ -84,8 +181,38 @@ async function runScenario() {
   renderEstimates("scenario", data.scenario_estimates);
 }
 
-document.getElementById("runBtn").addEventListener("click", () => {
-  runScenario().catch((err) => console.error(err));
-});
+function bindControls() {
+  const runAction = () => {
+    runScenario().catch((err) => console.error(err));
+  };
 
-runScenario().catch((err) => console.error(err));
+  document.getElementById("runBtn").addEventListener("click", () => {
+    runAction();
+  });
+
+  ["teamId", "season"].forEach((id) => {
+    document.getElementById(id).addEventListener("change", () => {
+      syncStateFromControls();
+      syncControls();
+      writeQueryState();
+    });
+  });
+
+  ["teamId", "season", "week", "scenarioId", "playerId", "fromTeam", "toTeam", "moveType", "action"].forEach((id) => {
+    document.getElementById(id).addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        runAction();
+      }
+    });
+  });
+}
+
+function main() {
+  parseQueryState();
+  syncControls();
+  bindControls();
+  runScenario().catch((err) => console.error(err));
+}
+
+main();

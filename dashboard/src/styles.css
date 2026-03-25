@@ -116,7 +116,8 @@ h1 {
   color: #bed1e4;
 }
 
-.hero-controls input {
+.hero-controls input,
+.hero-controls select {
   border-radius: 9px;
   border: 1px solid rgba(197, 216, 235, 0.5);
   background: rgba(255, 255, 255, 0.14);
@@ -124,6 +125,21 @@ h1 {
   padding: 0.35rem 0.5rem;
   min-width: 116px;
   font-family: "IBM Plex Mono", monospace;
+}
+
+.helper {
+  margin-top: 0.95rem;
+}
+
+.helper h2 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.helper p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .hero-controls button,

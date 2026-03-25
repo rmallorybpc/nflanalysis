@@ -21,7 +21,7 @@
           <nav class="top-nav" aria-label="Dashboard pages">
             <a href="./index.html" aria-current="page">Overview</a>
             <a id="teamPageLink" href="./team.html?team_id=BUF&season=2024">Team Detail</a>
-            <a href="./scenario.html">Scenario Sandbox</a>
+            <a id="scenarioPageLink" href="./scenario.html?team_id=BUF&season=2024">Scenario Sandbox</a>
           </nav>
         </div>
         <h1>Movement Impact Overview</h1>
@@ -33,7 +33,7 @@
             <input id="seasonInput" type="number" value="2024" min="2010" max="2100" />
           </label>
           <label>Team Drilldown
-            <input id="teamInput" value="BUF" maxlength="3" />
+            <select id="teamInput" aria-label="Team drilldown selector"></select>
           </label>
           <button id="refreshBtn" type="button">Refresh</button>
           <a id="openTeamBtn" class="cta-link" href="./team.html?team_id=BUF&season=2024">Open Team Detail</a>
@@ -43,6 +43,11 @@
           <span id="generatedLabel">Generated: --</span>
         </div>
       </header>
+
+      <section class="helper panel" aria-label="How to use overview page">
+        <h2>How To Use</h2>
+        <p>Choose a season and team, then click Refresh. Click any row in League Ranking to jump directly to that team for the selected season.</p>
+      </section>
 
       <section class="cards" aria-label="overview cards">
         <article class="metric-card positive" id="topPositiveCard"></article>
