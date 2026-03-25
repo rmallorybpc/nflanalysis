@@ -1,5 +1,12 @@
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
-const FALLBACK_URL = "../public/team-detail.sample.json";
+const FALLBACK_URLS = [
+  "../public/team-detail.sample.json",
+  "./public/team-detail.sample.json",
+  "/dashboard/public/team-detail.sample.json",
+  "/public/team-detail.sample.json",
+  "https://rmallorybpc.github.io/nflanalysis/dashboard/public/team-detail.sample.json",
+  "https://raw.githubusercontent.com/rmallorybpc/nflanalysis/main/dashboard/public/team-detail.sample.json",
+];
 
 const TEAM_IDS = [
   "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
@@ -82,6 +89,33 @@ function readControlState() {
 
 function fmt(num) {
   return Number(num).toFixed(3);
+}
+
+function setStatus(message, isError = false) {
+  const el = document.getElementById("statusMessage");
+  el.textContent = message || "";
+  el.classList.toggle("error", Boolean(isError));
+}
+
+function isTeamDetailPayload(payload) {
+  return Boolean(
+    payload &&
+      payload.cards &&
+      payload.cards.current_mis &&
+      payload.timeline &&
+      payload.charts &&
+      payload.charts.mis_trend &&
+      payload.charts.position_group_delta
+  );
+}
+
+function resetRenderedData() {
+  document.getElementById("cardCurrent").innerHTML = "";
+  document.getElementById("cardMoves").innerHTML = "";
+  document.getElementById("cardPosition").innerHTML = "";
+  document.getElementById("timeline").innerHTML = "";
+  document.getElementById("trend").innerHTML = "";
+  document.getElementById("position").innerHTML = "";
 }
 
 function setCard(el, title, value, sub) {
@@ -174,32 +208,70 @@ function applyMeta(payload) {
 
 async function loadData(teamId, season) {
   const apiUrl = buildTeamDetailUrl(teamId, season);
+  let liveError = null;
+
   try {
     const live = await fetch(apiUrl);
     if (live.ok) {
-      return live.json();
+      const livePayload = await live.json();
+      if (isTeamDetailPayload(livePayload)) {
+        return { payload: livePayload, source: "live" };
+      }
+      if (livePayload && livePayload.error) {
+        throw new Error(`Live API error: ${livePayload.error}`);
+      }
+      throw new Error("Live API returned an invalid team detail payload format.");
     }
+    liveError = new Error(`Live API request failed with status ${live.status}.`);
   } catch (_err) {
-    // fallback for static preview
+    liveError = _err instanceof Error ? _err : new Error("Live API request failed.");
   }
 
-  const fallback = await fetch(FALLBACK_URL);
-  if (!fallback.ok) {
-    throw new Error("Unable to load team detail payload");
+  for (const fallbackUrl of FALLBACK_URLS) {
+    try {
+      const fallback = await fetch(fallbackUrl);
+      if (!fallback.ok) {
+        continue;
+      }
+      const fallbackPayload = await fallback.json();
+      if (isTeamDetailPayload(fallbackPayload)) {
+        return { payload: fallbackPayload, source: "fallback" };
+      }
+    } catch (_err) {
+      // Try the next fallback URL.
+    }
   }
-  return fallback.json();
+
+  const liveErrorSuffix = liveError instanceof Error ? ` Last live error: ${liveError.message}` : "";
+  throw new Error(`Unable to load team detail payload from API or fallback fixture.${liveErrorSuffix}`);
 }
 
 async function refreshTeamDetail() {
   readControlState();
   syncControls();
   writeQueryState();
-  const payload = await loadData(state.teamId, state.season);
-  applyMeta(payload);
-  renderCards(payload);
-  renderTimeline(payload);
-  renderTrend(payload);
-  renderPosition(payload);
+
+  setStatus(`Loading ${state.teamId} ${state.season}...`);
+  try {
+    const loaded = await loadData(state.teamId, state.season);
+    const payload = loaded.payload;
+    applyMeta(payload);
+    renderCards(payload);
+    renderTimeline(payload);
+    renderTrend(payload);
+    renderPosition(payload);
+    if (loaded.source === "fallback") {
+      setStatus("Showing fallback sample data because live API data was unavailable.");
+    } else {
+      setStatus("");
+    }
+  } catch (err) {
+    resetRenderedData();
+    document.getElementById("title").textContent = `Team ${state.teamId}`;
+    document.getElementById("meta").textContent = `Season ${state.season} | Generated --`;
+    const message = err instanceof Error ? err.message : "Unable to load team detail payload.";
+    setStatus(message, true);
+  }
 }
 
 function bindControls() {
