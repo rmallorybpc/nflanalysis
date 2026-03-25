@@ -124,10 +124,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--win-totals", type=Path, default=Path("data/raw/offseason/win_totals.csv"))
     parser.add_argument("--season", type=int, default=2026)
     parser.add_argument("--week", type=int, default=1)
-    parser.add_argument("--movement-output", type=Path, default=Path("data/processed/movement_events.csv"))
-    parser.add_argument("--players-output", type=Path, default=Path("data/processed/player_dimension.csv"))
-    parser.add_argument("--outcomes-output", type=Path, default=Path("data/processed/team_week_outcomes.csv"))
-    parser.add_argument("--review-output", type=Path, default=Path("data/processed/offseason_manual_review.csv"))
+    parser.add_argument("--movement-output", type=Path, default=Path("data/processed/offseason/movement_events.csv"))
+    parser.add_argument("--players-output", type=Path, default=Path("data/processed/offseason/player_dimension.csv"))
+    parser.add_argument("--outcomes-output", type=Path, default=Path("data/processed/offseason/team_week_outcomes.csv"))
+    parser.add_argument("--review-output", type=Path, default=Path("data/processed/offseason/manual_review.csv"))
     return parser.parse_args()
 
 

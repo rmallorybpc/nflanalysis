@@ -11,10 +11,10 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
-from api.app.counterfactual_service import CounterfactualService
+from api.app.counterfactual_service import CounterfactualService, ServiceConfig
 
 
-SERVICE = CounterfactualService()
+SERVICE = CounterfactualService(config=ServiceConfig.from_env())
 ALLOWED_ORIGINS = {
     origin.strip()
     for origin in os.getenv("ALLOWED_ORIGIN", "").split(",")

@@ -1,0 +1,10 @@
+team_id,nfl_season,nfl_week,outcome_name,observed_prediction,counterfactual_prediction,mis_value,mis_z,interval_50_low,interval_50_high,interval_90_low,interval_90_high,low_confidence_flag,model_version,data_version,generated_at
+BUF,2026,1,offensive_epa_per_play,0.017230,0.002327,0.014903,1.382445,0.014301,0.015505,0.013434,0.016372,true,baseline-ridge-v0.2.0-offseason,features-0.4.0-offseason,2026-03-25T21:06:41Z
+BUF,2026,1,point_diff_per_game,2.589511,0.354094,2.235417,1.382445,2.145122,2.325712,2.015038,2.455796,true,baseline-ridge-v0.2.0-offseason,features-0.4.0-offseason,2026-03-25T21:06:41Z
+BUF,2026,1,win_pct,0.611309,0.523680,0.087628,1.382445,0.084089,0.091168,0.078989,0.096267,true,baseline-ridge-v0.2.0-offseason,features-0.4.0-offseason,2026-03-25T21:06:41Z
+NYG,2026,1,offensive_epa_per_play,-0.011746,-0.002292,-0.009455,-0.949359,-0.010057,-0.008853,-0.010924,-0.007986,true,baseline-ridge-v0.2.0-offseason,features-0.4.0-offseason,2026-03-25T21:06:41Z
+NYG,2026,1,point_diff_per_game,-1.756958,-0.338746,-1.418211,-0.949359,-1.508506,-1.327916,-1.638590,-1.197832,true,baseline-ridge-v0.2.0-offseason,features-0.4.0-offseason,2026-03-25T21:06:41Z
+NYG,2026,1,win_pct,0.440927,0.496521,-0.055594,-0.949359,-0.059133,-0.052054,-0.064233,-0.046955,true,baseline-ridge-v0.2.0-offseason,features-0.4.0-offseason,2026-03-25T21:06:41Z
+SEA,2026,1,offensive_epa_per_play,-0.005584,-0.001522,-0.004062,-0.433086,-0.004664,-0.003460,-0.005531,-0.002593,true,baseline-ridge-v0.2.0-offseason,features-0.4.0-offseason,2026-03-25T21:06:41Z
+SEA,2026,1,point_diff_per_game,-0.832554,-0.223273,-0.609281,-0.433086,-0.699576,-0.518986,-0.829660,-0.388902,true,baseline-ridge-v0.2.0-offseason,features-0.4.0-offseason,2026-03-25T21:06:41Z
+SEA,2026,1,win_pct,0.477164,0.501048,-0.023884,-0.433086,-0.027423,-0.020344,-0.032523,-0.015245,true,baseline-ridge-v0.2.0-offseason,features-0.4.0-offseason,2026-03-25T21:06:41Z

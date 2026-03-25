@@ -1,0 +1,7 @@
+outcome_name,effect_type,effect_key,raw_mean,count,shrunk_effect,prior_strength,trained_at
+offensive_epa_per_play,player,J/JohnAl00,0.00000000,2,0.00000000,3.0000,2026-03-25T21:07:06Z
+offensive_epa_per_play,position_team,defense_secondary|SEA,0.00000000,2,0.00000000,3.0000,2026-03-25T21:07:06Z
+point_diff_per_game,player,J/JohnAl00,0.00000000,2,0.00000000,3.0000,2026-03-25T21:07:06Z
+point_diff_per_game,position_team,defense_secondary|SEA,0.00000000,2,0.00000000,3.0000,2026-03-25T21:07:06Z
+win_pct,player,J/JohnAl00,0.00000000,2,0.00000000,3.0000,2026-03-25T21:07:06Z
+win_pct,position_team,defense_secondary|SEA,0.00000000,2,0.00000000,3.0000,2026-03-25T21:07:06Z
