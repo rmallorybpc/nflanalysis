@@ -1,0 +1,4 @@
+player,position,team,age,height,weight,experience,college,draft_year,draft_round,draft_pick,pfr_slug,source_url,import_method,imported_at
+John Doe,WR,NYG,27,6-1,205,5,Ohio State,2019,2,45,D/DoeJo00,https://www.pro-football-reference.com/players/D/DoeJo00.htm,manual,2026-03-19T00:00:00Z
+Mike Smith,LB,BUF,29,6-2,240,7,Alabama,2017,3,72,S/SmitMi00,https://www.pro-football-reference.com/players/S/SmitMi00.htm,manual,2026-03-19T00:00:00Z
+Alex Johnson,CB,SEA,25,6-0,198,3,UCLA,2021,4,121,J/JohnAl00,https://www.pro-football-reference.com/players/J/JohnAl00.htm,manual,2026-03-19T00:00:00Z

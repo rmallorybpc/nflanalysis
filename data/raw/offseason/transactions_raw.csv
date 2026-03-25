@@ -1,0 +1,4 @@
+team,player,transaction_type,transaction_date,notes,source_url,import_method,imported_at
+NYG,John Doe,Signed,2026-03-19,1-year deal,https://www.nfl.com/transactions,manual,2026-03-19T00:00:00Z
+BUF,Mike Smith,Released,2026-03-18,Cap move,https://www.nfl.com/transactions,manual,2026-03-19T00:00:00Z
+SEA,Alex Johnson,Re-signed,2026-03-17,Depth signing,https://www.nfl.com/transactions,manual,2026-03-19T00:00:00Z

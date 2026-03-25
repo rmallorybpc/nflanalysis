@@ -1,0 +1,22 @@
+{
+  "run_id": "2026-03-19T00-00Z",
+  "generated_at": "2026-03-19T00:00:00Z",
+  "sources": {
+    "transactions": "https://www.nfl.com/transactions",
+    "players_metadata": "https://www.pro-football-reference.com",
+    "team_spending": "https://overthecap.com",
+    "win_totals": "Manually typed from DraftKings/FanDuel"
+  },
+  "legal_notes": {
+    "pfr": "Only metadata fields used; no tables or HTML republished.",
+    "otc": "Only team-level totals used; no individual contract details.",
+    "sportsbook": "Win totals manually typed; no scraping.",
+    "nfl": "Transactions are public and safe to publish."
+  },
+  "import_methods": {
+    "transactions": "manual",
+    "players_metadata": "manual",
+    "team_spending": "manual",
+    "win_totals": "manual"
+  }
+}
