@@ -12,9 +12,25 @@
   <body>
     <main class="wrap">
       <header class="hero">
-        <p class="label">Team Detail</p>
+        <div class="hero-top">
+          <p class="label">Team Detail</p>
+          <nav class="top-nav" aria-label="Dashboard pages">
+            <a id="overviewLink" href="./index.html?season=2024&team_id=BUF">Overview</a>
+            <a href="./team.html" aria-current="page">Team Detail</a>
+            <a href="./scenario.html">Scenario Sandbox</a>
+          </nav>
+        </div>
         <h1 id="title">Team --</h1>
         <p id="meta">Season --</p>
+        <div class="hero-controls" aria-label="Team detail controls">
+          <label>Team
+            <input id="teamInput" value="BUF" maxlength="3" />
+          </label>
+          <label>Season
+            <input id="seasonInput" type="number" value="2024" min="2010" max="2100" />
+          </label>
+          <button id="reloadBtn" type="button">Reload Team</button>
+        </div>
       </header>
 
       <section class="cards">

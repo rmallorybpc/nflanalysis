@@ -1,6 +1,52 @@
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
-const API_URL = `${API_BASE}/v1/dashboard/overview?season=2024`;
 const FALLBACK_URL = "../public/overview.sample.json";
+
+const state = {
+  season: 2024,
+  teamId: "BUF",
+};
+
+function buildOverviewUrl(season) {
+  const params = new URLSearchParams({ season: String(season) });
+  return `${API_BASE}/v1/dashboard/overview?${params.toString()}`;
+}
+
+function toTeamId(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .slice(0, 3);
+}
+
+function getNumberInputValue(id, fallback) {
+  const value = Number(document.getElementById(id).value);
+  return Number.isFinite(value) && value > 0 ? Math.trunc(value) : fallback;
+}
+
+function syncControls() {
+  document.getElementById("seasonInput").value = String(state.season);
+  document.getElementById("teamInput").value = state.teamId;
+  updateTeamLinks();
+}
+
+function updateTeamLinks() {
+  const params = new URLSearchParams({
+    team_id: state.teamId,
+    season: String(state.season),
+  });
+  const href = `./team.html?${params.toString()}`;
+  document.getElementById("openTeamBtn").href = href;
+  document.getElementById("teamPageLink").href = href;
+}
+
+function navigateToTeam(teamId) {
+  const safeTeam = toTeamId(teamId) || state.teamId;
+  const params = new URLSearchParams({
+    team_id: safeTeam,
+    season: String(state.season),
+  });
+  window.location.href = `./team.html?${params.toString()}`;
+}
 
 function fmt(num) {
   return Number(num).toFixed(3);
@@ -49,6 +95,10 @@ function renderRanking(payload) {
 
   payload.charts.league_ranking.forEach((row) => {
     const node = template.content.firstElementChild.cloneNode(true);
+    node.classList.add("clickable");
+    node.setAttribute("role", "button");
+    node.tabIndex = 0;
+    node.setAttribute("aria-label", `Open ${row.team_id} team detail`);
     node.querySelector(".bar-label").textContent = `${row.rank}. ${row.team_id}`;
     node.querySelector(".bar-fill").style.width = `${Math.max((Math.abs(row.mis_value) / maxAbs) * 100, 4)}%`;
     node.querySelector(".bar-fill").style.background =
@@ -56,6 +106,13 @@ function renderRanking(payload) {
         ? "linear-gradient(90deg, #0f8a5f, #65c9a8)"
         : "linear-gradient(90deg, #c13f2d, #e68d7d)";
     node.querySelector(".bar-value").textContent = fmt(row.mis_value);
+    node.addEventListener("click", () => navigateToTeam(row.team_id));
+    node.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        navigateToTeam(row.team_id);
+      }
+    });
     container.appendChild(node);
   });
 }
@@ -144,9 +201,10 @@ function applyMeta(payload) {
   document.getElementById("generatedLabel").textContent = `Generated: ${payload.generated_at}`;
 }
 
-async function loadOverviewData() {
+async function loadOverviewData(season) {
+  const apiUrl = buildOverviewUrl(season);
   try {
-    const live = await fetch(API_URL);
+    const live = await fetch(apiUrl);
     if (live.ok) {
       return live.json();
     }
@@ -161,8 +219,33 @@ async function loadOverviewData() {
   return fallback.json();
 }
 
-async function main() {
-  const payload = await loadOverviewData();
+function parseQueryState() {
+  const params = new URLSearchParams(window.location.search);
+  const season = Number(params.get("season"));
+  if (Number.isFinite(season) && season > 0) {
+    state.season = Math.trunc(season);
+  }
+  const teamId = toTeamId(params.get("team_id"));
+  if (teamId) {
+    state.teamId = teamId;
+  }
+}
+
+function writeQueryState() {
+  const params = new URLSearchParams({
+    season: String(state.season),
+    team_id: state.teamId,
+  });
+  window.history.replaceState({}, "", `?${params.toString()}`);
+}
+
+async function refreshOverview() {
+  state.season = getNumberInputValue("seasonInput", state.season);
+  state.teamId = toTeamId(document.getElementById("teamInput").value) || state.teamId;
+  syncControls();
+  writeQueryState();
+
+  const payload = await loadOverviewData(state.season);
   applyMeta(payload);
   renderCards(payload);
   renderRanking(payload);
@@ -170,6 +253,27 @@ async function main() {
   renderScope(payload);
   renderSeasonCoverage(payload);
   renderGeography(payload);
+}
+
+function bindControls() {
+  document.getElementById("refreshBtn").addEventListener("click", () => {
+    refreshOverview().catch((err) => console.error(err));
+  });
+
+  document.getElementById("teamInput").addEventListener("input", (event) => {
+    const normalized = toTeamId(event.target.value);
+    if (normalized) {
+      state.teamId = normalized;
+      updateTeamLinks();
+    }
+  });
+}
+
+async function main() {
+  parseQueryState();
+  syncControls();
+  bindControls();
+  await refreshOverview();
 }
 
 main().catch((err) => {

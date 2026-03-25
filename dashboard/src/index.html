@@ -16,11 +16,28 @@
     <div class="noise-layer" aria-hidden="true"></div>
     <main class="layout">
       <header class="hero">
-        <p class="kicker">NFL Analysis</p>
+        <div class="hero-top">
+          <p class="kicker">NFL Analysis</p>
+          <nav class="top-nav" aria-label="Dashboard pages">
+            <a href="./index.html" aria-current="page">Overview</a>
+            <a id="teamPageLink" href="./team.html?team_id=BUF&season=2024">Team Detail</a>
+            <a href="./scenario.html">Scenario Sandbox</a>
+          </nav>
+        </div>
         <h1>Movement Impact Overview</h1>
         <p class="subhead">
           League-wide signal for player movement impact, calibrated with uncertainty intervals and confidence flags.
         </p>
+        <div class="hero-controls" aria-label="Overview filters">
+          <label>Season
+            <input id="seasonInput" type="number" value="2024" min="2010" max="2100" />
+          </label>
+          <label>Team Drilldown
+            <input id="teamInput" value="BUF" maxlength="3" />
+          </label>
+          <button id="refreshBtn" type="button">Refresh</button>
+          <a id="openTeamBtn" class="cta-link" href="./team.html?team_id=BUF&season=2024">Open Team Detail</a>
+        </div>
         <div class="hero-meta">
           <span id="seasonLabel">Season: --</span>
           <span id="generatedLabel">Generated: --</span>

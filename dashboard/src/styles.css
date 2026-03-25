@@ -51,6 +51,36 @@ body {
   animation: rise 540ms ease;
 }
 
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.top-nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.top-nav a {
+  color: #d7e5f2;
+  text-decoration: none;
+  border: 1px solid rgba(214, 231, 247, 0.34);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.top-nav a:hover,
+.top-nav a[aria-current="page"] {
+  color: #102740;
+  background: #dbebfa;
+}
+
 .kicker {
   margin: 0;
   text-transform: uppercase;
@@ -69,6 +99,48 @@ h1 {
   margin: 0.7rem 0 0;
   max-width: 62ch;
   color: #d1deea;
+}
+
+.hero-controls {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.7rem;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.hero-controls label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.78rem;
+  color: #bed1e4;
+}
+
+.hero-controls input {
+  border-radius: 9px;
+  border: 1px solid rgba(197, 216, 235, 0.5);
+  background: rgba(255, 255, 255, 0.14);
+  color: #f4f8fc;
+  padding: 0.35rem 0.5rem;
+  min-width: 116px;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.hero-controls button,
+.cta-link {
+  border: 1px solid rgba(197, 216, 235, 0.6);
+  border-radius: 10px;
+  background: rgba(227, 238, 250, 0.18);
+  color: #ecf5fc;
+  padding: 0.42rem 0.74rem;
+  text-decoration: none;
+  font-family: "Space Grotesk", sans-serif;
+  cursor: pointer;
+}
+
+.hero-controls button:hover,
+.cta-link:hover {
+  background: rgba(227, 238, 250, 0.32);
 }
 
 .hero-meta {
@@ -180,6 +252,19 @@ h1 {
   align-items: center;
 }
 
+.bar-row.clickable {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 0.2rem;
+  transition: background-color 150ms ease;
+}
+
+.bar-row.clickable:hover,
+.bar-row.clickable:focus-visible {
+  background: rgba(33, 70, 107, 0.1);
+  outline: none;
+}
+
 .bar-label,
 .bar-value,
 .stack-label {
@@ -277,6 +362,16 @@ h1 {
 }
 
 @media (max-width: 900px) {
+  .hero-controls {
+    align-items: stretch;
+  }
+
+  .hero-controls button,
+  .cta-link {
+    width: 100%;
+    text-align: center;
+  }
+
   .cards {
     grid-template-columns: 1fr;
   }
