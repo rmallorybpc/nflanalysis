@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import csv
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -87,6 +88,23 @@ class ServiceConfig:
     fallback_outputs: Path = Path("data/processed/model_outputs.csv")
     effects: Path = Path("models/artifacts/hierarchical_effects.csv")
     players: Path = Path("data/processed/player_dimension.csv")
+    movement_events: Path = Path("data/processed/movement_events.csv")
+    team_week_features: Path = Path("data/processed/team_week_features.csv")
+
+    @classmethod
+    def from_env(cls) -> "ServiceConfig":
+        def env_path(var_name: str, default: Path) -> Path:
+            raw = os.getenv(var_name, "").strip()
+            return Path(raw) if raw else default
+
+        return cls(
+            model_outputs=env_path("MODEL_OUTPUTS_PATH", cls.model_outputs),
+            fallback_outputs=env_path("FALLBACK_OUTPUTS_PATH", cls.fallback_outputs),
+            effects=env_path("HIERARCHICAL_EFFECTS_PATH", cls.effects),
+            players=env_path("PLAYER_DIMENSION_PATH", cls.players),
+            movement_events=env_path("MOVEMENT_EVENTS_PATH", cls.movement_events),
+            team_week_features=env_path("TEAM_WEEK_FEATURES_PATH", cls.team_week_features),
+        )
 
 
 class CounterfactualService:
@@ -160,7 +178,7 @@ class CounterfactualService:
         return points
 
     def _build_geography_impact_profile(self, seasons: list[int]) -> list[dict[str, Any]]:
-        movement_rows = _read_csv(Path("data/processed/movement_events.csv"))
+        movement_rows = _read_csv(self.config.movement_events)
         allowed_scopes = ["same_division", "cross_division", "cross_conference"]
 
         buckets: dict[tuple[str, str], list[float]] = {
@@ -317,7 +335,7 @@ class CounterfactualService:
         season_coverage = self._build_season_coverage(available_seasons)
         geography_profile = self._build_geography_impact_profile(available_seasons)
         move_type_counts = {"trade": 0, "free_agency": 0}
-        for row in _read_csv(Path("data/processed/movement_events.csv")):
+        for row in _read_csv(self.config.movement_events):
             move_type = row.get("move_type", "").strip()
             if move_type in move_type_counts:
                 move_type_counts[move_type] += 1
@@ -397,7 +415,7 @@ class CounterfactualService:
 
         win_pct_row = next((row for row in latest_rows if row["outcome_name"].strip() == "win_pct"), latest_rows[0])
 
-        features = _read_csv(Path("data/processed/team_week_features.csv"))
+        features = _read_csv(self.config.team_week_features)
         feature_row = next(
             (
                 row
@@ -411,7 +429,7 @@ class CounterfactualService:
         if feature_row is None:
             raise ValueError(f"missing feature row for team_id={team_id} season={season} week={latest_week}")
 
-        movement_rows = _read_csv(Path("data/processed/movement_events.csv"))
+        movement_rows = _read_csv(self.config.movement_events)
         relevant_moves = []
         for row in movement_rows:
             if row.get("season_phase", "").strip() != "regular":

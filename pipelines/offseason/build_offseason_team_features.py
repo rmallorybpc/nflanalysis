@@ -63,12 +63,12 @@ GROUP_FIELDS = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build offseason feature table")
-    parser.add_argument("--movement", type=Path, default=Path("data/processed/movement_events.csv"))
-    parser.add_argument("--players", type=Path, default=Path("data/processed/player_dimension.csv"))
-    parser.add_argument("--outcomes", type=Path, default=Path("data/processed/team_week_outcomes.csv"))
+    parser.add_argument("--movement", type=Path, default=Path("data/processed/offseason/movement_events.csv"))
+    parser.add_argument("--players", type=Path, default=Path("data/processed/offseason/player_dimension.csv"))
+    parser.add_argument("--outcomes", type=Path, default=Path("data/processed/offseason/team_week_outcomes.csv"))
     parser.add_argument("--team-spending", type=Path, default=Path("data/raw/offseason/team_spending_otc.csv"))
     parser.add_argument("--win-totals", type=Path, default=Path("data/raw/offseason/win_totals.csv"))
-    parser.add_argument("--output", type=Path, default=Path("data/processed/team_week_features.csv"))
+    parser.add_argument("--output", type=Path, default=Path("data/processed/offseason/team_week_features.csv"))
     parser.add_argument("--feature-version", type=str, default="0.4.0-offseason")
     parser.add_argument("--roster-size", type=float, default=53.0)
     return parser.parse_args()
