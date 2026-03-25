@@ -12,16 +12,28 @@
   <body>
     <main class="page">
       <header class="hero">
-        <p class="kicker">Scenario Sandbox</p>
+        <div class="hero-top">
+          <p class="kicker">Scenario Sandbox</p>
+          <nav class="top-nav" aria-label="Dashboard pages">
+            <a id="overviewLink" href="./index.html?season=2024&team_id=BUF">Overview</a>
+            <a id="teamLink" href="./team.html?season=2024&team_id=BUF">Team Detail</a>
+            <a href="./scenario.html" aria-current="page">Scenario Sandbox</a>
+          </nav>
+        </div>
         <h1>Counterfactual Move Lab</h1>
         <p>Test add/remove moves and inspect model deltas with uncertainty ranges.</p>
       </header>
+
+      <section class="helper panel" aria-label="How to use scenario sandbox">
+        <h2>How To Use</h2>
+        <p>Select team, season, and move settings, then run the scenario. Update values and rerun to compare deltas and uncertainty bands for each outcome.</p>
+      </section>
 
       <section class="controls panel">
         <h2>Scenario Inputs</h2>
         <div class="control-grid">
           <label>Team
-            <input id="teamId" value="BUF" />
+            <select id="teamId" aria-label="Scenario team selector"></select>
           </label>
           <label>Season
             <input id="season" type="number" value="2024" />
@@ -40,10 +52,10 @@
             <input id="playerId" value="p_003" />
           </label>
           <label>From Team
-            <input id="fromTeam" value="NYJ" />
+            <select id="fromTeam" aria-label="Move from team selector"></select>
           </label>
           <label>To Team
-            <input id="toTeam" value="BUF" />
+            <select id="toTeam" aria-label="Move to team selector"></select>
           </label>
           <label>Move Type
             <select id="moveType">

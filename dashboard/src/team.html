@@ -17,14 +17,14 @@
           <nav class="top-nav" aria-label="Dashboard pages">
             <a id="overviewLink" href="./index.html?season=2024&team_id=BUF">Overview</a>
             <a href="./team.html" aria-current="page">Team Detail</a>
-            <a href="./scenario.html">Scenario Sandbox</a>
+            <a id="scenarioLink" href="./scenario.html?season=2024&team_id=BUF">Scenario Sandbox</a>
           </nav>
         </div>
         <h1 id="title">Team --</h1>
         <p id="meta">Season --</p>
         <div class="hero-controls" aria-label="Team detail controls">
           <label>Team
-            <input id="teamInput" value="BUF" maxlength="3" />
+            <select id="teamInput" aria-label="Team selector"></select>
           </label>
           <label>Season
             <input id="seasonInput" type="number" value="2024" min="2010" max="2100" />
@@ -32,6 +32,11 @@
           <button id="reloadBtn" type="button">Reload Team</button>
         </div>
       </header>
+
+      <section class="helper panel" aria-label="How to use team detail page">
+        <h2>How To Use</h2>
+        <p>Choose a team and season, then click Reload Team. Use the top navigation to return to overview or run a what-if in the scenario sandbox with this same context.</p>
+      </section>
 
       <section class="cards">
         <article class="card" id="cardCurrent"></article>

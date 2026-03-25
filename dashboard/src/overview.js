@@ -1,6 +1,13 @@
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
 const FALLBACK_URL = "../public/overview.sample.json";
 
+const TEAM_IDS = [
+  "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
+  "DAL", "DEN", "DET", "GB", "HOU", "IND", "JAX", "KC",
+  "LAC", "LAR", "LV", "MIA", "MIN", "NE", "NO", "NYG",
+  "NYJ", "PHI", "PIT", "SEA", "SF", "TB", "TEN", "WAS",
+];
+
 const state = {
   season: 2024,
   teamId: "BUF",
@@ -12,10 +19,11 @@ function buildOverviewUrl(season) {
 }
 
 function toTeamId(value) {
-  return String(value || "")
+  const normalized = String(value || "")
     .trim()
     .toUpperCase()
     .slice(0, 3);
+  return TEAM_IDS.includes(normalized) ? normalized : "";
 }
 
 function getNumberInputValue(id, fallback) {
@@ -24,9 +32,23 @@ function getNumberInputValue(id, fallback) {
 }
 
 function syncControls() {
+  ensureTeamOptions();
   document.getElementById("seasonInput").value = String(state.season);
   document.getElementById("teamInput").value = state.teamId;
   updateTeamLinks();
+}
+
+function ensureTeamOptions() {
+  const select = document.getElementById("teamInput");
+  if (select.options.length > 0) {
+    return;
+  }
+  TEAM_IDS.forEach((teamId) => {
+    const option = document.createElement("option");
+    option.value = teamId;
+    option.textContent = teamId;
+    select.appendChild(option);
+  });
 }
 
 function updateTeamLinks() {
@@ -37,6 +59,7 @@ function updateTeamLinks() {
   const href = `./team.html?${params.toString()}`;
   document.getElementById("openTeamBtn").href = href;
   document.getElementById("teamPageLink").href = href;
+  document.getElementById("scenarioPageLink").href = `./scenario.html?${params.toString()}`;
 }
 
 function navigateToTeam(teamId) {
@@ -256,16 +279,29 @@ async function refreshOverview() {
 }
 
 function bindControls() {
-  document.getElementById("refreshBtn").addEventListener("click", () => {
+  const refreshAction = () => {
     refreshOverview().catch((err) => console.error(err));
+  };
+
+  document.getElementById("refreshBtn").addEventListener("click", () => {
+    refreshAction();
   });
 
-  document.getElementById("teamInput").addEventListener("input", (event) => {
+  document.getElementById("teamInput").addEventListener("change", (event) => {
     const normalized = toTeamId(event.target.value);
     if (normalized) {
       state.teamId = normalized;
       updateTeamLinks();
     }
+  });
+
+  ["seasonInput", "teamInput"].forEach((id) => {
+    document.getElementById(id).addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        refreshAction();
+      }
+    });
   });
 }
 

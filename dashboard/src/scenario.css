@@ -31,6 +31,35 @@ body {
   color: #eef5fb;
 }
 
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.top-nav {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.top-nav a {
+  color: #d8e8f5;
+  text-decoration: none;
+  border: 1px solid rgba(215, 232, 247, 0.38);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.78rem;
+}
+
+.top-nav a:hover,
+.top-nav a[aria-current="page"] {
+  color: #163650;
+  background: #deecf8;
+}
+
 .kicker {
   margin: 0;
   text-transform: uppercase;
@@ -51,6 +80,17 @@ h1 { margin: 0.2rem 0; }
 
 .controls h2,
 .controls h3 { margin: 0 0 0.45rem; }
+
+.helper h2 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.helper p {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
 
 .control-grid {
   display: grid;
