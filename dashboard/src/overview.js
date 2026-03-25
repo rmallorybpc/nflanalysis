@@ -1,5 +1,12 @@
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
-const FALLBACK_URL = "../public/overview.sample.json";
+const FALLBACK_URLS = [
+  "../public/overview.sample.json",
+  "./public/overview.sample.json",
+  "/dashboard/public/overview.sample.json",
+  "/public/overview.sample.json",
+  "https://rmallorybpc.github.io/nflanalysis/dashboard/public/overview.sample.json",
+  "https://raw.githubusercontent.com/rmallorybpc/nflanalysis/main/dashboard/public/overview.sample.json",
+];
 
 const TEAM_IDS = [
   "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
@@ -253,34 +260,74 @@ function applyMeta(payload) {
 
 async function loadOverviewData(season) {
   const apiUrl = buildOverviewUrl(season);
+  let liveError = null;
+
   try {
     const live = await fetch(apiUrl);
     if (live.ok) {
       const livePayload = await live.json();
       if (isOverviewPayload(livePayload)) {
-        return livePayload;
+        return { payload: livePayload, source: "live" };
       }
       if (livePayload && livePayload.error) {
-        throw new Error(livePayload.error);
+        throw new Error(`Live API error: ${livePayload.error}`);
       }
-      throw new Error("Overview payload format was invalid.");
+      throw new Error("Live API returned an invalid overview payload format.");
     }
+    liveError = new Error(`Live API request failed with status ${live.status}.`);
   } catch (_err) {
-    // Fallback for local static preview when live endpoint is unavailable.
-    if (_err instanceof Error && _err.message && !_err.message.includes("Failed to fetch")) {
-      throw _err;
+    // Continue to fallback fixture resolution for local/static previews.
+    liveError = _err instanceof Error ? _err : new Error("Live API request failed.");
+  }
+
+  for (const fallbackUrl of FALLBACK_URLS) {
+    try {
+      const fallback = await fetch(fallbackUrl);
+      if (!fallback.ok) {
+        continue;
+      }
+      const fallbackPayload = await fallback.json();
+      if (isOverviewPayload(fallbackPayload)) {
+        return { payload: fallbackPayload, source: "fallback" };
+      }
+    } catch (_err) {
+      // Try the next fallback URL.
     }
   }
 
-  const fallback = await fetch(FALLBACK_URL);
-  if (!fallback.ok) {
-    throw new Error("Unable to load overview data from API or fallback payload");
+  const liveErrorSuffix = liveError instanceof Error ? ` Last live error: ${liveError.message}` : "";
+  throw new Error(`Unable to load overview data from API or fallback payload.${liveErrorSuffix}`);
+}
+
+async function refreshOverview() {
+  state.season = getNumberInputValue("seasonInput", state.season);
+  state.teamId = toTeamId(document.getElementById("teamInput").value) || state.teamId;
+  syncControls();
+  writeQueryState();
+
+  setStatus(`Loading season ${state.season}...`);
+  try {
+    const loaded = await loadOverviewData(state.season);
+    const payload = loaded.payload;
+    applyMeta(payload);
+    renderCards(payload);
+    renderRanking(payload);
+    renderDistribution(payload);
+    renderScope(payload);
+    renderSeasonCoverage(payload);
+    renderGeography(payload);
+    if (loaded.source === "fallback") {
+      setStatus("Showing fallback sample data because live API data was unavailable.");
+    } else {
+      setStatus("");
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unable to load overview data.";
+    resetRenderedData();
+    document.getElementById("seasonLabel").textContent = `Season: ${state.season}`;
+    document.getElementById("generatedLabel").textContent = "Generated: --";
+    setStatus(message, true);
   }
-  const fallbackPayload = await fallback.json();
-  if (!isOverviewPayload(fallbackPayload)) {
-    throw new Error("Fallback overview payload format was invalid.");
-  }
-  return fallbackPayload;
 }
 
 function parseQueryState() {
@@ -301,32 +348,6 @@ function writeQueryState() {
     team_id: state.teamId,
   });
   window.history.replaceState({}, "", `?${params.toString()}`);
-}
-
-async function refreshOverview() {
-  state.season = getNumberInputValue("seasonInput", state.season);
-  state.teamId = toTeamId(document.getElementById("teamInput").value) || state.teamId;
-  syncControls();
-  writeQueryState();
-
-  setStatus(`Loading season ${state.season}...`);
-  try {
-    const payload = await loadOverviewData(state.season);
-    applyMeta(payload);
-    renderCards(payload);
-    renderRanking(payload);
-    renderDistribution(payload);
-    renderScope(payload);
-    renderSeasonCoverage(payload);
-    renderGeography(payload);
-    setStatus("");
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unable to load overview data.";
-    resetRenderedData();
-    document.getElementById("seasonLabel").textContent = `Season: ${state.season}`;
-    document.getElementById("generatedLabel").textContent = "Generated: --";
-    setStatus(message, true);
-  }
 }
 
 function bindControls() {
