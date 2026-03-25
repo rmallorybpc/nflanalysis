@@ -169,6 +169,17 @@ h1 {
   color: #b9cde0;
 }
 
+.status-message {
+  margin: 0.6rem 0 0;
+  min-height: 1.1rem;
+  font-size: 0.85rem;
+  color: #d8e5f2;
+}
+
+.status-message.error {
+  color: #ffd2c8;
+}
+
 .cards {
   margin-top: 1rem;
   display: grid;
