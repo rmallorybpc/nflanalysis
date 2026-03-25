@@ -258,6 +258,62 @@ $$
 
 ## 10) Definition of Done (MVP)
 
+## 11) 2026 Offseason One-Time Run
+
+For the single-season offseason snapshot workflow, use the dedicated pipeline:
+
+1. Place raw inputs under `data/raw/offseason/`:
+	 - `transactions_raw.csv`
+	 - `players_metadata.csv`
+	 - `team_spending_otc.csv`
+	 - `win_totals.csv`
+2. Build canonical tables:
+
+```bash
+/usr/bin/python3 pipelines/offseason/ingest_offseason_snapshot.py \
+	--transactions data/raw/offseason/transactions_raw.csv \
+	--players data/raw/offseason/players_metadata.csv \
+	--win-totals data/raw/offseason/win_totals.csv \
+	--season 2026 \
+	--week 1
+```
+
+3. Build features (including spending and win totals integration):
+
+```bash
+/usr/bin/python3 pipelines/offseason/build_offseason_team_features.py \
+	--movement data/processed/movement_events.csv \
+	--players data/processed/player_dimension.csv \
+	--outcomes data/processed/team_week_outcomes.csv \
+	--team-spending data/raw/offseason/team_spending_otc.csv \
+	--win-totals data/raw/offseason/win_totals.csv \
+	--output data/processed/team_week_features.csv
+```
+
+4. Train baseline + hierarchical models locally (no deployment):
+
+```bash
+/usr/bin/python3 models/baseline/train_baseline_model.py \
+	--features data/processed/team_week_features.csv \
+	--outcomes data/processed/team_week_outcomes.csv \
+	--output data/processed/model_outputs.csv \
+	--coefficients-output models/artifacts/baseline_coefficients.csv \
+	--model-version baseline-ridge-v0.2.0-offseason
+```
+
+```bash
+/usr/bin/python3 models/hierarchical/train_hierarchical_model.py \
+	--features data/processed/team_week_features.csv \
+	--outcomes data/processed/team_week_outcomes.csv \
+	--movement data/processed/movement_events.csv \
+	--players data/processed/player_dimension.csv \
+	--output data/processed/model_outputs_hierarchical.csv \
+	--effects-output models/artifacts/hierarchical_effects.csv \
+	--model-version hierarchical-eb-v0.2.0-offseason
+```
+
+See `pipelines/offseason/README.md` for details.
+
 The MVP is complete when all conditions are met:
 
 - Data pipelines run end-to-end for last 5 seasons
