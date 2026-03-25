@@ -1,0 +1,396 @@
+{
+  "season": 2026,
+  "generated_at": "2026-03-25T21:40:17Z",
+  "scope": {
+    "season_range": {
+      "start": 2026,
+      "end": 2026
+    },
+    "season_count": 1,
+    "team_count": 32,
+    "included_move_types": [
+      "trade",
+      "free_agency"
+    ],
+    "move_type_counts": {
+      "trade": 0,
+      "free_agency": 64
+    },
+    "outcomes": [
+      "win_pct",
+      "point_diff_per_game",
+      "offensive_epa_per_play"
+    ],
+    "geography_dimensions": [
+      "team",
+      "division",
+      "conference"
+    ]
+  },
+  "cards": {
+    "top_positive_team": {
+      "team_id": "WAS",
+      "outcome_name": "win_pct",
+      "mis_value": 0.002612,
+      "mis_z": 2.024155,
+      "interval_90": {
+        "low": -0.001983,
+        "high": 0.007207
+      },
+      "low_confidence_flag": true,
+      "model_version": "hierarchical-eb-v0.2.0-offseason",
+      "data_version": "features-0.4.0-offseason"
+    },
+    "top_negative_team": {
+      "team_id": "DEN",
+      "outcome_name": "win_pct",
+      "mis_value": -0.002783,
+      "mis_z": -2.059719,
+      "interval_90": {
+        "low": -0.007378,
+        "high": 0.001812
+      },
+      "low_confidence_flag": true,
+      "model_version": "hierarchical-eb-v0.2.0-offseason",
+      "data_version": "features-0.4.0-offseason"
+    },
+    "league_net_mis": -0.001989,
+    "high_confidence_share": 0.0
+  },
+  "charts": {
+    "league_ranking": [
+      {
+        "rank": 1,
+        "team_id": "WAS",
+        "mis_value": 0.002612,
+        "mis_z": 2.024155
+      },
+      {
+        "rank": 2,
+        "team_id": "BAL",
+        "mis_value": 0.00253,
+        "mis_z": 1.962449
+      },
+      {
+        "rank": 3,
+        "team_id": "KC",
+        "mis_value": 0.002379,
+        "mis_z": 1.847967
+      },
+      {
+        "rank": 4,
+        "team_id": "DAL",
+        "mis_value": 0.001902,
+        "mis_z": 1.486491
+      },
+      {
+        "rank": 5,
+        "team_id": "NYJ",
+        "mis_value": 0.001804,
+        "mis_z": 1.412446
+      },
+      {
+        "rank": 6,
+        "team_id": "CIN",
+        "mis_value": 0.001386,
+        "mis_z": 1.096493
+      },
+      {
+        "rank": 7,
+        "team_id": "NO",
+        "mis_value": 0.001305,
+        "mis_z": 1.034787
+      },
+      {
+        "rank": 8,
+        "team_id": "SF",
+        "mis_value": 0.001305,
+        "mis_z": 1.034787
+      },
+      {
+        "rank": 9,
+        "team_id": "SEA",
+        "mis_value": 0.000379,
+        "mis_z": 0.333593
+      },
+      {
+        "rank": 10,
+        "team_id": "ARI",
+        "mis_value": 0.000116,
+        "mis_z": 0.135123
+      },
+      {
+        "rank": 11,
+        "team_id": "MIA",
+        "mis_value": 8.4e-05,
+        "mis_z": 0.110445
+      },
+      {
+        "rank": 12,
+        "team_id": "IND",
+        "mis_value": 3.9e-05,
+        "mis_z": 0.076558
+      },
+      {
+        "rank": 13,
+        "team_id": "BUF",
+        "mis_value": -7.8e-05,
+        "mis_z": -0.011802
+      },
+      {
+        "rank": 14,
+        "team_id": "CLE",
+        "mis_value": -0.000296,
+        "mis_z": -0.177121
+      },
+      {
+        "rank": 15,
+        "team_id": "CAR",
+        "mis_value": -0.000393,
+        "mis_z": -0.250069
+      },
+      {
+        "rank": 16,
+        "team_id": "TEN",
+        "mis_value": -0.000431,
+        "mis_z": -0.279305
+      },
+      {
+        "rank": 17,
+        "team_id": "HOU",
+        "mis_value": -0.000441,
+        "mis_z": -0.287086
+      },
+      {
+        "rank": 18,
+        "team_id": "JAX",
+        "mis_value": -0.000458,
+        "mis_z": -0.299425
+      },
+      {
+        "rank": 19,
+        "team_id": "PHI",
+        "mis_value": -0.00057,
+        "mis_z": -0.384484
+      },
+      {
+        "rank": 20,
+        "team_id": "DET",
+        "mis_value": -0.000627,
+        "mis_z": -0.427395
+      },
+      {
+        "rank": 21,
+        "team_id": "LAR",
+        "mis_value": -0.000636,
+        "mis_z": -0.434021
+      },
+      {
+        "rank": 22,
+        "team_id": "MIN",
+        "mis_value": -0.000652,
+        "mis_z": -0.44636
+      },
+      {
+        "rank": 23,
+        "team_id": "PIT",
+        "mis_value": -0.000797,
+        "mis_z": -0.55646
+      },
+      {
+        "rank": 24,
+        "team_id": "GB",
+        "mis_value": -0.000876,
+        "mis_z": -0.616373
+      },
+      {
+        "rank": 25,
+        "team_id": "NE",
+        "mis_value": -0.000906,
+        "mis_z": -0.639112
+      },
+      {
+        "rank": 26,
+        "team_id": "TB",
+        "mis_value": -0.000939,
+        "mis_z": -0.663801
+      },
+      {
+        "rank": 27,
+        "team_id": "NYG",
+        "mis_value": -0.000966,
+        "mis_z": -0.683931
+      },
+      {
+        "rank": 28,
+        "team_id": "CHI",
+        "mis_value": -0.001074,
+        "mis_z": -0.765883
+      },
+      {
+        "rank": 29,
+        "team_id": "ATL",
+        "mis_value": -0.001125,
+        "mis_z": -0.804296
+      },
+      {
+        "rank": 30,
+        "team_id": "LV",
+        "mis_value": -0.00119,
+        "mis_z": -0.853663
+      },
+      {
+        "rank": 31,
+        "team_id": "LAC",
+        "mis_value": -0.002592,
+        "mis_z": -1.914987
+      },
+      {
+        "rank": 32,
+        "team_id": "DEN",
+        "mis_value": -0.002783,
+        "mis_z": -2.059719
+      }
+    ],
+    "outcome_distribution": [
+      {
+        "outcome_name": "offensive_epa_per_play",
+        "bin_label": "-0.3 to 0.3",
+        "count": 9
+      },
+      {
+        "outcome_name": "offensive_epa_per_play",
+        "bin_label": "-1.0 to -0.3",
+        "count": 12
+      },
+      {
+        "outcome_name": "offensive_epa_per_play",
+        "bin_label": "0.3 to 1.0",
+        "count": 1
+      },
+      {
+        "outcome_name": "offensive_epa_per_play",
+        "bin_label": "<= -1.0",
+        "count": 2
+      },
+      {
+        "outcome_name": "offensive_epa_per_play",
+        "bin_label": ">= 1.0",
+        "count": 8
+      },
+      {
+        "outcome_name": "point_diff_per_game",
+        "bin_label": "-0.3 to 0.3",
+        "count": 9
+      },
+      {
+        "outcome_name": "point_diff_per_game",
+        "bin_label": "-1.0 to -0.3",
+        "count": 12
+      },
+      {
+        "outcome_name": "point_diff_per_game",
+        "bin_label": "0.3 to 1.0",
+        "count": 1
+      },
+      {
+        "outcome_name": "point_diff_per_game",
+        "bin_label": "<= -1.0",
+        "count": 2
+      },
+      {
+        "outcome_name": "point_diff_per_game",
+        "bin_label": ">= 1.0",
+        "count": 8
+      },
+      {
+        "outcome_name": "win_pct",
+        "bin_label": "-0.3 to 0.3",
+        "count": 9
+      },
+      {
+        "outcome_name": "win_pct",
+        "bin_label": "-1.0 to -0.3",
+        "count": 12
+      },
+      {
+        "outcome_name": "win_pct",
+        "bin_label": "0.3 to 1.0",
+        "count": 1
+      },
+      {
+        "outcome_name": "win_pct",
+        "bin_label": "<= -1.0",
+        "count": 2
+      },
+      {
+        "outcome_name": "win_pct",
+        "bin_label": ">= 1.0",
+        "count": 8
+      }
+    ],
+    "season_coverage": [
+      {
+        "season": 2026,
+        "latest_week": 1,
+        "team_count": 32
+      }
+    ],
+    "geography_impact_profile": [
+      {
+        "move_scope": "same_division",
+        "outcome_name": "win_pct",
+        "move_count": 15,
+        "avg_abs_impact": 0.0
+      },
+      {
+        "move_scope": "same_division",
+        "outcome_name": "point_diff_per_game",
+        "move_count": 15,
+        "avg_abs_impact": 0.0
+      },
+      {
+        "move_scope": "same_division",
+        "outcome_name": "offensive_epa_per_play",
+        "move_count": 15,
+        "avg_abs_impact": 0.0
+      },
+      {
+        "move_scope": "cross_division",
+        "outcome_name": "win_pct",
+        "move_count": 0,
+        "avg_abs_impact": 0.0
+      },
+      {
+        "move_scope": "cross_division",
+        "outcome_name": "point_diff_per_game",
+        "move_count": 0,
+        "avg_abs_impact": 0.0
+      },
+      {
+        "move_scope": "cross_division",
+        "outcome_name": "offensive_epa_per_play",
+        "move_count": 0,
+        "avg_abs_impact": 0.0
+      },
+      {
+        "move_scope": "cross_conference",
+        "outcome_name": "win_pct",
+        "move_count": 0,
+        "avg_abs_impact": 0.0
+      },
+      {
+        "move_scope": "cross_conference",
+        "outcome_name": "point_diff_per_game",
+        "move_count": 0,
+        "avg_abs_impact": 0.0
+      },
+      {
+        "move_scope": "cross_conference",
+        "outcome_name": "offensive_epa_per_play",
+        "move_count": 0,
+        "avg_abs_impact": 0.0
+      }
+    ]
+  }
+}

@@ -8,6 +8,23 @@ const FALLBACK_URLS = [
   "https://raw.githubusercontent.com/rmallorybpc/nflanalysis/main/dashboard/public/overview.sample.json",
 ];
 
+function buildSeasonFallbackUrls(season) {
+  const safeSeason = Number.isFinite(Number(season)) ? Math.trunc(Number(season)) : null;
+  if (!safeSeason || safeSeason <= 0) {
+    return [];
+  }
+
+  const fileName = `overview.${safeSeason}.json`;
+  return [
+    `../public/${fileName}`,
+    `./public/${fileName}`,
+    `/dashboard/public/${fileName}`,
+    `/public/${fileName}`,
+    `https://rmallorybpc.github.io/nflanalysis/dashboard/public/${fileName}`,
+    `https://raw.githubusercontent.com/rmallorybpc/nflanalysis/main/dashboard/public/${fileName}`,
+  ];
+}
+
 const TEAM_IDS = [
   "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
   "DAL", "DEN", "DET", "GB", "HOU", "IND", "JAX", "KC",
@@ -260,6 +277,7 @@ function applyMeta(payload) {
 
 async function loadOverviewData(season) {
   const apiUrl = buildOverviewUrl(season);
+  const seasonFallbackUrls = buildSeasonFallbackUrls(season);
   let liveError = null;
 
   try {
@@ -278,6 +296,21 @@ async function loadOverviewData(season) {
   } catch (_err) {
     // Continue to fallback fixture resolution for local/static previews.
     liveError = _err instanceof Error ? _err : new Error("Live API request failed.");
+  }
+
+  for (const fallbackUrl of seasonFallbackUrls) {
+    try {
+      const fallback = await fetch(fallbackUrl);
+      if (!fallback.ok) {
+        continue;
+      }
+      const fallbackPayload = await fallback.json();
+      if (isOverviewPayload(fallbackPayload)) {
+        return { payload: fallbackPayload, source: "preview" };
+      }
+    } catch (_err) {
+      // Try the next fallback URL.
+    }
   }
 
   for (const fallbackUrl of FALLBACK_URLS) {
