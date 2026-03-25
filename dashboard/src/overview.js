@@ -75,6 +75,33 @@ function fmt(num) {
   return Number(num).toFixed(3);
 }
 
+function setStatus(message, isError = false) {
+  const el = document.getElementById("statusMessage");
+  el.textContent = message || "";
+  el.classList.toggle("error", Boolean(isError));
+}
+
+function isOverviewPayload(payload) {
+  return Boolean(
+    payload &&
+      payload.cards &&
+      payload.cards.top_positive_team &&
+      payload.cards.top_negative_team &&
+      payload.charts
+  );
+}
+
+function resetRenderedData() {
+  document.getElementById("topPositiveCard").innerHTML = "";
+  document.getElementById("topNegativeCard").innerHTML = "";
+  document.getElementById("leagueCard").innerHTML = "";
+  document.getElementById("rankingChart").innerHTML = "";
+  document.getElementById("distributionChart").innerHTML = "";
+  document.getElementById("scopeList").innerHTML = "";
+  document.getElementById("seasonCoverageChart").innerHTML = "";
+  document.getElementById("geographyChart").innerHTML = "";
+}
+
 function setCard(el, title, value, meta) {
   el.innerHTML = `
     <h3>${title}</h3>
@@ -229,17 +256,31 @@ async function loadOverviewData(season) {
   try {
     const live = await fetch(apiUrl);
     if (live.ok) {
-      return live.json();
+      const livePayload = await live.json();
+      if (isOverviewPayload(livePayload)) {
+        return livePayload;
+      }
+      if (livePayload && livePayload.error) {
+        throw new Error(livePayload.error);
+      }
+      throw new Error("Overview payload format was invalid.");
     }
   } catch (_err) {
-    // Fallback for local static preview.
+    // Fallback for local static preview when live endpoint is unavailable.
+    if (_err instanceof Error && _err.message && !_err.message.includes("Failed to fetch")) {
+      throw _err;
+    }
   }
 
   const fallback = await fetch(FALLBACK_URL);
   if (!fallback.ok) {
     throw new Error("Unable to load overview data from API or fallback payload");
   }
-  return fallback.json();
+  const fallbackPayload = await fallback.json();
+  if (!isOverviewPayload(fallbackPayload)) {
+    throw new Error("Fallback overview payload format was invalid.");
+  }
+  return fallbackPayload;
 }
 
 function parseQueryState() {
@@ -268,14 +309,24 @@ async function refreshOverview() {
   syncControls();
   writeQueryState();
 
-  const payload = await loadOverviewData(state.season);
-  applyMeta(payload);
-  renderCards(payload);
-  renderRanking(payload);
-  renderDistribution(payload);
-  renderScope(payload);
-  renderSeasonCoverage(payload);
-  renderGeography(payload);
+  setStatus(`Loading season ${state.season}...`);
+  try {
+    const payload = await loadOverviewData(state.season);
+    applyMeta(payload);
+    renderCards(payload);
+    renderRanking(payload);
+    renderDistribution(payload);
+    renderScope(payload);
+    renderSeasonCoverage(payload);
+    renderGeography(payload);
+    setStatus("");
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unable to load overview data.";
+    resetRenderedData();
+    document.getElementById("seasonLabel").textContent = `Season: ${state.season}`;
+    document.getElementById("generatedLabel").textContent = "Generated: --";
+    setStatus(message, true);
+  }
 }
 
 function bindControls() {
