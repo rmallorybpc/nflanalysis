@@ -1,0 +1,69 @@
+name: Validation and Regression Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: validation-and-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  data-quality:
+    name: Data Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Make check script executable
+        run: chmod +x scripts/ci_check_data_quality.sh
+
+      - name: Run data quality contract checks
+        run: ./scripts/ci_check_data_quality.sh
+
+  model-regression:
+    name: Model Regression
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Make check script executable
+        run: chmod +x scripts/ci_check_model_regression_contract.sh
+
+      - name: Run model regression contract checks
+        run: ./scripts/ci_check_model_regression_contract.sh
+
+  dashboard-contracts:
+    name: Dashboard Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Make check script executable
+        run: chmod +x scripts/ci_check_dashboard_contracts.sh
+
+      - name: Run dashboard contract checks
+        run: ./scripts/ci_check_dashboard_contracts.sh
