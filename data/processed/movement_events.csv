@@ -1,4 +1,4 @@
 move_id,event_date,effective_date,move_type,player_id,from_team_id,to_team_id,transaction_detail,source,nfl_season,season_phase,phase_week,nfl_week,ingested_at
-ofs_2026_01_00001,2026-03-19,2026-03-19,free_agency,D/DoeJo00,,NYG,1-year deal,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T20:46:31Z
-ofs_2026_01_00002,2026-03-18,2026-03-18,free_agency,S/SmitMi00,BUF,,Cap move,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T20:46:31Z
-ofs_2026_01_00003,2026-03-17,2026-03-17,free_agency,J/JohnAl00,SEA,SEA,Depth signing,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T20:46:31Z
+2023_trade_001,2023-11-01,2023-11-02,trade,p_003,SEA,BAL,deadline trade,seed_example,2023,regular,9,9,2026-03-19T20:37:13Z
+2024_fa_001,2024-03-15,2024-03-15,free_agency,p_002,DAL,PHI,free agent signing,seed_example,2024,offseason,,,2026-03-19T20:37:13Z
+2024_trade_001,2024-10-15,2024-10-16,trade,p_001,BUF,NYJ,midseason trade for draft compensation,seed_example,2024,regular,6,6,2026-03-19T20:37:13Z

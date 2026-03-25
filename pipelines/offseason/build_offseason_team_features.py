@@ -181,15 +181,14 @@ def build_features(
         spend_factor = spending_z.get(team, 0.0)
         win_factor = win_total_z.get(team, 0.0)
 
-        base_total = total_delta.get(key, 0.0)
-        adjusted_total = base_total + (0.35 * spend_factor) + (0.65 * win_factor)
-
         group_vals = {field: 0.0 for field in GROUP_FIELDS.values()}
         for group, field in GROUP_FIELDS.items():
             group_vals[field] = group_delta.get(key, {}).get(group, 0.0)
 
         # Integrate spending directly into feature vector via other_value_delta.
         group_vals["other_value_delta"] += 0.5 * spend_factor
+        # Preserve contract: position_value_delta equals sum of group deltas.
+        position_total = sum(group_vals.values())
 
         out.append(
             {
@@ -206,7 +205,7 @@ def build_features(
                 "defense_secondary_value_delta": f"{group_vals['defense_secondary_value_delta']:.4f}",
                 "special_teams_value_delta": f"{group_vals['special_teams_value_delta']:.4f}",
                 "other_value_delta": f"{group_vals['other_value_delta']:.4f}",
-                "position_value_delta": f"{adjusted_total:.4f}",
+                "position_value_delta": f"{position_total:.4f}",
                 "schedule_strength_index": f"{win_factor:.4f}",
                 "feature_version": feature_version,
                 "generated_at": generated_at,
