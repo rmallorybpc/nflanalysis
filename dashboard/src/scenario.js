@@ -1,6 +1,13 @@
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
 const API_URL = `${API_BASE}/v1/dashboard/scenario-sandbox`;
-const FALLBACK_URL = "../public/scenario-sandbox.sample.json";
+const FALLBACK_URLS = [
+  "../public/scenario-sandbox.sample.json",
+  "./public/scenario-sandbox.sample.json",
+  "/dashboard/public/scenario-sandbox.sample.json",
+  "/public/scenario-sandbox.sample.json",
+  "https://rmallorybpc.github.io/nflanalysis/dashboard/public/scenario-sandbox.sample.json",
+  "https://raw.githubusercontent.com/rmallorybpc/nflanalysis/main/dashboard/public/scenario-sandbox.sample.json",
+];
 
 const TEAM_IDS = [
   "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
@@ -99,6 +106,27 @@ function fmt(num) {
   return Number(num).toFixed(3);
 }
 
+function setStatus(message, isError = false) {
+  const el = document.getElementById("statusMessage");
+  el.textContent = message || "";
+  el.classList.toggle("error", Boolean(isError));
+}
+
+function isScenarioPayload(payload) {
+  return Boolean(
+    payload &&
+      payload.delta_summary &&
+      payload.baseline_estimates &&
+      payload.scenario_estimates
+  );
+}
+
+function resetRenderedData() {
+  document.getElementById("deltaSummary").innerHTML = "";
+  document.getElementById("baseline").innerHTML = "";
+  document.getElementById("scenario").innerHTML = "";
+}
+
 function payloadFromInputs() {
   return {
     team_id: document.getElementById("teamId").value,
@@ -119,6 +147,8 @@ function payloadFromInputs() {
 }
 
 async function fetchScenario(payload) {
+  let liveError = null;
+
   try {
     const resp = await fetch(API_URL, {
       method: "POST",
@@ -126,17 +156,37 @@ async function fetchScenario(payload) {
       body: JSON.stringify(payload),
     });
     if (resp.ok) {
-      return resp.json();
+      const livePayload = await resp.json();
+      if (isScenarioPayload(livePayload)) {
+        return { payload: livePayload, source: "live" };
+      }
+      if (livePayload && livePayload.error) {
+        throw new Error(`Live API error: ${livePayload.error}`);
+      }
+      throw new Error("Live API returned an invalid scenario payload format.");
     }
+    liveError = new Error(`Live API request failed with status ${resp.status}.`);
   } catch (_err) {
-    // static fallback path below
+    liveError = _err instanceof Error ? _err : new Error("Live API request failed.");
   }
 
-  const fallback = await fetch(FALLBACK_URL);
-  if (!fallback.ok) {
-    throw new Error("Unable to fetch scenario payload");
+  for (const fallbackUrl of FALLBACK_URLS) {
+    try {
+      const fallback = await fetch(fallbackUrl);
+      if (!fallback.ok) {
+        continue;
+      }
+      const fallbackPayload = await fallback.json();
+      if (isScenarioPayload(fallbackPayload)) {
+        return { payload: fallbackPayload, source: "fallback" };
+      }
+    } catch (_err) {
+      // Try the next fallback URL.
+    }
   }
-  return fallback.json();
+
+  const liveErrorSuffix = liveError instanceof Error ? ` Last live error: ${liveError.message}` : "";
+  throw new Error(`Unable to fetch scenario payload from API or fallback fixture.${liveErrorSuffix}`);
 }
 
 function renderEstimates(containerId, rows) {
@@ -175,10 +225,23 @@ async function runScenario() {
   writeQueryState();
 
   const payload = payloadFromInputs();
-  const data = await fetchScenario(payload);
-  renderDeltas(data.delta_summary);
-  renderEstimates("baseline", data.baseline_estimates);
-  renderEstimates("scenario", data.scenario_estimates);
+  setStatus("Running scenario...");
+  try {
+    const loaded = await fetchScenario(payload);
+    const data = loaded.payload;
+    renderDeltas(data.delta_summary);
+    renderEstimates("baseline", data.baseline_estimates);
+    renderEstimates("scenario", data.scenario_estimates);
+    if (loaded.source === "fallback") {
+      setStatus("Showing fallback sample data because live API data was unavailable.");
+    } else {
+      setStatus("");
+    }
+  } catch (err) {
+    resetRenderedData();
+    const message = err instanceof Error ? err.message : "Unable to fetch scenario payload.";
+    setStatus(message, true);
+  }
 }
 
 function bindControls() {
