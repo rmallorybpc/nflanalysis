@@ -82,3 +82,13 @@ MOVEMENT_EVENTS_PATH=data/processed/offseason/movement_events.csv \
 TEAM_WEEK_FEATURES_PATH=data/processed/offseason/team_week_features.csv \
 /usr/bin/python3 -m api.app.main --host 0.0.0.0 --port 8080
 ```
+
+## 5) Validate full-team coverage (32 teams)
+
+```bash
+/usr/bin/python3 pipelines/offseason/validate_offseason_coverage.py \
+  --features data/processed/offseason/team_week_features.csv \
+  --outputs data/processed/offseason/model_outputs_hierarchical.csv \
+  --season 2026 \
+  --require-full
+```
