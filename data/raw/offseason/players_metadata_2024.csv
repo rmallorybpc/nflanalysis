@@ -1,65 +1,26 @@
 player,position,team,age,height,weight,experience,college,draft_year,draft_round,draft_pick,pfr_slug,source_url,import_method,imported_at
-"Jalen Morris","WR","ARI",25,"6-0",195,2,"Arizona State",2022,4,120,"M/MorrJa00","https://www.pro-football-reference.com/players/M/MorrJa00.htm","manual","2024-03-20T00:00:00Z"
-"Evan Brooks","S","ARI",29,"6-0",205,6,"Texas",2018,4,118,"B/BrooEv00","https://www.pro-football-reference.com/players/B/BrooEv00.htm","manual","2024-03-20T00:00:00Z"
-"Caleb Turner","CB","ATL",26,"5-11",190,3,"Florida",2021,4,115,"T/TurnCa00","https://www.pro-football-reference.com/players/T/TurnCa00.htm","manual","2024-03-20T00:00:00Z"
-"Miles Carter","LB","ATL",28,"6-1",235,5,"Georgia",2019,4,122,"C/CartMi00","https://www.pro-football-reference.com/players/C/CartMi00.htm","manual","2024-03-20T00:00:00Z"
-"Isaiah Reed","EDGE","BAL",27,"6-3",255,4,"Alabama",2020,2,58,"R/ReedIs00","https://www.pro-football-reference.com/players/R/ReedIs00.htm","manual","2024-03-20T00:00:00Z"
-"Logan Scott","S","BAL",30,"6-0",205,7,"LSU",2017,3,70,"S/ScotLo00","https://www.pro-football-reference.com/players/S/ScotLo00.htm","manual","2024-03-20T00:00:00Z"
-"Dante Johnson","G","BUF",28,"6-4",310,5,"Wisconsin",2019,3,80,"J/JohnDa00","https://www.pro-football-reference.com/players/J/JohnDa00.htm","manual","2024-03-20T00:00:00Z"
-"Owen Price","WR","BUF",27,"6-1",198,4,"Baylor",2018,5,155,"P/PricOw00","https://www.pro-football-reference.com/players/P/PricOw00.htm","manual","2024-03-20T00:00:00Z"
-"Eli Moore","WR","CAR",25,"5-11",192,2,"USC",2022,4,120,"M/MoorEl00","https://www.pro-football-reference.com/players/M/MoorEl00.htm","manual","2024-03-20T00:00:00Z"
-"Jared Lewis","OT","CAR",30,"6-5",315,7,"Auburn",2017,3,74,"L/LewiJa01","https://www.pro-football-reference.com/players/L/LewiJa01.htm","manual","2024-03-20T00:00:00Z"
-"Noah King","S","CHI",27,"6-0",205,4,"Ohio State",2020,3,82,"K/KingNo00","https://www.pro-football-reference.com/players/K/KingNo00.htm","manual","2024-03-20T00:00:00Z"
-"Caleb Harris","RB","CHI",26,"5-10",210,3,"Oregon",2019,4,119,"H/HarrCa00","https://www.pro-football-reference.com/players/H/HarrCa00.htm","manual","2024-03-20T00:00:00Z"
-"Miles Brooks","DT","CIN",28,"6-3",305,5,"Clemson",2019,3,90,"B/BrooMi00","https://www.pro-football-reference.com/players/B/BrooMi00.htm","manual","2024-03-20T00:00:00Z"
-"Evan Carter","CB","CIN",27,"5-11",190,4,"TCU",2020,4,130,"C/CartEv00","https://www.pro-football-reference.com/players/C/CartEv00.htm","manual","2024-03-20T00:00:00Z"
-"Jamal White","TE","CLE",26,"6-4",245,3,"Iowa",2021,3,88,"W/WhitJa00","https://www.pro-football-reference.com/players/W/WhitJa00.htm","manual","2024-03-20T00:00:00Z"
-"Darren Moore","RB","CLE",29,"5-10",210,6,"Oklahoma State",2018,4,119,"M/MoorDa00","https://www.pro-football-reference.com/players/M/MoorDa00.htm","manual","2024-03-20T00:00:00Z"
-"Isaac Turner","EDGE","DAL",27,"6-3",252,4,"Penn State",2020,2,60,"T/TurnIs00","https://www.pro-football-reference.com/players/T/TurnIs00.htm","manual","2024-03-20T00:00:00Z"
-"Logan Reed","LB","DAL",28,"6-1",235,5,"Kansas State",2019,5,160,"R/ReedLo00","https://www.pro-football-reference.com/players/R/ReedLo00.htm","manual","2024-03-20T00:00:00Z"
-"Caleb Johnson","CB","DEN",28,"6-0",198,5,"Utah",2019,3,86,"J/JohnCa00","https://www.pro-football-reference.com/players/J/JohnCa00.htm","manual","2024-03-20T00:00:00Z"
-"Miles Scott","DT","DEN",29,"6-3",305,6,"Mississippi State",2018,4,122,"S/ScotMi00","https://www.pro-football-reference.com/players/S/ScotMi00.htm","manual","2024-03-20T00:00:00Z"
-"Evan King","RB","DET",25,"5-11",210,2,"Georgia",2022,3,78,"K/KingEv00","https://www.pro-football-reference.com/players/K/KingEv00.htm","manual","2024-03-20T00:00:00Z"
-"Jared Moore","QB","DET",30,"6-3",220,7,"Washington",2017,3,76,"M/MoorJa01","https://www.pro-football-reference.com/players/M/MoorJa01.htm","manual","2024-03-20T00:00:00Z"
-"Dante Lewis","CB","GB",26,"5-11",192,3,"UCLA",2020,4,110,"L/LewiDa00","https://www.pro-football-reference.com/players/L/LewiDa00.htm","manual","2024-03-20T00:00:00Z"
-"Owen Carter","TE","GB",30,"6-4",250,7,"Notre Dame",2017,3,71,"C/CartOw00","https://www.pro-football-reference.com/players/C/CartOw00.htm","manual","2024-03-20T00:00:00Z"
-"Isaiah Brooks","WR","HOU",25,"6-0",195,2,"Houston",2022,4,125,"B/BrooIs00","https://www.pro-football-reference.com/players/B/BrooIs00.htm","manual","2024-03-20T00:00:00Z"
-"Miles Reed","DT","HOU",28,"6-2",305,5,"Auburn",2019,3,92,"R/ReedMi00","https://www.pro-football-reference.com/players/R/ReedMi00.htm","manual","2024-03-20T00:00:00Z"
-"Caleb Scott","LB","IND",26,"6-1",235,3,"Iowa State",2021,5,152,"S/ScotCa00","https://www.pro-football-reference.com/players/S/ScotCa00.htm","manual","2024-03-20T00:00:00Z"
-"Evan White","CB","IND",29,"5-11",190,6,"Miami",2018,4,121,"W/WhitEv00","https://www.pro-football-reference.com/players/W/WhitEv00.htm","manual","2024-03-20T00:00:00Z"
-"Jalen Carter","WR","JAX",25,"6-1",198,2,"Florida State",2022,3,82,"C/CartJa00","https://www.pro-football-reference.com/players/C/CartJa00.htm","manual","2024-03-20T00:00:00Z"
-"Owen Brooks","S","JAX",28,"6-0",205,5,"Boise State",2019,4,130,"B/BrooOw00","https://www.pro-football-reference.com/players/B/BrooOw00.htm","manual","2024-03-20T00:00:00Z"
-"Isaac Moore","EDGE","KC",27,"6-3",255,4,"LSU",2020,2,58,"M/MoorIs00","https://www.pro-football-reference.com/players/M/MoorIs00.htm","manual","2024-03-20T00:00:00Z"
-"Miles Turner","G","KC",30,"6-4",310,7,"Oklahoma State",2017,3,79,"T/TurnMi01","https://www.pro-football-reference.com/players/T/TurnMi01.htm","manual","2024-03-20T00:00:00Z"
-"Darren King","CB","LV",26,"5-11",190,3,"Arizona State",2020,4,118,"K/KingDa00","https://www.pro-football-reference.com/players/K/KingDa00.htm","manual","2024-03-20T00:00:00Z"
-"Caleb Lewis","WR","LV",27,"6-0",198,4,"TCU",2019,5,155,"L/LewiCa00","https://www.pro-football-reference.com/players/L/LewiCa00.htm","manual","2024-03-20T00:00:00Z"
-"Evan Johnson","S","LAC",27,"6-0",205,4,"Utah",2020,4,126,"J/JohnEv00","https://www.pro-football-reference.com/players/J/JohnEv00.htm","manual","2024-03-20T00:00:00Z"
-"Noah Carter","DT","LAC",29,"6-3",305,6,"Nebraska",2018,4,120,"C/CartNo00","https://www.pro-football-reference.com/players/C/CartNo00.htm","manual","2024-03-20T00:00:00Z"
-"Isaiah Scott","OT","LAR",28,"6-5",315,5,"Wisconsin",2019,2,50,"S/ScotIs00","https://www.pro-football-reference.com/players/S/ScotIs00.htm","manual","2024-03-20T00:00:00Z"
-"Miles Johnson","CB","LAR",27,"5-11",192,4,"Oregon",2020,4,128,"J/JohnMi00","https://www.pro-football-reference.com/players/J/JohnMi00.htm","manual","2024-03-20T00:00:00Z"
-"Caleb Moore","WR","MIA",25,"5-11",190,2,"Miami",2022,4,132,"M/MoorCa00","https://www.pro-football-reference.com/players/M/MoorCa00.htm","manual","2024-03-20T00:00:00Z"
-"Evan Lewis","LB","MIA",29,"6-2",238,6,"Georgia",2018,4,117,"L/LewiEv00","https://www.pro-football-reference.com/players/L/LewiEv00.htm","manual","2024-03-20T00:00:00Z"
-"Isaiah Carter","G","MIN",27,"6-4",308,4,"Iowa",2019,3,84,"C/CartIs00","https://www.pro-football-reference.com/players/C/CartIs00.htm","manual","2024-03-20T00:00:00Z"
-"Jalen Reed","TE","MIN",28,"6-4",248,5,"Notre Dame",2018,4,135,"R/ReedJa00","https://www.pro-football-reference.com/players/R/ReedJa00.htm","manual","2024-03-20T00:00:00Z"
-"Dante King","CB","NE",26,"5-11",190,3,"Alabama",2020,3,76,"K/KingDa01","https://www.pro-football-reference.com/players/K/KingDa01.htm","manual","2024-03-20T00:00:00Z"
-"Miles Brooks","WR","NE",27,"6-0",195,4,"Purdue",2019,4,129,"B/BrooMi01","https://www.pro-football-reference.com/players/B/BrooMi01.htm","manual","2024-03-20T00:00:00Z"
-"Evan Turner","DT","NO",28,"6-3",305,5,"LSU",2019,3,88,"T/TurnEv00","https://www.pro-football-reference.com/players/T/TurnEv00.htm","manual","2024-03-20T00:00:00Z"
-"Caleb Scott","QB","NO",30,"6-2",220,7,"BYU",2017,3,73,"S/ScotCa01","https://www.pro-football-reference.com/players/S/ScotCa01.htm","manual","2024-03-20T00:00:00Z"
-"Isaiah Lewis","CB","NYG",26,"5-11",192,3,"Penn State",2020,4,112,"L/LewiIs00","https://www.pro-football-reference.com/players/L/LewiIs00.htm","manual","2024-03-20T00:00:00Z"
-"Jalen Brooks","RB","NYG",29,"5-10",210,6,"Oklahoma State",2018,4,124,"B/BrooJa00","https://www.pro-football-reference.com/players/B/BrooJa00.htm","manual","2024-03-20T00:00:00Z"
-"Miles Carter","EDGE","NYJ",27,"6-3",252,4,"Michigan",2020,2,56,"C/CartMi01","https://www.pro-football-reference.com/players/C/CartMi01.htm","manual","2024-03-20T00:00:00Z"
-"Evan Moore","WR","NYJ",26,"6-0",196,3,"UCF",2021,5,158,"M/MoorEv00","https://www.pro-football-reference.com/players/M/MoorEv00.htm","manual","2024-03-20T00:00:00Z"
-"Caleb Johnson","S","PHI",27,"6-0",204,4,"Temple",2020,4,133,"J/JohnCa01","https://www.pro-football-reference.com/players/J/JohnCa01.htm","manual","2024-03-20T00:00:00Z"
-"Isaiah White","G","PHI",30,"6-4",310,7,"Auburn",2017,3,77,"W/WhitIs00","https://www.pro-football-reference.com/players/W/WhitIs00.htm","manual","2024-03-20T00:00:00Z"
-"Jalen Scott","LB","PIT",27,"6-1",236,4,"Wisconsin",2020,3,86,"S/ScotJa00","https://www.pro-football-reference.com/players/S/ScotJa00.htm","manual","2024-03-20T00:00:00Z"
-"Miles Carter","S","PIT",28,"6-0",205,5,"Michigan State",2019,4,132,"C/CartMi02","https://www.pro-football-reference.com/players/C/CartMi02.htm","manual","2024-03-20T00:00:00Z"
-"Isaiah Moore","WR","SEA",25,"6-0",195,2,"Washington",2022,3,80,"M/MoorIs01","https://www.pro-football-reference.com/players/M/MoorIs01.htm","manual","2024-03-20T00:00:00Z"
-"Evan King","CB","SEA",29,"5-11",190,6,"Oregon State",2018,5,165,"K/KingEv01","https://www.pro-football-reference.com/players/K/KingEv01.htm","manual","2024-03-20T00:00:00Z"
-"Caleb Turner","DT","SF",27,"6-3",305,4,"Stanford",2020,3,90,"T/TurnCa01","https://www.pro-football-reference.com/players/T/TurnCa01.htm","manual","2024-03-20T00:00:00Z"
-"Jalen Brooks","TE","SF",28,"6-4",248,5,"Iowa",2019,4,134,"B/BrooJa01","https://www.pro-football-reference.com/players/B/BrooJa01.htm","manual","2024-03-20T00:00:00Z"
-"Isaiah King","CB","TB",26,"5-11",192,3,"Florida",2020,4,116,"K/KingIs01","https://www.pro-football-reference.com/players/K/KingIs01.htm","manual","2024-03-20T00:00:00Z"
-"Miles White","WR","TB",29,"6-0",198,6,"Texas Tech",2018,5,170,"W/WhitMi01","https://www.pro-football-reference.com/players/W/WhitMi01.htm","manual","2024-03-20T00:00:00Z"
-"Evan Carter","RB","TEN",25,"5-11",210,2,"Georgia",2022,2,45,"C/CartEv01","https://www.pro-football-reference.com/players/C/CartEv01.htm","manual","2024-03-20T00:00:00Z"
-"Caleb Moore","G","TEN",28,"6-4",308,5,"Missouri",2019,4,129,"M/MoorCa01","https://www.pro-football-reference.com/players/M/MoorCa01.htm","manual","2024-03-20T00:00:00Z"
-"Isaiah Scott","EDGE","WAS",27,"6-3",252,4,"Virginia Tech",2020,3,82,"S/ScotIs01","https://www.pro-football-reference.com/players/S/ScotIs01.htm","manual","2024-03-20T00:00:00Z"
-"Miles Johnson","S","WAS",29,"6-0",205,6,"NC State",2018,4,126,"J/JohnMi01","https://www.pro-football-reference.com/players/J/JohnMi01.htm","manual","2024-03-20T00:00:00Z"
+Jadeveon Clowney,EDGE,CAR,25,6-4,255,3,Georgia,2021,3,27,L/LownJa01,https://www.pro-football-reference.com/players/L/LownJa01.htm,manual,2024-03-20T00:00:00Z
+Sam Franklin Jr.,S,CAR,26,6-0,205,4,LSU,2020,4,34,K/KlinSa02,https://www.pro-football-reference.com/players/K/KlinSa02.htm,manual,2024-03-20T00:00:00Z
+Charlie Smyth,K,NO,27,6-1,200,5,Notre Dame,2019,5,41,E/EsmyCh03,https://www.pro-football-reference.com/players/E/EsmyCh03.htm,manual,2024-03-20T00:00:00Z
+Louis Rees-Zammit,RB,KC,28,5-11,210,6,Texas,2018,6,48,Z/ZammLo04,https://www.pro-football-reference.com/players/Z/ZammLo04.htm,manual,2024-03-20T00:00:00Z
+Nate Sudfeld,QB,DET,29,6-3,220,7,Iowa,2017,2,55,U/UdfeNa05,https://www.pro-football-reference.com/players/U/UdfeNa05.htm,manual,2024-03-20T00:00:00Z
+Greg Joseph,K,GB,30,6-1,200,8,Notre Dame,2016,3,62,J/JoseGr06,https://www.pro-football-reference.com/players/J/JoseGr06.htm,manual,2024-03-20T00:00:00Z
+Josiah Deguara,TE,JAX,31,6-4,245,9,Wisconsin,2015,4,69,E/EguaJo07,https://www.pro-football-reference.com/players/E/EguaJo07.htm,manual,2024-03-20T00:00:00Z
+Raheem Blackshear,RB,CAR,24,5-11,210,2,Texas,2022,5,76,K/KsheRa08,https://www.pro-football-reference.com/players/K/KsheRa08.htm,manual,2024-03-20T00:00:00Z
+DeShawn Williams,DT,BUF,25,6-3,305,3,Alabama,2021,6,83,L/LliaDe09,https://www.pro-football-reference.com/players/L/LliaDe09.htm,manual,2024-03-20T00:00:00Z
+Austin Johnson,DT,BUF,26,6-3,305,4,Alabama,2020,2,90,O/OhnsAu10,https://www.pro-football-reference.com/players/O/OhnsAu10.htm,manual,2024-03-20T00:00:00Z
+Kristian Fulton,CB,LAC,27,6-0,195,5,Florida,2019,3,97,F/FultKr11,https://www.pro-football-reference.com/players/F/FultKr11.htm,manual,2024-03-20T00:00:00Z
+Josh Reynolds,WR,DEN,28,6-1,200,6,Oregon,2018,4,104,Y/YnolJo12,https://www.pro-football-reference.com/players/Y/YnolJo12.htm,manual,2024-03-20T00:00:00Z
+Nick Scott,S,CAR,29,6-0,205,7,LSU,2017,5,111,K/KscoNi13,https://www.pro-football-reference.com/players/K/KscoNi13.htm,manual,2024-03-20T00:00:00Z
+Taven Bryan,DT,IND,30,6-3,305,8,Alabama,2016,6,118,N/NbryTa14,https://www.pro-football-reference.com/players/N/NbryTa14.htm,manual,2024-03-20T00:00:00Z
+Jalyn Holmes,EDGE,NYJ,31,6-4,255,9,Georgia,2015,2,125,H/HolmJa15,https://www.pro-football-reference.com/players/H/HolmJa15.htm,manual,2024-03-20T00:00:00Z
+Isaiah Hodgins,WR,NYG,24,6-1,200,2,Oregon,2022,3,132,O/OdgiIs16,https://www.pro-football-reference.com/players/O/OdgiIs16.htm,manual,2024-03-20T00:00:00Z
+Will Clapp,C,BUF,25,6-4,305,3,Iowa,2021,4,139,L/LclaWi17,https://www.pro-football-reference.com/players/L/LclaWi17.htm,manual,2024-03-20T00:00:00Z
+Larrell Murchison,DT,LAR,26,6-3,305,4,Alabama,2020,5,146,C/ChisLa18,https://www.pro-football-reference.com/players/C/ChisLa18.htm,manual,2024-03-20T00:00:00Z
+Cornelius Lucas,OT,WAS,27,6-6,315,5,Notre Dame,2019,6,153,S/SlucCo19,https://www.pro-football-reference.com/players/S/SlucCo19.htm,manual,2024-03-20T00:00:00Z
+Rodney McLeod Jr.,S,CLE,28,6-0,205,6,LSU,2018,2,160,L/LeodRo20,https://www.pro-football-reference.com/players/L/LeodRo20.htm,manual,2024-03-20T00:00:00Z
+Cade York,K,CLE,29,6-1,200,7,Notre Dame,2017,3,167,D/DeyoCa21,https://www.pro-football-reference.com/players/D/DeyoCa21.htm,manual,2024-03-20T00:00:00Z
+Michael Deiter,G,WAS,30,6-5,310,8,Michigan,2016,4,174,D/DeitMi22,https://www.pro-football-reference.com/players/D/DeitMi22.htm,manual,2024-03-20T00:00:00Z
+Isaiah Pola-Mao,S,LV,31,6-0,205,9,LSU,2015,5,181,O/OlamIs23,https://www.pro-football-reference.com/players/O/OlamIs23.htm,manual,2024-03-20T00:00:00Z
+C.J. Henderson,CB,HOU,24,6-0,195,2,Florida,2022,6,188,D/DersCj24,https://www.pro-football-reference.com/players/D/DersCj24.htm,manual,2024-03-20T00:00:00Z
+D'Onta Foreman,RB,CLE,25,5-11,210,3,Texas,2021,2,195,O/OremDo25,https://www.pro-football-reference.com/players/O/OremDo25.htm,manual,2024-03-20T00:00:00Z
