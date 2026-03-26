@@ -9,6 +9,9 @@ from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 
+DEFAULT_TEAM_SPENDING_PATH = Path("data/raw/offseason/team_spending_otc.csv")
+DEFAULT_WIN_TOTALS_PATH = Path("data/raw/offseason/win_totals.csv")
+
 CANONICAL_FIELDS = [
     "team_id",
     "nfl_season",
@@ -66,12 +69,29 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--movement", type=Path, default=Path("data/processed/offseason/movement_events.csv"))
     parser.add_argument("--players", type=Path, default=Path("data/processed/offseason/player_dimension.csv"))
     parser.add_argument("--outcomes", type=Path, default=Path("data/processed/offseason/team_week_outcomes.csv"))
-    parser.add_argument("--team-spending", type=Path, default=Path("data/raw/offseason/team_spending_otc.csv"))
-    parser.add_argument("--win-totals", type=Path, default=Path("data/raw/offseason/win_totals.csv"))
+    parser.add_argument("--team-spending", type=Path, default=DEFAULT_TEAM_SPENDING_PATH)
+    parser.add_argument("--win-totals", type=Path, default=DEFAULT_WIN_TOTALS_PATH)
+    parser.add_argument(
+        "--snapshot-year",
+        type=int,
+        default=None,
+        help="If set, prefer year-suffixed raw inputs (e.g., team_spending_otc_2025.csv) when paths are defaults",
+    )
     parser.add_argument("--output", type=Path, default=Path("data/processed/offseason/team_week_features.csv"))
     parser.add_argument("--feature-version", type=str, default="0.4.0-offseason")
     parser.add_argument("--roster-size", type=float, default=53.0)
     return parser.parse_args()
+
+
+def resolve_year_specific_path(path: Path, default_path: Path, year: int | None) -> Path:
+    if year is None:
+        return path
+    if path != default_path:
+        return path
+    candidate = default_path.with_name(f"{default_path.stem}_{year}{default_path.suffix}")
+    if candidate.exists():
+        return candidate
+    return path
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -218,6 +238,9 @@ def build_features(
 
 def main() -> None:
     args = parse_args()
+    args.team_spending = resolve_year_specific_path(args.team_spending, DEFAULT_TEAM_SPENDING_PATH, args.snapshot_year)
+    args.win_totals = resolve_year_specific_path(args.win_totals, DEFAULT_WIN_TOTALS_PATH, args.snapshot_year)
+
     generated_at = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
     movement_rows = read_csv(args.movement)

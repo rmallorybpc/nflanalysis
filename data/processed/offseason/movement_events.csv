@@ -1,65 +1,65 @@
 move_id,event_date,effective_date,move_type,player_id,from_team_id,to_team_id,transaction_detail,source,nfl_season,season_phase,phase_week,nfl_week,ingested_at
-ofs_2026_01_00001,2026-03-12,2026-03-12,free_agency,B/BrowKy00,,ARI,Veteran WR added on 2-year deal,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00002,2026-03-10,2026-03-10,free_agency,H/HallMa00,ARI,,Cap-related move,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00003,2026-03-11,2026-03-11,free_agency,C/CartJa00,,ATL,Depth CB signing,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00004,2026-03-09,2026-03-09,free_agency,P/PricEv00,ATL,ATL,Special teams contributor retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00005,2026-03-13,2026-03-13,free_agency,Y/YounDe00,,BAL,Edge rusher added in free agency,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00006,2026-03-08,2026-03-08,free_agency,F/FielLo00,BAL,,Veteran cap casualty,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00007,2026-03-14,2026-03-14,free_agency,W/WalkCh00,,BUF,Interior OL depth,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00008,2026-03-10,2026-03-10,free_agency,L/LewiAn00,BUF,,LB released ahead of free agency,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00009,2026-03-12,2026-03-12,free_agency,J/JohnMa01,,CAR,Slot WR added,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00010,2026-03-09,2026-03-09,free_agency,D/DaniTr00,CAR,CAR,Backup OT retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00011,2026-03-15,2026-03-15,free_agency,E/ElliJo00,,CHI,Veteran safety signed,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00012,2026-03-11,2026-03-11,free_agency,H/HarrCo00,CHI,,WR released after two seasons,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00013,2026-03-13,2026-03-13,free_agency,K/KingNo00,,CIN,Rotational DT added,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00014,2026-03-10,2026-03-10,free_agency,M/MoorRi00,CIN,CIN,Nickel CB retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00015,2026-03-14,2026-03-14,free_agency,B/BrooIs00,,CLE,TE added as red-zone target,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00016,2026-03-09,2026-03-09,free_agency,S/ScotDa00,CLE,,Veteran RB released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00017,2026-03-12,2026-03-12,free_agency,R/ReedHu00,,DAL,Edge depth signing,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00018,2026-03-08,2026-03-08,free_agency,C/ClarMa00,DAL,DAL,Core special teamer retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00019,2026-03-13,2026-03-13,free_agency,G/GranEl00,,DEN,Veteran CB added,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00020,2026-03-10,2026-03-10,free_agency,F/FostCa00,DEN,,DL released for cap space,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00021,2026-03-14,2026-03-14,free_agency,T/TurnMi00,,DET,RB added to rotation,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00022,2026-03-09,2026-03-09,free_agency,P/ParkOw00,DET,DET,Backup QB retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00023,2026-03-11,2026-03-11,free_agency,J/JameTy00,,GB,Slot CB signing,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00024,2026-03-08,2026-03-08,free_agency,R/ReedLo00,GB,,Veteran TE released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00025,2026-03-12,2026-03-12,free_agency,M/MorrJa00,,HOU,WR added for depth,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00026,2026-03-09,2026-03-09,free_agency,C/ColeBr00,HOU,HOU,Interior DL retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00027,2026-03-13,2026-03-13,free_agency,W/WardSp00,,IND,LB added for special teams,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00028,2026-03-10,2026-03-10,free_agency,R/RogeEl00,IND,,CB released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00029,2026-03-14,2026-03-14,free_agency,W/WhitCa00,,JAX,Boundary WR signing,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00030,2026-03-09,2026-03-09,free_agency,P/PhilNa00,JAX,JAX,Backup S retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00031,2026-03-12,2026-03-12,free_agency,R/RossDa00,,KC,Rotational edge rusher,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00032,2026-03-08,2026-03-08,free_agency,L/LongTr00,KC,,Veteran OL released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00033,2026-03-13,2026-03-13,free_agency,S/ScotAd00,,LV,CB added in free agency,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00034,2026-03-09,2026-03-09,free_agency,Y/YounMa00,LV,LV,WR retained on 1-year deal,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00035,2026-03-14,2026-03-14,free_agency,H/HayeDy00,,LAC,Safety added for depth,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00036,2026-03-10,2026-03-10,free_agency,M/MillGr00,LAC,,DL released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00037,2026-03-11,2026-03-11,free_agency,A/AdamNo00,,LAR,Veteran OT signing,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00038,2026-03-09,2026-03-09,free_agency,B/BrooEt00,LAR,LAR,Nickel CB retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00039,2026-03-12,2026-03-12,free_agency,C/CollJa00,,MIA,Speed WR added,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00040,2026-03-08,2026-03-08,free_agency,P/PricLo00,MIA,,Veteran LB released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00041,2026-03-13,2026-03-13,free_agency,W/WrigCa00,,MIN,Interior OL depth,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00042,2026-03-09,2026-03-09,free_agency,L/LewiOw00,MIN,MIN,TE retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00043,2026-03-14,2026-03-14,free_agency,M/MitcEv00,,NE,CB added in free agency,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00044,2026-03-10,2026-03-10,free_agency,S/ScotTy00,NE,,WR released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00045,2026-03-12,2026-03-12,free_agency,T/TurnIs00,,NO,DL depth signing,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00046,2026-03-09,2026-03-09,free_agency,H/HillMa00,NO,NO,Backup QB retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00047,2026-03-13,2026-03-13,free_agency,C/CartLi00,,NYG,Boundary CB added,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00048,2026-03-10,2026-03-10,free_agency,H/HarrDr00,NYG,,Veteran RB released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00049,2026-03-14,2026-03-14,free_agency,N/NelsBr00,,NYJ,Edge rusher signing,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00050,2026-03-09,2026-03-09,free_agency,P/ParkCo00,NYJ,NYJ,Slot WR retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00051,2026-03-11,2026-03-11,free_agency,M/MorgJa00,,PHI,Safety added,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00052,2026-03-08,2026-03-08,free_agency,D/DaviLo00,PHI,,Veteran OL released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00053,2026-03-12,2026-03-12,free_agency,R/ReedTr00,,PIT,LB added for depth,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00054,2026-03-09,2026-03-09,free_agency,B/BrooEl00,PIT,PIT,Core special teamer retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00055,2026-03-13,2026-03-13,free_agency,C/ClarAi00,,SEA,WR added in free agency,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00056,2026-03-10,2026-03-10,free_agency,L/LewiNo00,SEA,,CB released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00057,2026-03-14,2026-03-14,free_agency,C/CartLo00,,SF,DL depth signing,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00058,2026-03-09,2026-03-09,free_agency,W/WrigMa00,SF,SF,TE retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00059,2026-03-11,2026-03-11,free_agency,K/KingDa00,,TB,CB added,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00060,2026-03-08,2026-03-08,free_agency,S/ScotOw00,TB,,Veteran WR released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00061,2026-03-12,2026-03-12,free_agency,C/CartJa01,,TEN,RB added to rotation,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00062,2026-03-09,2026-03-09,free_agency,M/MoorEt00,TEN,TEN,Backup OL retained,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00063,2026-03-13,2026-03-13,free_agency,H/HarrMi00,,WAS,Edge rusher signing,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
-ofs_2026_01_00064,2026-03-10,2026-03-10,free_agency,Y/YounCa00,WAS,,Veteran S released,https://www.nfl.com/transactions,2026,regular,1,1,2026-03-25T21:40:17Z
+ofs_2025_01_00001,2025-03-12,2025-03-12,free_agency,M/MoorDe00,,ARI,Veteran CB added on 2-year deal,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00002,2025-03-09,2025-03-09,free_agency,C/CartLo00,ARI,,Cap-related move,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00003,2025-03-11,2025-03-11,free_agency,R/ReedMa00,,ATL,Depth WR signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00004,2025-03-08,2025-03-08,free_agency,L/LewiJa00,ATL,ATL,Special teams LB retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00005,2025-03-13,2025-03-13,free_agency,C/CollNo01,,BAL,Edge rusher added in free agency,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00006,2025-03-07,2025-03-07,free_agency,S/ScotEv00,BAL,,Veteran S released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00007,2025-03-14,2025-03-14,free_agency,B/BrooTy00,,BUF,Interior OL depth,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00008,2025-03-10,2025-03-10,free_agency,H/HarrCa00,BUF,,WR released ahead of free agency,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00009,2025-03-12,2025-03-12,free_agency,K/KingIs00,,CAR,Slot WR added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00010,2025-03-09,2025-03-09,free_agency,T/TurnOw00,CAR,CAR,Backup OT retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00011,2025-03-15,2025-03-15,free_agency,J/JohnMi01,,CHI,Veteran safety signed,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00012,2025-03-11,2025-03-11,free_agency,P/PricLo00,CHI,,RB released after two seasons,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00013,2025-03-13,2025-03-13,free_agency,C/CartEl00,,CIN,Rotational DT added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00014,2025-03-10,2025-03-10,free_agency,H/HallSp00,CIN,CIN,Nickel CB retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00015,2025-03-14,2025-03-14,free_agency,W/WrigJa00,,CLE,TE added as red-zone target,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00016,2025-03-08,2025-03-08,free_agency,L/LewiDa00,CLE,,Veteran RB released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00017,2025-03-12,2025-03-12,free_agency,M/MoorBr00,,DAL,Edge depth signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00018,2025-03-07,2025-03-07,free_agency,S/ScotNo00,DAL,DAL,Core special teamer retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00019,2025-03-13,2025-03-13,free_agency,K/KingLo00,,DEN,Veteran CB added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00020,2025-03-09,2025-03-09,free_agency,T/TurnMi00,DEN,,DL released for cap space,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00021,2025-03-14,2025-03-14,free_agency,B/BrooCa00,,DET,RB added to rotation,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00022,2025-03-08,2025-03-08,free_agency,H/HarrEv00,DET,DET,Backup QB retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00023,2025-03-11,2025-03-11,free_agency,Y/YounJa00,,GB,Slot CB signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00024,2025-03-07,2025-03-07,free_agency,C/CollOw01,GB,,Veteran TE released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00025,2025-03-12,2025-03-12,free_agency,M/MorgDa00,,HOU,WR added for depth,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00026,2025-03-09,2025-03-09,free_agency,R/ReedIs00,HOU,HOU,Interior DL retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00027,2025-03-13,2025-03-13,free_agency,P/PricNo00,,IND,LB added for special teams,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00028,2025-03-10,2025-03-10,free_agency,W/WhitLo01,IND,,CB released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00029,2025-03-14,2025-03-14,free_agency,S/ScotMi00,,JAX,Boundary WR signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00030,2025-03-08,2025-03-08,free_agency,M/MoorCa00,JAX,JAX,Backup S retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00031,2025-03-12,2025-03-12,free_agency,T/TurnEl00,,KC,Rotational edge rusher,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00032,2025-03-07,2025-03-07,free_agency,B/BrooSp00,KC,,Veteran OL released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00033,2025-03-13,2025-03-13,free_agency,H/HarrJa00,,LV,CB added in free agency,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00034,2025-03-08,2025-03-08,free_agency,K/KingDa00,LV,LV,WR retained on 1-year deal,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00035,2025-03-14,2025-03-14,free_agency,L/LewiTy00,,LAC,Safety added for depth,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00036,2025-03-09,2025-03-09,free_agency,C/CartEv00,LAC,,DL released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00037,2025-03-11,2025-03-11,free_agency,J/JohnCa00,,LAR,Veteran OT signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00038,2025-03-08,2025-03-08,free_agency,R/ReedMi00,LAR,LAR,Nickel CB retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00039,2025-03-12,2025-03-12,free_agency,C/CollNo01,,MIA,Speed WR added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00040,2025-03-07,2025-03-07,free_agency,S/ScotOw00,MIA,,Veteran LB released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00041,2025-03-13,2025-03-13,free_agency,M/MoorIs00,,MIN,Interior OL depth,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00042,2025-03-08,2025-03-08,free_agency,H/HarrJa01,MIN,MIN,TE retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00043,2025-03-14,2025-03-14,free_agency,K/KingDa01,,NE,CB added in free agency,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00044,2025-03-10,2025-03-10,free_agency,B/BrooLo00,NE,,WR released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00045,2025-03-12,2025-03-12,free_agency,J/JohnEl00,,NO,DL depth signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00046,2025-03-08,2025-03-08,free_agency,L/LewiSp00,NO,NO,Backup QB retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00047,2025-03-13,2025-03-13,free_agency,C/CartCa00,,NYG,Boundary CB added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00048,2025-03-09,2025-03-09,free_agency,W/WhitMi00,NYG,,Veteran RB released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00049,2025-03-14,2025-03-14,free_agency,M/MoorJa00,,NYJ,Edge rusher signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00050,2025-03-08,2025-03-08,free_agency,P/PricDa00,NYJ,NYJ,Slot WR retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00051,2025-03-11,2025-03-11,free_agency,K/KingNo00,,PHI,Safety added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00052,2025-03-07,2025-03-07,free_agency,T/TurnEv00,PHI,,Veteran OL released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00053,2025-03-12,2025-03-12,free_agency,S/ScotIs00,,PIT,LB added for depth,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00054,2025-03-08,2025-03-08,free_agency,C/CollOw01,PIT,PIT,Core special teamer retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00055,2025-03-13,2025-03-13,free_agency,J/JohnMi01,,SEA,WR added in free agency,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00056,2025-03-09,2025-03-09,free_agency,H/HarrLo00,SEA,,CB released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00057,2025-03-14,2025-03-14,free_agency,M/MoorDa00,,SF,DL depth signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00058,2025-03-08,2025-03-08,free_agency,R/ReedCa00,SF,SF,TE retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00059,2025-03-11,2025-03-11,free_agency,K/KingJa00,,TB,CB added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00060,2025-03-07,2025-03-07,free_agency,B/BrooNo00,TB,,Veteran WR released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00061,2025-03-12,2025-03-12,free_agency,L/LewiEl00,,TEN,RB added to rotation,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00062,2025-03-08,2025-03-08,free_agency,H/HarrSp00,TEN,TEN,Backup OL retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00063,2025-03-13,2025-03-13,free_agency,C/CartIs00,,WAS,Edge rusher signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2025_01_00064,2025-03-09,2025-03-09,free_agency,W/WhitLo01,WAS,,Veteran S released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
