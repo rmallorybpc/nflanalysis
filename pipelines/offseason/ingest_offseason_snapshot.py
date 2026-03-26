@@ -16,6 +16,10 @@ import re
 from datetime import UTC, datetime
 from pathlib import Path
 
+DEFAULT_TRANSACTIONS_PATH = Path("data/raw/offseason/transactions_raw.csv")
+DEFAULT_PLAYERS_PATH = Path("data/raw/offseason/players_metadata.csv")
+DEFAULT_WIN_TOTALS_PATH = Path("data/raw/offseason/win_totals.csv")
+
 MOVE_TYPE_MAP = {
     "signed": "free_agency",
     "re-signed": "free_agency",
@@ -119,9 +123,15 @@ TEAM_CODE_RE = re.compile(r"\b([A-Z]{2,3})\b")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Ingest one-time offseason snapshot")
-    parser.add_argument("--transactions", type=Path, default=Path("data/raw/offseason/transactions_raw.csv"))
-    parser.add_argument("--players", type=Path, default=Path("data/raw/offseason/players_metadata.csv"))
-    parser.add_argument("--win-totals", type=Path, default=Path("data/raw/offseason/win_totals.csv"))
+    parser.add_argument("--transactions", type=Path, default=DEFAULT_TRANSACTIONS_PATH)
+    parser.add_argument("--players", type=Path, default=DEFAULT_PLAYERS_PATH)
+    parser.add_argument("--win-totals", type=Path, default=DEFAULT_WIN_TOTALS_PATH)
+    parser.add_argument(
+        "--snapshot-year",
+        type=int,
+        default=None,
+        help="If set, prefer year-suffixed raw inputs (e.g., transactions_raw_2025.csv) when paths are defaults",
+    )
     parser.add_argument("--season", type=int, default=2026)
     parser.add_argument("--week", type=int, default=1)
     parser.add_argument("--movement-output", type=Path, default=Path("data/processed/offseason/movement_events.csv"))
@@ -129,6 +139,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--outcomes-output", type=Path, default=Path("data/processed/offseason/team_week_outcomes.csv"))
     parser.add_argument("--review-output", type=Path, default=Path("data/processed/offseason/manual_review.csv"))
     return parser.parse_args()
+
+
+def resolve_year_specific_path(path: Path, default_path: Path, year: int | None) -> Path:
+    if year is None:
+        return path
+    if path != default_path:
+        return path
+    candidate = default_path.with_name(f"{default_path.stem}_{year}{default_path.suffix}")
+    if candidate.exists():
+        return candidate
+    return path
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -337,6 +358,10 @@ def build_outcomes_from_win_totals(rows: list[dict[str, str]], season: int, week
 
 def main() -> None:
     args = parse_args()
+    args.transactions = resolve_year_specific_path(args.transactions, DEFAULT_TRANSACTIONS_PATH, args.snapshot_year)
+    args.players = resolve_year_specific_path(args.players, DEFAULT_PLAYERS_PATH, args.snapshot_year)
+    args.win_totals = resolve_year_specific_path(args.win_totals, DEFAULT_WIN_TOTALS_PATH, args.snapshot_year)
+
     now_iso = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
     tx_rows = read_csv(args.transactions)

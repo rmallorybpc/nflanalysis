@@ -1,8 +1,8 @@
-# Offseason One-Time Pipeline (2026)
+# Offseason One-Time Pipeline (Year-Aware)
 
-This pipeline implements the authoritative offseason spec:
+This pipeline implements the authoritative offseason spec and supports year-suffixed raw snapshots:
 
-- 2026 offseason only
+- 2026 default, with optional `--snapshot-year` input switching
 - no game-level team stats aggregation
 - raw inputs:
   - data/raw/offseason/transactions_raw.csv
@@ -14,12 +14,18 @@ This pipeline implements the authoritative offseason spec:
 
 ```bash
 /usr/bin/python3 pipelines/offseason/ingest_offseason_snapshot.py \
-  --transactions data/raw/offseason/transactions_raw.csv \
-  --players data/raw/offseason/players_metadata.csv \
-  --win-totals data/raw/offseason/win_totals.csv \
+  --snapshot-year 2025 \
   --season 2026 \
   --week 1
 ```
+
+When `--snapshot-year` is set and raw paths are left at defaults, the script automatically prefers:
+
+- `data/raw/offseason/transactions_raw_YYYY.csv`
+- `data/raw/offseason/players_metadata_YYYY.csv`
+- `data/raw/offseason/win_totals_YYYY.csv`
+
+If those files do not exist, it falls back to the non-suffixed defaults.
 
 Outputs:
 
@@ -35,10 +41,16 @@ Outputs:
   --movement data/processed/offseason/movement_events.csv \
   --players data/processed/offseason/player_dimension.csv \
   --outcomes data/processed/offseason/team_week_outcomes.csv \
-  --team-spending data/raw/offseason/team_spending_otc.csv \
-  --win-totals data/raw/offseason/win_totals.csv \
+  --snapshot-year 2025 \
   --output data/processed/offseason/team_week_features.csv
 ```
+
+When `--snapshot-year` is set and raw paths are left at defaults, this script automatically prefers:
+
+- `data/raw/offseason/team_spending_otc_YYYY.csv`
+- `data/raw/offseason/win_totals_YYYY.csv`
+
+If those files do not exist, it falls back to the non-suffixed defaults.
 
 ## 3) Train models locally
 
