@@ -72,6 +72,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("data/raw/offseason/team_spending_otc_2026_unresolved.csv"),
     )
+    p.add_argument(
+        "--resolve-only",
+        action="store_true",
+        help="Do not scrape OTC; resolve only from existing evidence CSV.",
+    )
     return p.parse_args()
 
 
@@ -212,14 +217,20 @@ def build_evidence() -> list[dict[str, str]]:
 
 def reason_for(evidence_row: dict[str, str]) -> str:
     notes = evidence_row.get("notes", "")
+    fa = (evidence_row.get("total_fa_spending") or "").strip()
+    cap = (evidence_row.get("cap_space") or "").strip()
+    dead = (evidence_row.get("dead_money") or "").strip()
+
+    if not fa and not cap and not dead:
+        return "no_2026_data"
     if "no_2026_data" in notes:
         return "no_2026_data"
-    if not evidence_row.get("total_fa_spending", ""):
-        return "missing_total_fa_spending"
-    if not evidence_row.get("cap_space", ""):
+    if not cap:
         return "missing_cap_space"
-    if not evidence_row.get("dead_money", ""):
+    if not dead:
         return "missing_dead_money"
+    if not fa:
+        return "missing_total_fa_spending"
     if "parse_error" in notes:
         return "parse_error"
     return "parse_error"
@@ -274,13 +285,16 @@ def resolve(evidence_rows: list[dict[str, str]]) -> tuple[list[dict[str, str]], 
 
 def main() -> None:
     args = parse_args()
-    evidence = build_evidence()
-
-    write_csv(
-        args.evidence,
-        ["team", "total_fa_spending", "cap_space", "dead_money", "source_url", "observed_at", "notes"],
-        evidence,
-    )
+    if args.resolve_only:
+        with args.evidence.open(newline="", encoding="utf-8") as f:
+            evidence = list(csv.DictReader(f))
+    else:
+        evidence = build_evidence()
+        write_csv(
+            args.evidence,
+            ["team", "total_fa_spending", "cap_space", "dead_money", "source_url", "observed_at", "notes"],
+            evidence,
+        )
 
     resolved_rows, unresolved_rows = resolve(evidence)
 
