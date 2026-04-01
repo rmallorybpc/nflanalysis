@@ -101,6 +101,12 @@ class Pair:
     team: str
 
 
+@dataclass(frozen=True)
+class DisambiguationHint:
+    slug: str
+    source_url: str
+
+
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Scrape players metadata for 2026")
     p.add_argument("--input", type=Path, default=Path("data/raw/offseason/transactions_raw_2026.csv"))
@@ -109,6 +115,11 @@ def parse_args() -> argparse.Namespace:
         "--unresolved",
         type=Path,
         default=Path("data/raw/offseason/players_metadata_2026_unresolved.csv"),
+    )
+    p.add_argument(
+        "--disambiguation",
+        type=Path,
+        default=Path("data/raw/offseason/players_metadata_2026_disambiguation_template.csv"),
     )
     p.add_argument("--imported-at", default="2026-03-26T00:00:00Z")
     return p.parse_args()
@@ -125,6 +136,19 @@ def normalize_name(name: str) -> str:
     s = s.replace(".", "").replace(",", "")
     s = re.sub(r"\s+", " ", s)
     return s
+
+
+def extract_slug(value: str) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return ""
+    m = re.search(r"/players/[A-Z]/([A-Za-z0-9]+)\.htm", raw)
+    if m:
+        return m.group(1)
+    m2 = re.fullmatch(r"[A-Za-z0-9]+", raw)
+    if m2:
+        return raw
+    return ""
 
 
 def roster_candidates(html: str) -> list[tuple[str, str]]:
@@ -234,6 +258,30 @@ def read_pairs(path: Path) -> list[Pair]:
     return out
 
 
+def read_disambiguation_hints(path: Path) -> dict[tuple[str, str], DisambiguationHint]:
+    if not path.exists():
+        return {}
+
+    out: dict[tuple[str, str], DisambiguationHint] = {}
+    with path.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+
+    for row in rows:
+        player = (row.get("player") or "").strip()
+        team = (row.get("team") or "").strip()
+        if not player or not team:
+            continue
+
+        slug = extract_slug(row.get("pfr_url_or_slug") or "")
+        if not slug:
+            continue
+
+        source_url = f"https://www.pro-football-reference.com/players/{slug[0]}/{slug}.htm"
+        out[(player, team)] = DisambiguationHint(slug=slug, source_url=source_url)
+
+    return out
+
+
 def write_csv(path: Path, fields: list[str], rows: list[dict[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as f:
@@ -248,6 +296,7 @@ def main() -> None:
         raise FileNotFoundError(f"missing input: {args.input}")
 
     pairs = read_pairs(args.input)
+    disambiguation_hints = read_disambiguation_hints(args.disambiguation)
 
     resolved: list[dict[str, str]] = []
     unresolved: list[dict[str, str]] = []
@@ -257,6 +306,76 @@ def main() -> None:
     used_slugs: set[str] = set()
 
     for pair in pairs:
+        hint = disambiguation_hints.get((pair.player, pair.team))
+        if hint:
+            slug = hint.slug
+            purl = hint.source_url
+
+            if slug in used_slugs:
+                unresolved.append({
+                    "player": pair.player,
+                    "team": pair.team,
+                    "reason": "conflicting_identity",
+                    "notes": f"pfr_slug already assigned to another row: {slug}",
+                })
+                continue
+
+            if slug not in player_cache:
+                try:
+                    player_html = fetch(purl)
+                    player_cache[slug] = parse_player_page(player_html, slug, args.imported_at)
+                except Exception as exc:  # pylint: disable=broad-except
+                    unresolved.append({
+                        "player": pair.player,
+                        "team": pair.team,
+                        "reason": "parse_error",
+                        "notes": f"Disambiguation slug failed: {type(exc).__name__}",
+                    })
+                    continue
+
+            meta = dict(player_cache[slug])
+            required = ["position", "age", "height", "weight", "experience", "college", "pfr_slug", "source_url", "import_method", "imported_at"]
+            if any(not str(meta.get(k, "")).strip() for k in required):
+                unresolved.append({
+                    "player": pair.player,
+                    "team": pair.team,
+                    "reason": "parse_error",
+                    "notes": "Missing required non-draft fields",
+                })
+                continue
+
+            dy, dr, dp = meta["draft_year"], meta["draft_round"], meta["draft_pick"]
+            if not ((not dy and not dr and not dp) or (dy.isdigit() and dr.isdigit() and dp.isdigit())):
+                unresolved.append({
+                    "player": pair.player,
+                    "team": pair.team,
+                    "reason": "parse_error",
+                    "notes": "Invalid draft trio",
+                })
+                continue
+
+            resolved.append(
+                {
+                    "player": pair.player,
+                    "position": meta["position"],
+                    "team": pair.team,
+                    "age": meta["age"],
+                    "height": meta["height"],
+                    "weight": meta["weight"],
+                    "experience": meta["experience"],
+                    "college": meta["college"],
+                    "draft_year": dy,
+                    "draft_round": dr,
+                    "draft_pick": dp,
+                    "pfr_slug": meta["pfr_slug"],
+                    "source_url": meta["source_url"],
+                    "import_method": "manual_disambiguation",
+                    "imported_at": meta["imported_at"],
+                }
+            )
+            used_slugs.add(slug)
+            continue
+
         tslug = TEAM_TO_PFR.get(pair.team)
         if not tslug:
             unresolved.append({"player": pair.player, "team": pair.team, "reason": "parse_error", "notes": "Unknown team abbreviation"})
