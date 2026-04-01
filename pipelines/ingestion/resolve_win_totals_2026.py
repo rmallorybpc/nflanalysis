@@ -102,23 +102,35 @@ def ts_value(value: str) -> str:
         return ""
 
 
+def ts_epoch(value: str) -> float:
+    v = (value or "").strip()
+    if not v:
+        return 0.0
+    if v.endswith("Z"):
+        v = v[:-1] + "+00:00"
+    try:
+        return datetime.fromisoformat(v).timestamp()
+    except ValueError:
+        return 0.0
+
+
 def pick_best(rows: list[dict[str, str]]) -> dict[str, str] | None:
     if not rows:
         return None
 
-    def sort_key(row: dict[str, str]) -> tuple[int, str, str, str]:
+    def sort_key(row: dict[str, str]) -> tuple[int, float, str, str]:
         provider = (row.get("provider") or "").strip()
         try:
             provider_rank = PROVIDER_PRIORITY.index(provider)
         except ValueError:
             provider_rank = len(PROVIDER_PRIORITY)
 
-        observed = ts_value(row.get("observed_at") or "")
+        observed_epoch = ts_epoch(row.get("observed_at") or "")
         win_total = (row.get("win_total") or "").strip()
         source_url = (row.get("source_url") or "").strip()
-        return (provider_rank, observed, win_total, source_url)
+        return (provider_rank, -observed_epoch, win_total, source_url)
 
-    return sorted(rows, key=sort_key, reverse=True)[0]
+    return sorted(rows, key=sort_key)[0]
 
 
 def normalize_evidence(rows: list[dict[str, str]]) -> list[dict[str, str]]:
