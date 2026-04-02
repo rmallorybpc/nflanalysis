@@ -1,4 +1,4 @@
-# nflanalysis
+# NFL Analysis
 
 Unified modeling and dashboard project to quantify how player movement across teams, divisions, and conferences impacts team performance for:
 
