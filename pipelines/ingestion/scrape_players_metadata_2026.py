@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import re
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -105,6 +107,10 @@ class Pair:
 class DisambiguationHint:
     slug: str
     source_url: str
+    position_hint: str
+    college_hint: str
+    dob_hint: str
+    nfl_profile_url: str
 
 
 def parse_args() -> argparse.Namespace:
@@ -149,6 +155,14 @@ def extract_slug(value: str) -> str:
     if m2:
         return raw
     return ""
+
+
+def extract_nfl_profile_url(value: str) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return ""
+    m = re.search(r"https://www\.nfl\.com/players/[^\s|]+/?", raw)
+    return m.group(0) if m else ""
 
 
 def roster_candidates(html: str) -> list[tuple[str, str]]:
@@ -240,6 +254,109 @@ def parse_player_page(html: str, slug: str, imported_at: str) -> dict[str, str]:
     }
 
 
+def compute_age(dob_iso: str, imported_at: str) -> str:
+    dob_raw = (dob_iso or "").strip()
+    if not dob_raw:
+        return ""
+    try:
+        dob = date.fromisoformat(dob_raw)
+        as_of = date.fromisoformat((imported_at or "")[:10])
+    except ValueError:
+        return ""
+
+    years = as_of.year - dob.year
+    if (as_of.month, as_of.day) < (dob.month, dob.day):
+        years -= 1
+    return str(years if years >= 0 else "")
+
+
+def parse_nfl_profile_page(html: str, imported_at: str) -> dict[str, str]:
+    soup = BeautifulSoup(html, "html.parser")
+
+    def value_for_key(key: str) -> str:
+        for key_el in soup.select("div.nfl-c-player-info__key"):
+            label = key_el.get_text(" ", strip=True).lower()
+            if label != key.lower():
+                continue
+            parent = key_el.parent
+            if not parent:
+                continue
+            val_el = parent.select_one("div.nfl-c-player-info__value")
+            if val_el:
+                return val_el.get_text(" ", strip=True)
+        return ""
+
+    position = ""
+    pos_el = soup.select_one("span.nfl-c-player-header__position")
+    if pos_el:
+        token = pos_el.get_text(" ", strip=True).split("/")[0].split()[0].upper()
+        position = POS_MAP.get(token, token)
+
+    height = value_for_key("Height")
+    weight = value_for_key("Weight")
+    experience = value_for_key("Experience")
+    if experience.lower() == "rook":
+        experience = "0"
+
+    college = value_for_key("College")
+    birth_date = ""
+
+    def iter_person_nodes(node: object) -> list[dict[str, object]]:
+        found: list[dict[str, object]] = []
+        if isinstance(node, dict):
+            if str(node.get("@type", "")).lower() == "person":
+                found.append(node)
+            for v in node.values():
+                found.extend(iter_person_nodes(v))
+        elif isinstance(node, list):
+            for item in node:
+                found.extend(iter_person_nodes(item))
+        return found
+
+    for script in soup.select('script[type="application/ld+json"]'):
+        raw = (script.string or "").strip()
+        if not raw:
+            continue
+        try:
+            doc = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        nodes = doc if isinstance(doc, list) else [doc]
+        for node in nodes:
+            for person in iter_person_nodes(node):
+                b = str(person.get("birthDate") or "").strip()
+                if b:
+                    birth_date = b
+                alumni = person.get("alumniOf")
+                if isinstance(alumni, dict):
+                    inner = alumni.get("alumniOf")
+                    if isinstance(inner, dict):
+                        c = str(inner.get("name") or "").strip()
+                        if c:
+                            college = c
+                    else:
+                        c = str(alumni.get("name") or "").strip()
+                        if c:
+                            college = c
+                if birth_date or college:
+                    break
+            if birth_date or college:
+                break
+        if birth_date or college:
+            break
+
+    age = compute_age(birth_date, imported_at)
+    return {
+        "position": position,
+        "age": age,
+        "height": height,
+        "weight": weight,
+        "experience": experience,
+        "college": college,
+        "dob": birth_date,
+    }
+
+
 def read_pairs(path: Path) -> list[Pair]:
     with path.open(newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
@@ -273,11 +390,18 @@ def read_disambiguation_hints(path: Path) -> dict[tuple[str, str], Disambiguatio
             continue
 
         slug = extract_slug(row.get("pfr_url_or_slug") or "")
-        if not slug:
-            continue
+        source_url = f"https://www.pro-football-reference.com/players/{slug[0]}/{slug}.htm" if slug else ""
+        notes = row.get("notes") or ""
+        nfl_profile_url = extract_nfl_profile_url(notes)
 
-        source_url = f"https://www.pro-football-reference.com/players/{slug[0]}/{slug}.htm"
-        out[(player, team)] = DisambiguationHint(slug=slug, source_url=source_url)
+        out[(player, team)] = DisambiguationHint(
+            slug=slug,
+            source_url=source_url,
+            position_hint=(row.get("position_hint") or "").strip(),
+            college_hint=(row.get("college_hint") or "").strip(),
+            dob_hint=(row.get("dob_hint") or "").strip(),
+            nfl_profile_url=nfl_profile_url,
+        )
 
     return out
 
@@ -303,11 +427,75 @@ def main() -> None:
 
     roster_cache: dict[str, list[tuple[str, str]] | None] = {}
     player_cache: dict[str, dict[str, str]] = {}
+    nfl_cache: dict[str, dict[str, str]] = {}
     used_slugs: set[str] = set()
 
     for pair in pairs:
         hint = disambiguation_hints.get((pair.player, pair.team))
         if hint:
+            if not hint.slug:
+                has_hint = bool(hint.position_hint or hint.college_hint or hint.dob_hint or hint.nfl_profile_url)
+                if not has_hint:
+                    unresolved.append({
+                        "player": pair.player,
+                        "team": pair.team,
+                        "reason": "missing_disambiguation_hint",
+                        "notes": "No PFR slug and no usable NFL hint",
+                    })
+                    continue
+
+                nfl_meta = {
+                    "position": hint.position_hint,
+                    "age": compute_age(hint.dob_hint, args.imported_at),
+                    "height": "",
+                    "weight": "",
+                    "experience": "",
+                    "college": hint.college_hint,
+                    "dob": hint.dob_hint,
+                }
+
+                if hint.nfl_profile_url:
+                    if hint.nfl_profile_url not in nfl_cache:
+                        try:
+                            nfl_html = fetch(hint.nfl_profile_url)
+                            nfl_cache[hint.nfl_profile_url] = parse_nfl_profile_page(nfl_html, args.imported_at)
+                        except Exception:  # pylint: disable=broad-except
+                            nfl_cache[hint.nfl_profile_url] = {}
+                    if nfl_cache[hint.nfl_profile_url]:
+                        for k, v in nfl_cache[hint.nfl_profile_url].items():
+                            if k in nfl_meta and v:
+                                nfl_meta[k] = v
+
+                if not nfl_meta["position"]:
+                    unresolved.append({
+                        "player": pair.player,
+                        "team": pair.team,
+                        "reason": "parse_error",
+                        "notes": "NFL disambiguation fallback missing required position",
+                    })
+                    continue
+
+                resolved.append(
+                    {
+                        "player": pair.player,
+                        "position": nfl_meta["position"],
+                        "team": pair.team,
+                        "age": nfl_meta["age"],
+                        "height": nfl_meta["height"],
+                        "weight": nfl_meta["weight"],
+                        "experience": nfl_meta["experience"],
+                        "college": nfl_meta["college"],
+                        "draft_year": "",
+                        "draft_round": "",
+                        "draft_pick": "",
+                        "pfr_slug": "",
+                        "source_url": hint.nfl_profile_url,
+                        "import_method": "nfl_disambiguation_hint",
+                        "imported_at": args.imported_at,
+                    }
+                )
+                continue
+
             slug = hint.slug
             purl = hint.source_url
 

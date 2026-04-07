@@ -1,65 +1,103 @@
 move_id,event_date,effective_date,move_type,player_id,from_team_id,to_team_id,transaction_detail,source,nfl_season,season_phase,phase_week,nfl_week,ingested_at
-ofs_2025_01_00001,2025-03-12,2025-03-12,free_agency,M/MoorDe00,,ARI,Veteran CB added on 2-year deal,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00002,2025-03-09,2025-03-09,free_agency,C/CartLo00,ARI,,Cap-related move,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00003,2025-03-11,2025-03-11,free_agency,R/ReedMa00,,ATL,Depth WR signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00004,2025-03-08,2025-03-08,free_agency,L/LewiJa00,ATL,ATL,Special teams LB retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00005,2025-03-13,2025-03-13,free_agency,C/CollNo01,,BAL,Edge rusher added in free agency,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00006,2025-03-07,2025-03-07,free_agency,S/ScotEv00,BAL,,Veteran S released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00007,2025-03-14,2025-03-14,free_agency,B/BrooTy00,,BUF,Interior OL depth,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00008,2025-03-10,2025-03-10,free_agency,H/HarrCa00,BUF,,WR released ahead of free agency,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00009,2025-03-12,2025-03-12,free_agency,K/KingIs00,,CAR,Slot WR added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00010,2025-03-09,2025-03-09,free_agency,T/TurnOw00,CAR,CAR,Backup OT retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00011,2025-03-15,2025-03-15,free_agency,J/JohnMi01,,CHI,Veteran safety signed,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00012,2025-03-11,2025-03-11,free_agency,P/PricLo00,CHI,,RB released after two seasons,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00013,2025-03-13,2025-03-13,free_agency,C/CartEl00,,CIN,Rotational DT added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00014,2025-03-10,2025-03-10,free_agency,H/HallSp00,CIN,CIN,Nickel CB retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00015,2025-03-14,2025-03-14,free_agency,W/WrigJa00,,CLE,TE added as red-zone target,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00016,2025-03-08,2025-03-08,free_agency,L/LewiDa00,CLE,,Veteran RB released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00017,2025-03-12,2025-03-12,free_agency,M/MoorBr00,,DAL,Edge depth signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00018,2025-03-07,2025-03-07,free_agency,S/ScotNo00,DAL,DAL,Core special teamer retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00019,2025-03-13,2025-03-13,free_agency,K/KingLo00,,DEN,Veteran CB added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00020,2025-03-09,2025-03-09,free_agency,T/TurnMi00,DEN,,DL released for cap space,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00021,2025-03-14,2025-03-14,free_agency,B/BrooCa00,,DET,RB added to rotation,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00022,2025-03-08,2025-03-08,free_agency,H/HarrEv00,DET,DET,Backup QB retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00023,2025-03-11,2025-03-11,free_agency,Y/YounJa00,,GB,Slot CB signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00024,2025-03-07,2025-03-07,free_agency,C/CollOw01,GB,,Veteran TE released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00025,2025-03-12,2025-03-12,free_agency,M/MorgDa00,,HOU,WR added for depth,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00026,2025-03-09,2025-03-09,free_agency,R/ReedIs00,HOU,HOU,Interior DL retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00027,2025-03-13,2025-03-13,free_agency,P/PricNo00,,IND,LB added for special teams,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00028,2025-03-10,2025-03-10,free_agency,W/WhitLo01,IND,,CB released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00029,2025-03-14,2025-03-14,free_agency,S/ScotMi00,,JAX,Boundary WR signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00030,2025-03-08,2025-03-08,free_agency,M/MoorCa00,JAX,JAX,Backup S retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00031,2025-03-12,2025-03-12,free_agency,T/TurnEl00,,KC,Rotational edge rusher,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00032,2025-03-07,2025-03-07,free_agency,B/BrooSp00,KC,,Veteran OL released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00033,2025-03-13,2025-03-13,free_agency,H/HarrJa00,,LV,CB added in free agency,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00034,2025-03-08,2025-03-08,free_agency,K/KingDa00,LV,LV,WR retained on 1-year deal,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00035,2025-03-14,2025-03-14,free_agency,L/LewiTy00,,LAC,Safety added for depth,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00036,2025-03-09,2025-03-09,free_agency,C/CartEv00,LAC,,DL released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00037,2025-03-11,2025-03-11,free_agency,J/JohnCa00,,LAR,Veteran OT signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00038,2025-03-08,2025-03-08,free_agency,R/ReedMi00,LAR,LAR,Nickel CB retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00039,2025-03-12,2025-03-12,free_agency,C/CollNo01,,MIA,Speed WR added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00040,2025-03-07,2025-03-07,free_agency,S/ScotOw00,MIA,,Veteran LB released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00041,2025-03-13,2025-03-13,free_agency,M/MoorIs00,,MIN,Interior OL depth,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00042,2025-03-08,2025-03-08,free_agency,H/HarrJa01,MIN,MIN,TE retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00043,2025-03-14,2025-03-14,free_agency,K/KingDa01,,NE,CB added in free agency,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00044,2025-03-10,2025-03-10,free_agency,B/BrooLo00,NE,,WR released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00045,2025-03-12,2025-03-12,free_agency,J/JohnEl00,,NO,DL depth signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00046,2025-03-08,2025-03-08,free_agency,L/LewiSp00,NO,NO,Backup QB retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00047,2025-03-13,2025-03-13,free_agency,C/CartCa00,,NYG,Boundary CB added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00048,2025-03-09,2025-03-09,free_agency,W/WhitMi00,NYG,,Veteran RB released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00049,2025-03-14,2025-03-14,free_agency,M/MoorJa00,,NYJ,Edge rusher signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00050,2025-03-08,2025-03-08,free_agency,P/PricDa00,NYJ,NYJ,Slot WR retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00051,2025-03-11,2025-03-11,free_agency,K/KingNo00,,PHI,Safety added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00052,2025-03-07,2025-03-07,free_agency,T/TurnEv00,PHI,,Veteran OL released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00053,2025-03-12,2025-03-12,free_agency,S/ScotIs00,,PIT,LB added for depth,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00054,2025-03-08,2025-03-08,free_agency,C/CollOw01,PIT,PIT,Core special teamer retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00055,2025-03-13,2025-03-13,free_agency,J/JohnMi01,,SEA,WR added in free agency,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00056,2025-03-09,2025-03-09,free_agency,H/HarrLo00,SEA,,CB released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00057,2025-03-14,2025-03-14,free_agency,M/MoorDa00,,SF,DL depth signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00058,2025-03-08,2025-03-08,free_agency,R/ReedCa00,SF,SF,TE retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00059,2025-03-11,2025-03-11,free_agency,K/KingJa00,,TB,CB added,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00060,2025-03-07,2025-03-07,free_agency,B/BrooNo00,TB,,Veteran WR released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00061,2025-03-12,2025-03-12,free_agency,L/LewiEl00,,TEN,RB added to rotation,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00062,2025-03-08,2025-03-08,free_agency,H/HarrSp00,TEN,TEN,Backup OL retained,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00063,2025-03-13,2025-03-13,free_agency,C/CartIs00,,WAS,Edge rusher signing,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
-ofs_2025_01_00064,2025-03-09,2025-03-09,free_agency,W/WhitLo01,WAS,,Veteran S released,https://www.nfl.com/transactions,2025,regular,1,1,2026-03-26T18:20:28Z
+ofs_2026_01_00002,2026-01-05,2026-01-05,free_agency,nfl:larrell-murchison,LAR,,"Terminated Via Waivers, all contracts",https://www.nfl.com/transactions/league/waivers/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00003,2026-01-05,2026-01-05,free_agency,nfl:jeremiah-pharms-2,NE,,"Terminated Via Waivers, all contracts",https://www.nfl.com/transactions/league/waivers/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00005,2026-01-06,2026-01-06,free_agency,nfl:demani-richardson,CAR,,"Waived, No Recall",https://www.nfl.com/transactions/league/waivers/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00014,2026-01-07,2026-01-07,free_agency,nfl:dane-jackson,,BUF,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00015,2026-01-07,2026-01-07,free_agency,nfl:demani-richardson,CAR,,"Terminated Via Waivers, all contracts",https://www.nfl.com/transactions/league/waivers/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00019,2026-01-07,2026-01-07,free_agency,nfl:eric-kendricks,,SF,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00020,2026-01-10,2026-01-10,free_agency,nfl:baylon-spector,,BUF,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00022,2026-01-12,2026-01-12,free_agency,nfl:d-ernest-johnson,NE,,"Waived, No Recall",https://www.nfl.com/transactions/league/waivers/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00023,2026-01-13,2026-01-13,free_agency,nfl:jalen-reeves-maybin,,CHI,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00026,2026-01-13,2026-01-13,free_agency,nfl:d-ernest-johnson,NE,,"Terminated Via Waivers, all contracts",https://www.nfl.com/transactions/league/waivers/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00028,2026-01-14,2026-01-14,free_agency,nfl:brayden-willis,,SF,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00030,2026-01-20,2026-01-20,free_agency,nfl:trevon-diggs,GB,,"Waived, No Recall",https://www.nfl.com/transactions/league/waivers/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00031,2026-01-21,2026-01-21,free_agency,nfl:trevon-diggs,GB,,"Terminated Via Waivers, all contracts",https://www.nfl.com/transactions/league/waivers/2026/1?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00032,2026-02-12,2026-02-12,free_agency,nfl:cam-akers,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00033,2026-02-12,2026-02-12,free_agency,nfl:federico-maranges,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00034,2026-02-12,2026-02-12,free_agency,nfl:j-r-singleton,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00035,2026-02-12,2026-02-12,free_agency,nfl:ja-markis-weston,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00036,2026-02-12,2026-02-12,free_agency,nfl:jacardia-wright,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00037,2026-02-12,2026-02-12,free_agency,nfl:jamie-sheriff,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00038,2026-02-12,2026-02-12,free_agency,nfl:logan-brown,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00039,2026-02-12,2026-02-12,free_agency,nfl:maxen-hook,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00040,2026-02-12,2026-02-12,free_agency,nfl:montorie-foster-jr,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00041,2026-02-12,2026-02-12,free_agency,nfl:chris-paul-jr,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00042,2026-02-12,2026-02-12,free_agency,nfl:ricky-white-iii,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00043,2026-02-12,2026-02-12,free_agency,nfl:tyler-hall,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00044,2026-02-12,2026-02-12,free_agency,nfl:tyrone-broden,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00045,2026-02-12,2026-02-12,free_agency,nfl:velus-jones,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00046,2026-02-12,2026-02-12,free_agency,nfl:wy-kevious-thomas,,SEA,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00047,2026-02-13,2026-02-13,free_agency,nfl:courtney-jackson-2,,NYG,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00049,2026-02-17,2026-02-17,free_agency,nfl:emory-jones,ATL,,"Waived, No Recall",https://www.nfl.com/transactions/league/waivers/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00050,2026-02-17,2026-02-17,free_agency,nfl:james-daniels,MIA,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00052,2026-02-17,2026-02-17,free_agency,nfl:brandon-crossley,,NE,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00053,2026-02-17,2026-02-17,free_agency,nfl:earnest-brown-iv,,TEN,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00054,2026-02-17,2026-02-17,free_agency,nfl:ryan-hayes,,TEN,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00055,2026-02-18,2026-02-18,free_agency,nfl:emory-jones,ATL,,"Terminated Via Waivers, all contracts",https://www.nfl.com/transactions/league/waivers/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00056,2026-02-18,2026-02-18,free_agency,nfl:kendric-pryor,,CIN,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00058,2026-02-18,2026-02-18,free_agency,nfl:nick-zakelj,,SF,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00059,2026-02-19,2026-02-19,free_agency,nfl:amen-ogbongbemiga,CHI,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00060,2026-02-19,2026-02-19,free_agency,nfl:michael-bandy,,DEN,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00061,2026-02-20,2026-02-20,free_agency,nfl:kendall-milton,,CIN,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00063,2026-02-23,2026-02-23,free_agency,nfl:michael-danna,KC,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00064,2026-02-26,2026-02-26,free_agency,nfl:xavier-woods,TEN,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/2?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00076,2026-03-11,2026-03-11,free_agency,nfl:kirk-cousins,ATL,,"Terminated, Vested Veteran, Post-June 1 Designation",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00077,2026-03-11,2026-03-11,free_agency,nfl:cooper-rush,BAL,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00078,2026-03-11,2026-03-11,trade,nfl:d-j-moore,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00080,2026-03-11,2026-03-11,trade,nfl:garrett-bradbury,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00081,2026-03-11,2026-03-11,free_agency,nfl:david-njoku,CLE,,"Terminated, Vested Veteran, Post-June 1 Designation",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00082,2026-03-11,2026-03-11,free_agency,nfl:jack-conklin,CLE,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00083,2026-03-11,2026-03-11,trade,nfl:tytus-howard-x1979,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00085,2026-03-11,2026-03-11,trade,nfl:rashan-gary,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00088,2026-03-11,2026-03-11,trade,nfl:juice-scruggs,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00090,2026-03-11,2026-03-11,trade,nfl:zaire-franklin,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00091,2026-03-11,2026-03-11,trade,nfl:david-montgomery,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00092,2026-03-11,2026-03-11,trade,nfl:kai-kroeger,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00093,2026-03-11,2026-03-11,trade,nfl:colby-wooden,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00094,2026-03-11,2026-03-11,trade,nfl:trent-mcduffie,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00095,2026-03-11,2026-03-11,trade,nfl:taron-johnson,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00097,2026-03-11,2026-03-11,free_agency,nfl:harrison-smith,MIN,,"Terminated, Vested Veteran, Post-June 1 Designation",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00100,2026-03-11,2026-03-11,free_agency,nfl:anfernee-jennings,NE,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00101,2026-03-11,2026-03-11,free_agency,nfl:stefon-diggs,NE,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00103,2026-03-11,2026-03-11,free_agency,nfl:chris-board,NYG,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00104,2026-03-11,2026-03-11,free_agency,nfl:jamie-gillan,NYG,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00105,2026-03-11,2026-03-11,trade,nfl:geno-smith,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00106,2026-03-11,2026-03-11,trade,nfl:minkah-fitzpatrick,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00107,2026-03-11,2026-03-11,trade,nfl:t-vondre-sweat,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00108,2026-03-11,2026-03-11,trade,nfl:michael-pittman-2,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00109,2026-03-11,2026-03-11,trade,nfl:osa-odighizuwa,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00110,2026-03-11,2026-03-11,trade,nfl:jermaine-johnson-ii,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00111,2026-03-11,2026-03-11,trade,nfl:solomon-thomas,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00113,2026-03-12,2026-03-12,free_agency,nfl:will-grier,DAL,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00117,2026-03-13,2026-03-13,free_agency,nfl:tyler-hall,SEA,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00118,2026-03-13,2026-03-13,free_agency,nfl:l-jarius-sneed,TEN,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00120,2026-03-18,2026-03-18,trade,nfl:jaylen-waddle,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00121,2026-03-19,2026-03-19,trade,nfl:justin-fields,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00122,2026-03-23,2026-03-23,trade,nfl:sydney-brown,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00123,2026-03-23,2026-03-23,free_agency,nfl:joshua-dobbs,NE,,"Terminated, Vested Veteran, all contracts",https://www.nfl.com/transactions/league/terminations/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00124,2026-03-24,2026-03-24,trade,nfl:andy-dalton,,,Traded | manual_review:missing_trade_teams,https://www.nfl.com/transactions/league/trades/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00125,2026-03-25,2026-03-25,free_agency,nfl:joe-flacco,,CIN,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00126,2026-03-25,2026-03-25,free_agency,nfl:ben-bartch,,DET,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00127,2026-03-25,2026-03-25,free_agency,nfl:jake-bates,,DET,Exclusive Rights Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00128,2026-03-25,2026-03-25,free_agency,nfl:kayode-awosika,,LAC,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00129,2026-03-25,2026-03-25,free_agency,nfl:ronnie-rivers,,LAR,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00130,2026-03-25,2026-03-25,free_agency,nfl:cam-jones,,NYG,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00131,2026-03-25,2026-03-25,free_agency,nfl:fred-johnson,,PHI,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00132,2026-03-26,2026-03-26,free_agency,nfl:brian-robinson,,ATL,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00133,2026-03-26,2026-03-26,free_agency,nfl:trevor-siemian,,ATL,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00134,2026-03-26,2026-03-26,free_agency,nfl:tyler-goodson,,ATL,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00135,2026-03-26,2026-03-26,free_agency,nfl:danny-pinter,,BAL,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00136,2026-03-26,2026-03-26,free_agency,nfl:austin-corbett,,BUF,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00137,2026-03-26,2026-03-26,free_agency,nfl:lloyd-cushenberry,,BUF,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00138,2026-03-26,2026-03-26,free_agency,nfl:terrell-burgess,,NO,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00139,2026-03-26,2026-03-26,free_agency,nfl:zach-wilson,,NO,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00140,2026-03-26,2026-03-26,free_agency,nfl:elijah-moore,,PHI,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00141,2026-03-26,2026-03-26,free_agency,nfl:chazz-surratt,,SEA,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00142,2026-03-27,2026-03-27,free_agency,nfl:damar-hamlin,,BUF,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00143,2026-03-27,2026-03-27,free_agency,nfl:trent-sherfield,,BUF,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00144,2026-03-27,2026-03-27,free_agency,nfl:derion-kendrick,,DAL,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00145,2026-03-27,2026-03-27,free_agency,nfl:ronnie-harrison,,MIA,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00146,2026-03-27,2026-03-27,free_agency,nfl:ahkello-witherspoon,,WAS,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00147,2026-03-31,2026-03-31,free_agency,nfl:chuck-clark,,DET,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00148,2026-03-31,2026-03-31,free_agency,nfl:chandler-martin,,PHI,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z
+ofs_2026_01_00149,2026-03-31,2026-03-31,free_agency,nfl:dj-davidson,,WAS,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2026/3?page=1,2026,regular,1,1,2026-04-06T19:21:59Z

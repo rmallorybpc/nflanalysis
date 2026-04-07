@@ -119,6 +119,7 @@ REVIEW_FIELDS = [
 
 
 TEAM_CODE_RE = re.compile(r"\b([A-Z]{2,3})\b")
+NFL_PROFILE_RE = re.compile(r"https?://(?:www\.)?nfl\.com/players/([^/?#]+)/?", re.IGNORECASE)
 
 
 def parse_args() -> argparse.Namespace:
@@ -182,13 +183,27 @@ def to_float(value: str, field_name: str) -> float:
         raise ValueError(f"{field_name} must be numeric, got {value}") from exc
 
 
+def derive_player_id(row: dict[str, str]) -> str:
+    pfr = (row.get("pfr_slug") or "").strip()
+    if pfr:
+        return pfr
+
+    source_url = (row.get("source_url") or "").strip()
+    m = NFL_PROFILE_RE.search(source_url)
+    if m:
+        # Prefix keeps NFL-derived IDs distinct from canonical PFR slugs.
+        return f"nfl:{m.group(1).lower()}"
+
+    return ""
+
+
 def build_player_dimension(rows: list[dict[str, str]], as_of_year: int, now_iso: str) -> tuple[list[dict[str, str]], dict[str, str]]:
     out: list[dict[str, str]] = []
     by_name: dict[str, str] = {}
 
     for row in rows:
         name = (row.get("player") or "").strip()
-        player_id = (row.get("pfr_slug") or "").strip()
+        player_id = derive_player_id(row)
         position = (row.get("position") or "").strip().upper() or "UNK"
         if not name or not player_id:
             continue
