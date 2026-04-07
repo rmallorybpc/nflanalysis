@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""Build disambiguation hints for 2026 unresolved players using PFR-only identity checks.
+"""Build disambiguation hints for 2026 unresolved players using NFL.com evidence.
 
-This script is conservative by design:
-- Fills a row only when a name maps to exactly one PFR player slug.
-- Leaves rows blank with reason codes when no unique identity is available.
+Safety rules:
+- Never synthesize or guess a PFR slug.
+- Only keep `pfr_url_or_slug` when already present in prior template.
+- Add auditable NFL.com references in `notes`.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import json
 import re
-from dataclasses import dataclass
+from html import unescape
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -21,11 +23,41 @@ from bs4 import BeautifulSoup
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
 
-@dataclass(frozen=True)
-class Candidate:
-    name: str
-    slug: str
-    url: str
+TEAM_SLUG_TO_ABBR = {
+    "arizona-cardinals": "ARI",
+    "atlanta-falcons": "ATL",
+    "baltimore-ravens": "BAL",
+    "buffalo-bills": "BUF",
+    "carolina-panthers": "CAR",
+    "chicago-bears": "CHI",
+    "cincinnati-bengals": "CIN",
+    "cleveland-browns": "CLE",
+    "dallas-cowboys": "DAL",
+    "denver-broncos": "DEN",
+    "detroit-lions": "DET",
+    "green-bay-packers": "GB",
+    "houston-texans": "HOU",
+    "indianapolis-colts": "IND",
+    "jacksonville-jaguars": "JAX",
+    "kansas-city-chiefs": "KC",
+    "las-vegas-raiders": "LV",
+    "los-angeles-chargers": "LAC",
+    "los-angeles-rams": "LAR",
+    "miami-dolphins": "MIA",
+    "minnesota-vikings": "MIN",
+    "new-england-patriots": "NE",
+    "new-orleans-saints": "NO",
+    "new-york-giants": "NYG",
+    "new-york-jets": "NYJ",
+    "philadelphia-eagles": "PHI",
+    "pittsburgh-steelers": "PIT",
+    "seattle-seahawks": "SEA",
+    "san-francisco-49ers": "SF",
+    "tampa-bay-buccaneers": "TB",
+    "tennessee-titans": "TEN",
+    "washington-commanders": "WAS",
+}
+ABBR_TO_TEAM_SLUG = {abbr: slug for slug, abbr in TEAM_SLUG_TO_ABBR.items()}
 
 
 def parse_args() -> argparse.Namespace:
@@ -51,52 +83,92 @@ def fetch(url: str) -> str:
 
 def norm_name(name: str) -> str:
     s = (name or "").lower().strip()
+    s = unescape(s)
     s = s.replace(".", "").replace(",", "").replace("'", "")
+    s = s.replace("-", " ")
     s = re.sub(r"\s+", " ", s)
     return s
 
 
-def load_pfr_index() -> dict[str, list[Candidate]]:
-    by_name: dict[str, list[Candidate]] = {}
-    for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-        html = fetch(f"https://www.pro-football-reference.com/players/{ch}/")
+def roster_url_for_team(team: str) -> str:
+    slug = ABBR_TO_TEAM_SLUG.get(team, "")
+    if not slug:
+        return ""
+    return f"https://www.nfl.com/teams/{slug}/roster"
+
+
+def load_team_roster_index(teams: set[str]) -> tuple[dict[tuple[str, str], list[str]], dict[str, str]]:
+    by_team_name: dict[tuple[str, str], list[str]] = {}
+    roster_urls: dict[str, str] = {}
+    for team in sorted(teams):
+        rurl = roster_url_for_team(team)
+        roster_urls[team] = rurl
+        if not rurl:
+            continue
+        try:
+            html = fetch(rurl)
+        except (HTTPError, URLError):
+            continue
         soup = BeautifulSoup(html, "html.parser")
-        for a in soup.select('div#div_players p a[href^="/players/"]'):
-            href = a.get("href", "")
-            m = re.match(r"/players/[A-Z]/([A-Za-z0-9]+)\.htm", href)
-            if not m:
-                continue
+        for a in soup.select('a.nfl-o-roster__player-name[href^="/players/"]'):
+            href = (a.get("href") or "").strip()
             name = a.get_text(" ", strip=True)
-            if not name:
+            if not href or not name:
                 continue
-            slug = m.group(1)
-            url = f"https://www.pro-football-reference.com/players/{slug[0]}/{slug}.htm"
-            key = norm_name(name)
-            by_name.setdefault(key, []).append(Candidate(name=name, slug=slug, url=url))
-    return by_name
+            profile_url = f"https://www.nfl.com{href if href.startswith('/') else '/' + href}"
+            key = (team, norm_name(name))
+            by_team_name.setdefault(key, []).append(profile_url)
+    return by_team_name, roster_urls
 
 
-def parse_player_profile(url: str) -> tuple[str, str, str]:
-    html = fetch(url)
+def parse_profile_hints(html: str) -> tuple[str, str, str]:
     soup = BeautifulSoup(html, "html.parser")
+    position = ""
+    pos_el = soup.select_one("span.nfl-c-player-header__position")
+    if pos_el:
+        position = re.sub(r"\s+", " ", pos_el.get_text(" ", strip=True)).upper()
 
-    txt = soup.get_text(" ", strip=True)
-    pos = ""
-    m_pos = re.search(r"Position:\s*([A-Za-z/ ]+)", txt)
-    if m_pos:
-        pos = m_pos.group(1).split("/")[0].split(" and ")[0].split()[0].upper()
-
+    birth_date = ""
     college = ""
-    c = soup.select_one('[data-stat="college"]')
-    if c:
-        college = c.get_text(" ", strip=True)
 
-    dob = ""
-    b = soup.select_one("span#necro-birth")
-    if b and b.get("data-birth"):
-        dob = (b.get("data-birth") or "").strip()
+    def iter_person_nodes(node: object) -> list[dict[str, object]]:
+        found: list[dict[str, object]] = []
+        if isinstance(node, dict):
+            if str(node.get("@type", "")).lower() == "person":
+                found.append(node)
+            for v in node.values():
+                found.extend(iter_person_nodes(v))
+        elif isinstance(node, list):
+            for item in node:
+                found.extend(iter_person_nodes(item))
+        return found
 
-    return pos, college, dob
+    for script in soup.select('script[type="application/ld+json"]'):
+        raw = (script.string or "").strip()
+        if not raw:
+            continue
+        try:
+            doc = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        nodes = doc if isinstance(doc, list) else [doc]
+        for node in nodes:
+            for person in iter_person_nodes(node):
+                birth_date = str(person.get("birthDate") or "").strip()
+                alumni = person.get("alumniOf")
+                if isinstance(alumni, dict):
+                    inner = alumni.get("alumniOf")
+                    if isinstance(inner, dict):
+                        college = str(inner.get("name") or "").strip()
+                    else:
+                        college = str(alumni.get("name") or "").strip()
+                if birth_date or college:
+                    break
+            if birth_date or college:
+                break
+        if birth_date or college:
+            break
+    return position, college, birth_date
 
 
 def read_rows(path: Path) -> list[dict[str, str]]:
@@ -119,13 +191,9 @@ def main() -> None:
     existing = read_rows(args.template) if args.template.exists() else []
 
     existing_map = {(r.get("player", "").strip(), r.get("team", "").strip()): r for r in existing}
-
-    pfr_blocked = False
-    try:
-        by_name = load_pfr_index()
-    except (HTTPError, URLError):
-        by_name = {}
-        pfr_blocked = True
+    team_set = {(r.get("team") or "").strip() for r in unresolved}
+    by_team_name, roster_urls = load_team_roster_index(team_set)
+    profile_cache: dict[str, tuple[str, str, str]] = {}
 
     out: list[dict[str, str]] = []
     for row in unresolved:
@@ -149,7 +217,8 @@ def main() -> None:
             )
             continue
 
-        if pfr_blocked:
+        rurl = roster_urls.get(team, "")
+        if not rurl:
             out.append(
                 {
                     "player": player,
@@ -158,12 +227,12 @@ def main() -> None:
                     "position_hint": "",
                     "college_hint": "",
                     "dob_hint": "",
-                    "notes": "insufficient_evidence:pfr_access_blocked",
+                    "notes": "insufficient_evidence:unknown_team_slug",
                 }
             )
             continue
 
-        candidates = by_name.get(norm_name(player), [])
+        candidates = by_team_name.get((team, norm_name(player)), [])
         if not candidates:
             out.append(
                 {
@@ -173,13 +242,13 @@ def main() -> None:
                     "position_hint": "",
                     "college_hint": "",
                     "dob_hint": "",
-                    "notes": "no_match_found",
+                    "notes": f"no_nfl_team_roster_match:{rurl}",
                 }
             )
             continue
 
-        unique_slugs = sorted({c.slug for c in candidates})
-        if len(unique_slugs) != 1:
+        unique_urls = sorted(set(candidates))
+        if len(unique_urls) != 1:
             out.append(
                 {
                     "player": player,
@@ -188,22 +257,32 @@ def main() -> None:
                     "position_hint": "",
                     "college_hint": "",
                     "dob_hint": "",
-                    "notes": f"ambiguous_name:{len(unique_slugs)}_candidates",
+                    "notes": f"ambiguous_nfl_team_roster_match:{len(unique_urls)}:{rurl}",
                 }
             )
             continue
 
-        cand = candidates[0]
-        pos, college, dob = parse_player_profile(cand.url)
+        profile_url = unique_urls[0]
+        if profile_url not in profile_cache:
+            try:
+                profile_html = fetch(profile_url)
+                profile_cache[profile_url] = parse_profile_hints(profile_html)
+            except (HTTPError, URLError):
+                profile_cache[profile_url] = ("", "", "")
+        pos, college, dob = profile_cache[profile_url]
+        if not pos and not college and not dob:
+            note = f"insufficient_evidence:nfl_profile_parse_failed:{profile_url}"
+        else:
+            note = f"matched_nfl_profile:{profile_url}"
         out.append(
             {
                 "player": player,
                 "team": team,
-                "pfr_url_or_slug": cand.slug,
+                "pfr_url_or_slug": "",
                 "position_hint": pos,
                 "college_hint": college,
                 "dob_hint": dob,
-                "notes": "auto_resolved_unique_pfr_name",
+                "notes": note,
             }
         )
 

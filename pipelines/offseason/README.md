@@ -80,7 +80,7 @@ If those files do not exist, it falls back to the non-suffixed defaults.
   - Signed/Re-signed/Released/Waived/Claimed -> free_agency
   - Traded -> trade
   - Practice Squad/Reserve/Future -> ignored
-- player_id is set to pfr_slug exactly.
+- player_id is `pfr_slug` when present; otherwise derive `nfl:{profile-slug}` from NFL profile source URL.
 - trade rows with unresolved from/to teams are written with blank team IDs and logged in data/processed/offseason/manual_review.csv.
 
 ## 4) Run local API against offseason outputs
