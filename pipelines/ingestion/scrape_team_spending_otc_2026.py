@@ -52,7 +52,13 @@ TEAM_TO_SLUG = {
 }
 
 MONEY_PATTERN = re.compile(r"\(?\$-?[0-9][0-9,]*(?:\.[0-9]+)?\)?")
+ROW_PATTERN = re.compile(r"<tr[^>]*>(.*?)</tr>", re.I | re.S)
+TEAM_LINK_PATTERN = re.compile(r'team-link\s+([A-Z]{2,3})\b', re.I)
+TABLE_PATTERN = re.compile(r"<table[^>]*>(.*?)</table>", re.I | re.S)
+TD_PATTERN = re.compile(r"<td[^>]*>(.*?)</td>", re.I | re.S)
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+FREE_AGENCY_URL = "https://overthecap.com/free-agency-spending"
+CAP_SPACE_URL = "https://overthecap.com/salary-cap-space"
 
 
 def parse_args() -> argparse.Namespace:
@@ -170,36 +176,112 @@ def write_csv(path: Path, fields: list[str], rows: list[dict[str, str]]) -> None
         w.writerows(rows)
 
 
+def extract_team_money_rows(html: str) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {}
+    for row in ROW_PATTERN.findall(html):
+        team_match = TEAM_LINK_PATTERN.search(row)
+        if not team_match:
+            continue
+        team = team_match.group(1).upper()
+        money = [clean_money(m.group(0)) for m in MONEY_PATTERN.finditer(row)]
+        money = [m for m in money if m]
+        if money:
+            out[team] = money
+    return out
+
+
+def extract_tables(html: str) -> list[str]:
+    return TABLE_PATTERN.findall(html)
+
+
+def strip_tags(raw: str) -> str:
+    return re.sub(r"<[^>]+>", " ", raw)
+
+
+def extract_free_agency_totals(y2026_html: str) -> dict[str, str]:
+    totals: dict[str, str] = {}
+    for table in extract_tables(y2026_html):
+        if "Total Guarantees" not in table or "1st Year Cash" not in table:
+            continue
+        for row in ROW_PATTERN.findall(table):
+            team_match = TEAM_LINK_PATTERN.search(row)
+            if not team_match:
+                continue
+            cells = TD_PATTERN.findall(row)
+            if len(cells) < 3:
+                continue
+            total = first_money(strip_tags(cells[2]))
+            if total:
+                totals[team_match.group(1).upper()] = total
+        if totals:
+            break
+    return totals
+
+
+def extract_cap_space_dead(y2026_html: str) -> tuple[dict[str, str], dict[str, str]]:
+    cap_by_team: dict[str, str] = {}
+    dead_by_team: dict[str, str] = {}
+    for table in extract_tables(y2026_html):
+        if "salary-cap-space-table" not in table and "Cap <br />Space" not in table:
+            continue
+        for row in ROW_PATTERN.findall(table):
+            team_match = TEAM_LINK_PATTERN.search(row)
+            if not team_match:
+                continue
+            cells = TD_PATTERN.findall(row)
+            if len(cells) < 6:
+                continue
+            team = team_match.group(1).upper()
+            cap = first_money(strip_tags(cells[1]))
+            dead = first_money(strip_tags(cells[5]))
+            if cap:
+                cap_by_team[team] = cap
+            if dead:
+                dead_by_team[team] = dead
+        if cap_by_team:
+            break
+    return cap_by_team, dead_by_team
+
+
 def build_evidence() -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     obs = now_iso()
+
+    fa_by_team: dict[str, str] = {}
+    cap_by_team: dict[str, str] = {}
+    dead_by_team: dict[str, str] = {}
+
+    try:
+        fa_html = fetch(FREE_AGENCY_URL)
+        fa_block = extract_y2026_block(fa_html) or fa_html
+        fa_by_team = extract_free_agency_totals(fa_block)
+    except Exception:  # pylint: disable=broad-except
+        fa_by_team = {}
+
+    try:
+        cap_html = fetch(CAP_SPACE_URL)
+        cap_block = extract_y2026_block(cap_html) or cap_html
+        cap_by_team, dead_by_team = extract_cap_space_dead(cap_block)
+    except Exception:  # pylint: disable=broad-except
+        cap_by_team = {}
+        dead_by_team = {}
+
     for team, slug in TEAM_TO_SLUG.items():
-        url = f"https://overthecap.com/salary-cap/{slug}"
+        url = f"{FREE_AGENCY_URL}|{CAP_SPACE_URL}|https://overthecap.com/salary-cap/{slug}"
         notes: list[str] = []
-        fa = ""
-        cap = ""
-        dead = ""
-        try:
-            html = fetch(url)
-            y2026 = extract_y2026_block(html)
-            if not y2026:
-                notes.append("no_2026_data")
-            else:
-                cap = extract_cap_space(y2026)
-                dead = extract_dead_money(y2026, html)
-                fa = extract_total_fa_spending(y2026, html)
-                if not fa:
-                    notes.append("missing_total_fa_spending")
-                if not cap:
-                    notes.append("missing_cap_space")
-                if not dead:
-                    notes.append("missing_dead_money")
-        except HTTPError as exc:
-            notes.append(f"http_error_{exc.code}")
-        except URLError:
-            notes.append("network_error")
-        except Exception as exc:  # pylint: disable=broad-except
-            notes.append(f"parse_error:{type(exc).__name__}")
+        fa = fa_by_team.get(team, "")
+        cap = cap_by_team.get(team, "")
+        dead = dead_by_team.get(team, "")
+
+        if not fa:
+            notes.append("missing_total_fa_spending")
+        if not cap:
+            notes.append("missing_cap_space")
+        if not dead:
+            notes.append("missing_dead_money")
+
+        if not fa and not cap and not dead:
+            notes.append("no_2026_data")
 
         rows.append(
             {
@@ -276,7 +358,7 @@ def resolve(evidence_rows: list[dict[str, str]]) -> tuple[list[dict[str, str]], 
                 {
                     "team": team,
                     "reason": reason_for(chosen),
-                    "source_url": chosen["source_url"],
+                    "attempted_sources": chosen["source_url"],
                 }
             )
 
@@ -306,7 +388,7 @@ def main() -> None:
         ["team", "total_fa_spending", "cap_space", "dead_money", "source_url", "import_method", "imported_at"],
         resolved_rows,
     )
-    write_csv(args.unresolved, ["team", "reason", "source_url"], unresolved_rows)
+    write_csv(args.unresolved, ["team", "reason", "attempted_sources"], unresolved_rows)
 
     print(
         f"evidence={len(evidence)} resolved={len(resolved_rows)} unresolved={len(unresolved_rows)}"
