@@ -83,3 +83,56 @@ Error summary: runner not found locally; wrapper exit code indicates missing run
 Thanks,
 Data team
 Locate-or-create-runner script completed. Inspect triage/final_run_20260413T154852Z.log for details.
+=== run_final_wrapper started: 2026-04-13T18:22:36Z ===
+Found runner: ./run_final.sh
+=== Final orchestrator started: 2026-04-13T18:22:36Z ===
+--- Running scripts/ci_check_data_quality.sh ---
+Running data quality contract checks...
+validated calendar mapping rows: 4746
+validated movement events rows: 3
+validated player dimension rows: 3
+validated team-week outcomes rows: 4
+validated team-week feature rows: 4
+validated cross-table consistency checks
+Data quality contract checks passed.
+--- PASSED scripts/ci_check_data_quality.sh ---
+--- Running scripts/ci_check_dashboard_contracts.sh ---
+Running dashboard contract checks...
+validated dashboard payload contracts: 3
+Dashboard contract checks passed.
+--- PASSED scripts/ci_check_dashboard_contracts.sh ---
+--- Running scripts/ci_check_model_regression_contract.sh ---
+Running model regression contract checks...
+validated model outputs rows: 12
+validated backtest artifacts: splits=4 metrics=9
+validated pretrend/placebo artifacts: summary=9 details=3
+validated hierarchical artifacts: outputs=12 effects=18
+validated api schema files: 4
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.005s
+
+OK
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+Running dashboard contract checks...
+validated dashboard payload contracts: 3
+Dashboard contract checks passed.
+Model regression contract checks passed.
+--- PASSED scripts/ci_check_model_regression_contract.sh ---
+=== Final orchestrator completed successfully ===
+FINAL_STATUS: PASS
+Runner exit code: 0
