@@ -1,0 +1,67 @@
+IMMEDIATE TRIAGE REPORT
+Timestamp: 2026-04-13T14:59:01+00:00
+
+Objective:
+- Ensure data/transactions_2026.csv exists and required files are present/readable for orchestrator validation.
+
+Step 1 - Existence checks (expected data/ paths):
+- data/transactions_2026.csv: PRESENT
+- data/players_metadata_2026.csv: MISSING
+- data/players_metadata_2026_unresolved.csv: MISSING
+- data/win_totals_2026.csv: MISSING
+- data/win_totals_2026_unresolved.csv: MISSING
+- data/team_spending_otc_2026.csv: MISSING
+- data/team_spending_otc_2026_unresolved.csv: MISSING
+
+Step 2 - Missing transactions search commands run:
+- git status --porcelain
+- git ls-files | grep -E 'transactions.*2026'
+  Result: data/raw/offseason/transactions_raw_2026.csv; pipelines/ingestion/scrape_transactions_2026.py
+- git --no-pager log --date=iso --pretty=format:'%h %ad %s' -- data/raw/offseason/transactions_raw_2026.csv | head -n1
+  Result: e04d965 2026-04-01 16:33:19 +0000 Add scrapers for NFL player metadata and transactions for 2026 season
+- find . -maxdepth 4 -type f -iname '*transactions*2026*.csv'
+  Result: ./data/raw/offseason/transactions_raw_2026.csv
+- find /mnt /data /tmp -maxdepth 6 -type f -iname '*transactions*2026*.csv' 2>/dev/null
+  Result: no additional matches
+
+Step 3 - Restore action:
+- Source candidate: data/raw/offseason/transactions_raw_2026.csv
+- Action: copied to data/transactions_2026.csv
+- Commit: none created (working-tree triage restore only)
+
+Step 5 - Parse sanity checks for data/transactions_2026.csv:
+- Header: "team,player,transaction_type,transaction_date,notes,source_url,import_method,imported_at"
+- Size bytes: 23604
+- Row count (wc -l): 150
+- Column counts observed (NF): 8 9 10
+- UTF-8 check (iconv): PASS
+
+Schema hint comparison:
+- Expected tokens include: transaction_id, player_id, team, transaction_type, effective_date, observed_at, source_url
+- Observed header tokens: team, player, transaction_type, transaction_date, notes, source_url, import_method, imported_at
+- Note: header differs from hinted schema (missing transaction_id/player_id/effective_date/observed_at exact names).
+
+Step 6 - Cross-file referential smoke check:
+- Expected metadata path data/players_metadata_2026.csv is missing.
+- Alternate file used for smoke only: data/raw/offseason/players_metadata_2026.csv
+- Overlap sample (transactions player col vs metadata player col): Ahkello Witherspoon; Amen Ogbongbemiga; Andy Dalton; Anfernee Jennings; Austin Corbett
+- Result: non-zero overlap observed in sampled set.
+
+Additional file discovery (actual present locations):
+- ./data/raw/offseason/players_metadata_2026.csv
+- ./data/raw/offseason/players_metadata_2026_unresolved.csv
+- ./data/raw/offseason/win_totals_2026.csv
+- ./data/raw/offseason/win_totals_2026_unresolved.csv
+- ./data/raw/offseason/team_spending_otc_2026.csv
+- ./data/raw/offseason/team_spending_otc_2026_unresolved.csv
+- ./team_spending_otc_2026.csv
+- ./team_spending_otc_2026_unresolved.csv
+
+Hard blockers:
+- Required non-transaction files are not present at expected data/ root paths.
+
+Recommended next actions:
+1) Decide canonical staging location (data/ vs data/raw/offseason/) for orchestrator inputs.
+2) If orchestrator requires data/ root, copy or symlink required files from data/raw/offseason/ into data/.
+3) Confirm schema contract for transactions columns (player vs player_id; transaction_date vs effective_date).
+4) Re-run orchestrator validation after path/schema alignment.
