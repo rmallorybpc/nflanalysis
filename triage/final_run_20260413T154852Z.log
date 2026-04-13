@@ -32,3 +32,54 @@ ERROR: Final/orchestrator runner not found in repo root or PATH.
 Next steps:
   - Confirm the orchestrator binary/script name and location (e.g., ./run_final.sh or 'final' in PATH).
   - If the runner is provided by CI, run the CI job or copy its runner locally.
+=== locate-or-create-runner started: 2026-04-13T16:12:44Z ===
+Searching repo for likely runner entrypoints...
+Listing common script directories (if present)...
+No runner found. Creating wrapper at scripts/run_final_wrapper.sh that will search common locations when executed.
+Wrapper created and made executable: scripts/run_final_wrapper.sh
+Committed wrapper to git (if there were changes).
+Executing wrapper to produce log output and a clear error message if runner is still missing...
+=== run_final_wrapper started: 2026-04-13T16:12:46Z ===
+=== run_final_wrapper started: 2026-04-13T16:12:46Z ===
+ERROR: No Final/orchestrator runner found in candidates.
+ERROR: No Final/orchestrator runner found in candidates.
+Searched candidates:
+Searched candidates:
+  - ./run_final.sh
+  - ./run_final.sh
+  - ./scripts/run_final.sh
+  - ./scripts/run_final.sh
+  - ./scripts/orchestrator.sh
+  - ./scripts/orchestrator.sh
+  - ./bin/final
+  - ./bin/final
+  - ./tools/final
+  - ./tools/final
+  - final
+  - final
+  - ./run_final
+  - ./run_final
+  - ./scripts/run_final
+  - ./scripts/run_final
+If the runner exists in CI only, run the CI job and upload the triage log. Otherwise, place the runner script/binary in one of the candidate locations.
+If the runner exists in CI only, run the CI job and upload the triage log. Otherwise, place the runner script/binary in one of the candidate locations.
+Wrapper exit code: 2
+Wrapper failed (likely because no runner exists locally). Inspect triage/final_run_20260413T154852Z.log and share the first failing block with your infra/CI owner.
+Suggested message to infra/CI owner (copy/paste):
+Subject: Request: Final/orchestrator runner or CI job output for dataset certification
+
+Hi infra/CI team,
+
+I'm certifying the 2026 offseason dataset and need to run the Final/orchestrator locally to validate and archive the snapshot.
+The local wrapper (scripts/run_final_wrapper.sh) could not find the runner in the repo or PATH.
+
+Could you either:
+- Provide the runner binary/script (e.g., run_final.sh or 'final') in the repo or a known path, or
+- Run the CI job that executes the orchestrator and attach the job log (triage/final_run_*.log) to this ticket.
+
+Current triage log: triage/final_run_*.log
+Error summary: runner not found locally; wrapper exit code indicates missing runner.
+
+Thanks,
+Data team
+Locate-or-create-runner script completed. Inspect triage/final_run_20260413T154852Z.log for details.
