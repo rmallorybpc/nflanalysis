@@ -121,6 +121,29 @@ def load_team_roster_index(teams: set[str]) -> tuple[dict[tuple[str, str], list[
     return by_team_name, roster_urls
 
 
+def load_global_roster_index() -> dict[str, list[str]]:
+    by_name: dict[str, list[str]] = {}
+    for team in sorted(ABBR_TO_TEAM_SLUG):
+        rurl = roster_url_for_team(team)
+        if not rurl:
+            continue
+        try:
+            html = fetch(rurl)
+        except (HTTPError, URLError):
+            continue
+
+        soup = BeautifulSoup(html, "html.parser")
+        for a in soup.select('a.nfl-o-roster__player-name[href^="/players/"]'):
+            href = (a.get("href") or "").strip()
+            name = a.get_text(" ", strip=True)
+            if not href or not name:
+                continue
+            profile_url = f"https://www.nfl.com{href if href.startswith('/') else '/' + href}"
+            key = norm_name(name)
+            by_name.setdefault(key, []).append(profile_url)
+    return by_name
+
+
 def parse_profile_hints(html: str) -> tuple[str, str, str]:
     soup = BeautifulSoup(html, "html.parser")
     position = ""
@@ -193,6 +216,7 @@ def main() -> None:
     existing_map = {(r.get("player", "").strip(), r.get("team", "").strip()): r for r in existing}
     team_set = {(r.get("team") or "").strip() for r in unresolved}
     by_team_name, roster_urls = load_team_roster_index(team_set)
+    global_name_index = load_global_roster_index()
     profile_cache: dict[str, tuple[str, str, str]] = {}
 
     out: list[dict[str, str]] = []
@@ -234,6 +258,47 @@ def main() -> None:
 
         candidates = by_team_name.get((team, norm_name(player)), [])
         if not candidates:
+            global_candidates = sorted(set(global_name_index.get(norm_name(player), [])))
+            if len(global_candidates) == 1:
+                profile_url = global_candidates[0]
+                if profile_url not in profile_cache:
+                    try:
+                        profile_html = fetch(profile_url)
+                        profile_cache[profile_url] = parse_profile_hints(profile_html)
+                    except (HTTPError, URLError):
+                        profile_cache[profile_url] = ("", "", "")
+                pos, college, dob = profile_cache[profile_url]
+                if not pos and not college and not dob:
+                    note = f"insufficient_evidence:nfl_profile_parse_failed:{profile_url}"
+                else:
+                    note = f"matched_nfl_profile_global_roster:{profile_url}"
+                out.append(
+                    {
+                        "player": player,
+                        "team": team,
+                        "pfr_url_or_slug": "",
+                        "position_hint": pos,
+                        "college_hint": college,
+                        "dob_hint": dob,
+                        "notes": note,
+                    }
+                )
+                continue
+
+            if len(global_candidates) > 1:
+                out.append(
+                    {
+                        "player": player,
+                        "team": team,
+                        "pfr_url_or_slug": "",
+                        "position_hint": "",
+                        "college_hint": "",
+                        "dob_hint": "",
+                        "notes": f"ambiguous_global_nfl_roster_match:{len(global_candidates)}",
+                    }
+                )
+                continue
+
             out.append(
                 {
                     "player": player,

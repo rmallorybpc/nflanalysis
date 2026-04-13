@@ -9,15 +9,15 @@ Geron Christian,DEN,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/denve
 Marcedes Lewis,DEN,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/denver-broncos/roster
 Clayton Tune,GB,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/green-bay-packers/roster
 K'Von Wallace,HOU,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/houston-texans/roster
-Shane Buechele,KC,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/kansas-city-chiefs/roster
+Shane Buechele,KC,,QB,SMU,1998-01-08,matched_nfl_profile_global_roster:https://www.nfl.com/players/shane-buechele/
 Dane Jackson,BUF,,CB,Pittsburgh,1996-11-29,matched_nfl_profile:https://www.nfl.com/players/dane-jackson/
 Eric Kendricks,SF,,MLB,UCLA,1992-02-29,matched_nfl_profile:https://www.nfl.com/players/eric-kendricks/
 Baylon Spector,BUF,,LB,Clemson,1998-10-20,matched_nfl_profile:https://www.nfl.com/players/baylon-spector/
 Darrell Taylor,HOU,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/houston-texans/roster
 D'Ernest Johnson,NE,,RB,South Florida,1996-02-27,matched_nfl_profile:https://www.nfl.com/players/d-ernest-johnson/
 Jalen Reeves-Maybin,CHI,,LB,Tennessee,1995-01-31,matched_nfl_profile:https://www.nfl.com/players/jalen-reeves-maybin/
-Nick Hampton,LAR,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/los-angeles-rams/roster
-D'Anthony Bell,CAR,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/carolina-panthers/roster
+Nick Hampton,LAR,,LB,Appalachian State,2000-04-05,matched_nfl_profile_global_roster:https://www.nfl.com/players/nick-hampton/
+D'Anthony Bell,CAR,,DB,University of West Florida,1996-10-17,matched_nfl_profile_global_roster:https://www.nfl.com/players/d-anthony-bell/
 Brayden Willis,SF,,TE,Oklahoma,1999-11-11,matched_nfl_profile:https://www.nfl.com/players/brayden-willis/
 Trevon Diggs,GB,,CB,Alabama,1998-09-20,matched_nfl_profile:https://www.nfl.com/players/trevon-diggs/
 Cam Akers,SEA,,RB,Florida State,1999-06-22,matched_nfl_profile:https://www.nfl.com/players/cam-akers/
@@ -39,7 +39,7 @@ Courtney Jackson,NYG,,WR,Arkansas State,2001-03-13,matched_nfl_profile:https://w
 Jalan Gaines,SEA,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/seattle-seahawks/roster
 Emory Jones,ATL,,QB,Cincinnati,2000-04-29,matched_nfl_profile:https://www.nfl.com/players/emory-jones/
 James Daniels,MIA,,G,Iowa,1997-09-13,matched_nfl_profile:https://www.nfl.com/players/james-daniels/
-Nick Westbrook-Ikhine,MIA,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/miami-dolphins/roster
+Nick Westbrook-Ikhine,MIA,,WR,Indiana,1997-03-21,matched_nfl_profile_global_roster:https://www.nfl.com/players/nick-westbrook-ikhine/
 Brandon Crossley,NE,,CB,SMU,2001-01-17,matched_nfl_profile:https://www.nfl.com/players/brandon-crossley/
 Earnest Brown IV,TEN,,DE,Northwestern,1999-01-08,matched_nfl_profile:https://www.nfl.com/players/earnest-brown-iv/
 Ryan Hayes,TEN,,OT,Michigan,2000-02-28,matched_nfl_profile:https://www.nfl.com/players/ryan-hayes/
@@ -55,11 +55,11 @@ Xavier Woods,TEN,,FS,Louisiana Tech,1995-07-26,matched_nfl_profile:https://www.n
 Justin Osborne,CLE,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/cleveland-browns/roster
 Savion Washington,LAC,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/los-angeles-chargers/roster
 Perrion Winfrey,DAL,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/dallas-cowboys/roster
-A'Shawn Robinson,CAR,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/carolina-panthers/roster
+A'Shawn Robinson,CAR,,DT,Alabama,1995-03-21,matched_nfl_profile_global_roster:https://www.nfl.com/players/a-shawn-robinson/
 Popo Aumavae,CAR,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/carolina-panthers/roster
-Johnny Mundt,JAX,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/jacksonville-jaguars/roster
+Johnny Mundt,JAX,,TE,Oregon,1994-11-23,matched_nfl_profile_global_roster:https://www.nfl.com/players/johnny-mundt/
 Anthony Johnson Jr.,NYG,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/new-york-giants/roster
-Kyler Murray,ARI,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/arizona-cardinals/roster
+Kyler Murray,ARI,,QB,Oklahoma,1997-08-07,matched_nfl_profile_global_roster:https://www.nfl.com/players/kyler-murray/
 Kirk Cousins,ATL,,QB,Michigan State,1988-08-19,matched_nfl_profile:https://www.nfl.com/players/kirk-cousins/
 Cooper Rush,BAL,,QB,Central Michigan,1993-11-21,matched_nfl_profile:https://www.nfl.com/players/cooper-rush/
 DJ Moore,BUF,,WR,Maryland,1997-04-14,matched_nfl_profile:https://www.nfl.com/players/d-j-moore/
@@ -67,22 +67,22 @@ Garrett Bradbury,CHI,,C,North Carolina State,1995-06-20,matched_nfl_profile:http
 David Njoku,CLE,,TE,Miami (Fla.),1996-07-10,matched_nfl_profile:https://www.nfl.com/players/david-njoku/
 Jack Conklin,CLE,,OT,Michigan State,1994-08-17,matched_nfl_profile:https://www.nfl.com/players/jack-conklin/
 Tytus Howard,CLE,,OT,,1996-05-23,matched_nfl_profile:https://www.nfl.com/players/tytus-howard-x1979/
-Wyatt Teller,CLE,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/cleveland-browns/roster
+Wyatt Teller,CLE,,G,Virginia Tech,1994-11-21,matched_nfl_profile_global_roster:https://www.nfl.com/players/wyatt-teller/
 Rashan Gary,DAL,,DE,Michigan,1997-12-03,matched_nfl_profile:https://www.nfl.com/players/rashan-gary/
-Dre Greenlaw,DEN,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/denver-broncos/roster
+Dre Greenlaw,DEN,,LB,,1997-05-25,matched_nfl_profile_global_roster:https://www.nfl.com/players/dre-greenlaw-x9042/
 Joshua Paschal,DET,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/detroit-lions/roster
 Juice Scruggs,DET,,C,Penn State,2000-01-19,matched_nfl_profile:https://www.nfl.com/players/juice-scruggs/
-Nate Hobbs,GB,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/green-bay-packers/roster
+Nate Hobbs,GB,,CB,Illinois,1999-06-24,matched_nfl_profile_global_roster:https://www.nfl.com/players/nate-hobbs/
 Zaire Franklin,GB,,OLB,Syracuse,1996-07-02,matched_nfl_profile:https://www.nfl.com/players/zaire-franklin/
 David Montgomery,HOU,,RB,Iowa State,1997-06-07,matched_nfl_profile:https://www.nfl.com/players/david-montgomery/
 Kai Kroeger,HOU,,P,South Carolina,2002-06-11,matched_nfl_profile:https://www.nfl.com/players/kai-kroeger/
 Colby Wooden,IND,,DE,Auburn,2000-12-21,matched_nfl_profile:https://www.nfl.com/players/colby-wooden/
 Trent McDuffie,LAR,,CB,Washington,2000-09-13,matched_nfl_profile:https://www.nfl.com/players/trent-mcduffie/
 Taron Johnson,LV,,CB,Weber State,1996-07-27,matched_nfl_profile:https://www.nfl.com/players/taron-johnson/
-Bradley Chubb,MIA,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/miami-dolphins/roster
+Bradley Chubb,MIA,,OLB,North Carolina State,1996-06-24,matched_nfl_profile_global_roster:https://www.nfl.com/players/bradley-chubb/
 Harrison Smith,MIN,,FS,Notre Dame,1989-02-02,matched_nfl_profile:https://www.nfl.com/players/harrison-smith/
-Javon Hargrave,MIN,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/minnesota-vikings/roster
-Jonathan Allen,MIN,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/minnesota-vikings/roster
+Javon Hargrave,MIN,,NT,South Carolina State,1993-02-07,matched_nfl_profile_global_roster:https://www.nfl.com/players/javon-hargrave/
+Jonathan Allen,MIN,,DE,Alabama,1995-01-16,matched_nfl_profile_global_roster:https://www.nfl.com/players/jonathan-allen/
 Anfernee Jennings,NE,,LB,Alabama,1997-05-01,matched_nfl_profile:https://www.nfl.com/players/anfernee-jennings/
 Stefon Diggs,NE,,WR,Maryland,1993-11-29,matched_nfl_profile:https://www.nfl.com/players/stefon-diggs/
 Chris Board,NYG,,LB,North Dakota State,1995-07-23,matched_nfl_profile:https://www.nfl.com/players/chris-board/
@@ -94,9 +94,9 @@ Michael Pittman,PIT,,WR,USC,1997-10-05,matched_nfl_profile:https://www.nfl.com/p
 Osa Odighizuwa,SF,,DT,UCLA,1998-08-13,matched_nfl_profile:https://www.nfl.com/players/osa-odighizuwa/
 Jermaine Johnson II,TEN,,LB,Florida State,1999-01-08,matched_nfl_profile:https://www.nfl.com/players/jermaine-johnson-ii/
 Solomon Thomas,TEN,,DE,Stanford,1995-08-26,matched_nfl_profile:https://www.nfl.com/players/solomon-thomas/
-Evan Brown,ARI,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/arizona-cardinals/roster
+Evan Brown,ARI,,C,Southern Methodist,1996-09-16,matched_nfl_profile_global_roster:https://www.nfl.com/players/evan-brown/
 Will Grier,DAL,,QB,West Virginia,1995-04-03,matched_nfl_profile:https://www.nfl.com/players/will-grier/
-Tua Tagovailoa,MIA,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/miami-dolphins/roster
+Tua Tagovailoa,MIA,,QB,Alabama,1998-03-02,matched_nfl_profile_global_roster:https://www.nfl.com/players/tua-tagovailoa/
 Bryce Huff,SF,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/san-francisco-49ers/roster
 Zeke Correll,MIN,,,,,no_nfl_team_roster_match:https://www.nfl.com/teams/minnesota-vikings/roster
 L'Jarius Sneed,TEN,,SAF,Louisiana Tech,1997-01-21,matched_nfl_profile:https://www.nfl.com/players/l-jarius-sneed/
