@@ -24,3 +24,9 @@ Notes:
 - Do not use pre-normalized files for downstream consumption. Use this certified snapshot.
 - If any downstream job still fails, attach the Final log and the changelog when reporting.
 
+Release note (2026-04-13):
+- Added local Final/orchestrator runner entrypoints at run_final.sh and scripts/run_final.sh.
+- Wrapper discovery now succeeds and executes the orchestrator checks end-to-end.
+- Final run completed with explicit FINAL_STATUS: PASS marker in triage/final_run_20260413T154852Z.log.
+- Added repository ignore policy for generated Python cache artifacts and final_run logs to avoid committing transient files.
+
