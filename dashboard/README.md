@@ -11,7 +11,8 @@ The overview page is implemented as static assets under `dashboard/src`:
 Data source priority:
 
 1. Live API endpoint: `GET /v1/dashboard/overview?season=2024`
-2. Fallback fixture: `dashboard/public/overview.sample.json`
+
+If the API payload is missing/unavailable, the page shows a data collection failure status and does not load sample fallback data.
 
 Quick local preview using Python static server:
 
@@ -37,7 +38,8 @@ Team detail assets are implemented under `dashboard/src`:
 Data source priority:
 
 1. Live API endpoint: `GET /v1/dashboard/team-detail?team_id=BUF&season=2024`
-2. Fallback fixture: `dashboard/public/team-detail.sample.json`
+
+If the API payload is missing/unavailable, the page shows a data collection failure status and does not load sample fallback data.
 
 Quick local preview:
 
@@ -63,7 +65,8 @@ Scenario sandbox assets are implemented under `dashboard/src`:
 Data source priority:
 
 1. Live API endpoint: `POST /v1/dashboard/scenario-sandbox`
-2. Fallback fixture: `dashboard/public/scenario-sandbox.sample.json`
+
+If the API payload is missing/unavailable, the page shows a data collection failure status and does not load sample fallback data.
 
 Quick local preview:
 

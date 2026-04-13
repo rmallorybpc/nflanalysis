@@ -1,13 +1,5 @@
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
 const API_URL = `${API_BASE}/v1/dashboard/scenario-sandbox`;
-const FALLBACK_URLS = [
-  "../public/scenario-sandbox.sample.json",
-  "./public/scenario-sandbox.sample.json",
-  "/dashboard/public/scenario-sandbox.sample.json",
-  "/public/scenario-sandbox.sample.json",
-  "https://rmallorybpc.github.io/nflanalysis/dashboard/public/scenario-sandbox.sample.json",
-  "https://raw.githubusercontent.com/rmallorybpc/nflanalysis/main/dashboard/public/scenario-sandbox.sample.json",
-];
 
 const TEAM_IDS = [
   "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
@@ -147,46 +139,38 @@ function payloadFromInputs() {
 }
 
 async function fetchScenario(payload) {
-  let liveError = null;
-
   try {
     const resp = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (resp.ok) {
-      const livePayload = await resp.json();
-      if (isScenarioPayload(livePayload)) {
-        return { payload: livePayload, source: "live" };
-      }
-      if (livePayload && livePayload.error) {
-        throw new Error(`Live API error: ${livePayload.error}`);
-      }
-      throw new Error("Live API returned an invalid scenario payload format.");
-    }
-    liveError = new Error(`Live API request failed with status ${resp.status}.`);
-  } catch (_err) {
-    liveError = _err instanceof Error ? _err : new Error("Live API request failed.");
-  }
 
-  for (const fallbackUrl of FALLBACK_URLS) {
-    try {
-      const fallback = await fetch(fallbackUrl);
-      if (!fallback.ok) {
-        continue;
+    if (!resp.ok) {
+      let detail = `status ${resp.status}`;
+      try {
+        const errorPayload = await resp.json();
+        if (errorPayload && errorPayload.error) {
+          detail = String(errorPayload.error);
+        }
+      } catch (_err) {
+        // Ignore JSON parse errors and keep HTTP status detail.
       }
-      const fallbackPayload = await fallback.json();
-      if (isScenarioPayload(fallbackPayload)) {
-        return { payload: fallbackPayload, source: "fallback" };
-      }
-    } catch (_err) {
-      // Try the next fallback URL.
+      throw new Error(`Live API request failed: ${detail}`);
     }
-  }
 
-  const liveErrorSuffix = liveError instanceof Error ? ` Last live error: ${liveError.message}` : "";
-  throw new Error(`Unable to fetch scenario payload from API or fallback fixture.${liveErrorSuffix}`);
+    const livePayload = await resp.json();
+    if (isScenarioPayload(livePayload)) {
+      return livePayload;
+    }
+    if (livePayload && livePayload.error) {
+      throw new Error(`Live API error: ${livePayload.error}`);
+    }
+    throw new Error("Live API returned an invalid scenario payload format.");
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : "request failed";
+    throw new Error(`Data collection failed. Please check source data coverage and pipeline outputs. ${detail}`);
+  }
 }
 
 function renderEstimates(containerId, rows) {
@@ -227,19 +211,16 @@ async function runScenario() {
   const payload = payloadFromInputs();
   setStatus("Running scenario...");
   try {
-    const loaded = await fetchScenario(payload);
-    const data = loaded.payload;
+    const data = await fetchScenario(payload);
     renderDeltas(data.delta_summary);
     renderEstimates("baseline", data.baseline_estimates);
     renderEstimates("scenario", data.scenario_estimates);
-    if (loaded.source === "fallback") {
-      setStatus("Showing fallback sample data because live API data was unavailable.");
-    } else {
-      setStatus("");
-    }
+    setStatus("");
   } catch (err) {
     resetRenderedData();
-    const message = err instanceof Error ? err.message : "Unable to fetch scenario payload.";
+    const message = err instanceof Error
+      ? err.message
+      : "Data collection failed. Please check source data coverage and pipeline outputs.";
     setStatus(message, true);
   }
 }

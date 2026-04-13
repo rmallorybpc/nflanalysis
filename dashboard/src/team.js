@@ -1,12 +1,4 @@
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
-const FALLBACK_URLS = [
-  "../public/team-detail.sample.json",
-  "./public/team-detail.sample.json",
-  "/dashboard/public/team-detail.sample.json",
-  "/public/team-detail.sample.json",
-  "https://rmallorybpc.github.io/nflanalysis/dashboard/public/team-detail.sample.json",
-  "https://raw.githubusercontent.com/rmallorybpc/nflanalysis/main/dashboard/public/team-detail.sample.json",
-];
 
 const TEAM_IDS = [
   "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
@@ -208,42 +200,33 @@ function applyMeta(payload) {
 
 async function loadData(teamId, season) {
   const apiUrl = buildTeamDetailUrl(teamId, season);
-  let liveError = null;
-
   try {
     const live = await fetch(apiUrl);
-    if (live.ok) {
-      const livePayload = await live.json();
-      if (isTeamDetailPayload(livePayload)) {
-        return { payload: livePayload, source: "live" };
+    if (!live.ok) {
+      let detail = `status ${live.status}`;
+      try {
+        const errorPayload = await live.json();
+        if (errorPayload && errorPayload.error) {
+          detail = String(errorPayload.error);
+        }
+      } catch (_err) {
+        // Ignore JSON parse errors and keep HTTP status detail.
       }
-      if (livePayload && livePayload.error) {
-        throw new Error(`Live API error: ${livePayload.error}`);
-      }
-      throw new Error("Live API returned an invalid team detail payload format.");
+      throw new Error(`Live API request failed: ${detail}`);
     }
-    liveError = new Error(`Live API request failed with status ${live.status}.`);
-  } catch (_err) {
-    liveError = _err instanceof Error ? _err : new Error("Live API request failed.");
-  }
 
-  for (const fallbackUrl of FALLBACK_URLS) {
-    try {
-      const fallback = await fetch(fallbackUrl);
-      if (!fallback.ok) {
-        continue;
-      }
-      const fallbackPayload = await fallback.json();
-      if (isTeamDetailPayload(fallbackPayload)) {
-        return { payload: fallbackPayload, source: "fallback" };
-      }
-    } catch (_err) {
-      // Try the next fallback URL.
+    const livePayload = await live.json();
+    if (isTeamDetailPayload(livePayload)) {
+      return livePayload;
     }
+    if (livePayload && livePayload.error) {
+      throw new Error(`Live API error: ${livePayload.error}`);
+    }
+    throw new Error("Live API returned an invalid team detail payload format.");
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : "request failed";
+    throw new Error(`Data collection failed. Please check source data coverage and pipeline outputs. ${detail}`);
   }
-
-  const liveErrorSuffix = liveError instanceof Error ? ` Last live error: ${liveError.message}` : "";
-  throw new Error(`Unable to load team detail payload from API or fallback fixture.${liveErrorSuffix}`);
 }
 
 async function refreshTeamDetail() {
@@ -253,23 +236,20 @@ async function refreshTeamDetail() {
 
   setStatus(`Loading ${state.teamId} ${state.season}...`);
   try {
-    const loaded = await loadData(state.teamId, state.season);
-    const payload = loaded.payload;
+    const payload = await loadData(state.teamId, state.season);
     applyMeta(payload);
     renderCards(payload);
     renderTimeline(payload);
     renderTrend(payload);
     renderPosition(payload);
-    if (loaded.source === "fallback") {
-      setStatus("Showing fallback sample data because live API data was unavailable.");
-    } else {
-      setStatus("");
-    }
+    setStatus("");
   } catch (err) {
     resetRenderedData();
     document.getElementById("title").textContent = `Team ${state.teamId}`;
     document.getElementById("meta").textContent = `Season ${state.season} | Generated --`;
-    const message = err instanceof Error ? err.message : "Unable to load team detail payload.";
+    const message = err instanceof Error
+      ? err.message
+      : "Data collection failed. Please check source data coverage and pipeline outputs.";
     setStatus(message, true);
   }
 }
