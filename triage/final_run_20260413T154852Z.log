@@ -1,0 +1,34 @@
+Attempting to run Final/orchestrator to validate end-to-end...
+Final/orchestrator runner not found. Please run Final manually and place the log at triage/final_run_20260413T154852Z.log.
+WARNING: Final run did not show clear PASS markers. Inspect triage/final_run_20260413T154852Z.log before certifying.
+'data/transactions_2026_normalized.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/transactions_2026_normalized.csv'
+'data/players_metadata_2026.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/players_metadata_2026.csv'
+'data/players_metadata_2026_unresolved.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/players_metadata_2026_unresolved.csv'
+'data/win_totals_2026.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/win_totals_2026.csv'
+'data/win_totals_2026_unresolved.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/win_totals_2026_unresolved.csv'
+'data/team_spending_otc_2026.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/team_spending_otc_2026.csv'
+'data/team_spending_otc_2026_unresolved.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/team_spending_otc_2026_unresolved.csv'
+'triage/final_run_20260413T154852Z.log' -> 'artifacts/2026-offseason-certified-20260413T154852Z/final_run_20260413T154852Z.log'
+Created archive: 2026-offseason-certified-20260413T154852Z.tar.gz
+Checksum saved to: 2026-offseason-certified-20260413T154852Z.tar.gz.sha256
+Created git tag: certified/2026-offseason-20260413T154852Z
+To push the tag to remote run: git push origin certified/2026-offseason-20260413T154852Z
+CERTIFICATION COMPLETE (local artifacts created)
+- Snapshot directory: artifacts/2026-offseason-certified-20260413T154852Z
+- Archive: 2026-offseason-certified-20260413T154852Z.tar.gz
+- Checksum: 2026-offseason-certified-20260413T154852Z.tar.gz.sha256
+- Changelog: artifacts/2026-offseason-certified-20260413T154852Z/changelog.txt
+- Final run log: triage/final_run_20260413T154852Z.log
+
+Recommended next steps (manual):
+1) Upload 2026-offseason-certified-20260413T154852Z.tar.gz and 2026-offseason-certified-20260413T154852Z.tar.gz.sha256 to your artifact store (S3/GCS/artifacts repo).
+2) Update downstream pipelines to consume the certified snapshot or gate consumption until Final passes.
+3) Notify stakeholders (data engineering, ML, analytics) with the changelog and Final log.
+4) Add CI checks (CSV schema, header equality, column consistency) to prevent regressions.
+5) Open a short post-mortem ticket capturing root cause and owners.
+
+=== Final run started: 2026-04-13T15:56:56Z ===
+ERROR: Final/orchestrator runner not found in repo root or PATH.
+Next steps:
+  - Confirm the orchestrator binary/script name and location (e.g., ./run_final.sh or 'final' in PATH).
+  - If the runner is provided by CI, run the CI job or copy its runner locally.
