@@ -1,0 +1,26 @@
+Certified snapshot: 2026-offseason-certified-20260413T154852Z
+Created: 20260413T154852Z (UTC)
+
+Included files:
+- transactions_2026_normalized.csv  (transactions file used for certification)
+- players_metadata_2026.csv
+- players_metadata_2026_unresolved.csv
+- win_totals_2026.csv
+- win_totals_2026_unresolved.csv
+- team_spending_otc_2026.csv
+- team_spending_otc_2026_unresolved.csv
+
+Summary of fixes applied prior to certification:
+- Restored companion CSVs into data/ root (copied from repo root alternates).
+- Normalized transactions CSV candidate created: transactions_2026_normalized.csv
+- Transactions parsing issues (inconsistent column counts) were repaired via CSV reparse and normalization.
+- Referential smoke checks performed against players metadata; overlap confirmed.
+
+Logs:
+- Final run log: final_run_20260413T154852Z.log
+- Triage reports: triage_immediate_*.txt
+
+Notes:
+- Do not use pre-normalized files for downstream consumption. Use this certified snapshot.
+- If any downstream job still fails, attach the Final log and the changelog when reporting.
+

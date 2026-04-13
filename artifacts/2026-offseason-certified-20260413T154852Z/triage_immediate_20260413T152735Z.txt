@@ -1,0 +1,62 @@
+Triage started: 20260413T152735Z
+=== FILE PRESENCE ===
+-rw-rw-rw- 1 codespace codespace 13611 Apr 13 15:04 data/players_metadata_2026.csv
+-rw-rw-rw- 1 codespace codespace  2821 Apr 13 15:04 data/players_metadata_2026_unresolved.csv
+-rw-rw-rw- 1 codespace codespace    81 Apr 13 15:22 data/team_spending_otc_2026.csv
+-rw-rw-rw- 1 codespace codespace  2444 Apr 13 15:22 data/team_spending_otc_2026_unresolved.csv
+-rw-rw-rw- 1 codespace codespace 23604 Apr 13 14:56 data/transactions_2026.csv
+-rw-rw-rw- 1 codespace codespace  3826 Apr 13 15:04 data/win_totals_2026.csv
+-rw-rw-rw- 1 codespace codespace   164 Apr 13 15:04 data/win_totals_2026_unresolved.csv
+=== TRANSACTIONS NORMALIZATION STATUS ===
+normalized_candidate=data/transactions_2026_normalized.csv
+original_csv_parser_col_distribution: {8: 150}
+original_rows: 150
+original_header: team,player,transaction_type,transaction_date,notes,source_url,import_method,imported_at
+fixed_csv_parser_col_distribution: {8: 150}
+fixed_rows: 150
+fixed_header: team,player,transaction_type,transaction_date,notes,source_url,import_method,imported_at
+normalized_csv_parser_col_distribution: {8: 150}
+normalized_rows: 150
+normalized_header: team,player,transaction_type,transaction_date,notes,source_url,import_method,imported_at
+shell_awk_distribution_normalized:
+      1 header_cols=8
+     78 8
+     40 9
+     31 10
+note: awk -F, is not quote-aware and will overcount when a quoted CSV field contains commas.
+=== REFERENTIAL OVERLAP ===
+Ahkello Witherspoon
+Amen Ogbongbemiga
+Andy Dalton
+Anfernee Jennings
+Austin Corbett
+Baylon Spector
+Ben Bartch
+Brandon Crossley
+Brayden Willis
+Brian Robinson
+Cam Akers
+Cam Jones
+Chandler Martin
+Chazz Surratt
+Chris Board
+Chuck Clark
+Colby Wooden
+Cooper Rush
+Courtney Jackson
+D'Ernest Johnson
+DJ Davidson
+DJ Moore
+Damar Hamlin
+Dane Jackson
+Danny Pinter
+David Montgomery
+David Njoku
+Demani Richardson
+Derion Kendrick
+Earnest Brown IV
+overlap_count=97
+=== TRIAGE SUMMARY ===
+transactions_present: yes
+companion_files_present: players_metadata_2026.csv:present players_metadata_2026_unresolved.csv:present win_totals_2026.csv:present win_totals_2026_unresolved.csv:present team_spending_otc_2026.csv:present team_spending_otc_2026_unresolved.csv:present 
+TRIAGE_RESULT: PASSED

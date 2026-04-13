@@ -1,0 +1,109 @@
+Triage started: 20260413T152217Z
+players_metadata_2026.csv: NOT FOUND in repo root
+players_metadata_2026_unresolved.csv: NOT FOUND in repo root
+win_totals_2026.csv: NOT FOUND in repo root
+win_totals_2026_unresolved.csv: NOT FOUND in repo root
+'./team_spending_otc_2026.csv' -> 'data/team_spending_otc_2026.csv'
+'./team_spending_otc_2026_unresolved.csv' -> 'data/team_spending_otc_2026_unresolved.csv'
+=== FILE PRESENCE ===
+-rw-rw-rw- 1 codespace codespace 13611 Apr 13 15:04 data/players_metadata_2026.csv
+-rw-rw-rw- 1 codespace codespace  2821 Apr 13 15:04 data/players_metadata_2026_unresolved.csv
+-rw-rw-rw- 1 codespace codespace    81 Apr 13 15:22 data/team_spending_otc_2026.csv
+-rw-rw-rw- 1 codespace codespace  2444 Apr 13 15:22 data/team_spending_otc_2026_unresolved.csv
+-rw-rw-rw- 1 codespace codespace 23604 Apr 13 14:56 data/transactions_2026.csv
+-rw-rw-rw- 1 codespace codespace 23604 Apr 13 15:04 data/transactions_2026_fixed.csv
+-rw-rw-rw- 1 codespace codespace  3826 Apr 13 15:04 data/win_totals_2026.csv
+-rw-rw-rw- 1 codespace codespace   164 Apr 13 15:04 data/win_totals_2026_unresolved.csv
+=== TRANSACTIONS ORIGINAL SANITY ===
+team,player,transaction_type,transaction_date,notes,source_url,import_method,imported_at
+150 data/transactions_2026.csv
+size=23604 bytes
+encoding=utf-8 OK
+header_cols=8
+     78 8
+     40 9
+     31 10
+offending_preview_saved=/tmp/transactions_offending_preview.txt
+71 /tmp/transactions_offending_preview.txt
+python_csv_reparse: success, wrote data/transactions_2026_fixed.csv
+=== FIXED FILE SANITY ===
+team,player,transaction_type,transaction_date,notes,source_url,import_method,imported_at
+      1 fixed_header_cols=8
+     78 8
+     40 9
+     31 10
+csvclean not available; skipping
+heuristic_normalize: wrote data/transactions_2026_normalized.csv
+No normalized candidate produced; manual repair required
+=== REFERENTIAL OVERLAP SAMPLE ===
+Ahkello Witherspoon
+Amen Ogbongbemiga
+Andy Dalton
+Anfernee Jennings
+Austin Corbett
+Baylon Spector
+Ben Bartch
+Brandon Crossley
+Brayden Willis
+Brian Robinson
+Cam Akers
+Cam Jones
+Chandler Martin
+Chazz Surratt
+Chris Board
+Chuck Clark
+Colby Wooden
+Cooper Rush
+Courtney Jackson
+D'Ernest Johnson
+DJ Davidson
+DJ Moore
+Damar Hamlin
+Dane Jackson
+Danny Pinter
+David Montgomery
+David Njoku
+Demani Richardson
+Derion Kendrick
+Earnest Brown IV
+Elijah Moore
+Emory Jones
+Eric Kendricks
+Federico Maranges
+Fred Johnson
+Garrett Bradbury
+Geno Smith
+Harrison Smith
+J.R. Singleton
+Ja'Markis Weston
+Jacardia Wright
+Jack Conklin
+Jake Bates
+Jalen Reeves-Maybin
+James Daniels
+Jamie Gillan
+Jamie Sheriff
+Jaylen Waddle
+Jeremiah Pharms Jr.
+Jermaine Johnson II
+overlap_count=97
+Commit skipped: normalized candidate not ready or referential overlap zero
+Final runner not found; please run Final manually after verification
+
+=== TRIAGE SUMMARY ===
+timestamp: 20260413T152217Z
+transactions_present: yes
+companion_files_present: players_metadata_2026.csv:present players_metadata_2026_unresolved.csv:present win_totals_2026.csv:present win_totals_2026_unresolved.csv:present team_spending_otc_2026.csv:present team_spending_otc_2026_unresolved.csv:present 
+transactions_column_distribution_before:
+      1 header_cols=8
+     78 8
+     40 9
+     31 10
+transactions_column_distribution_after:
+      1 header_cols=8
+     78 8
+     40 9
+     31 10
+normalized_candidate: data/transactions_2026_normalized.csv
+referential_overlap_count: 97
+TRIAGE_RESULT: FAILED - primary_blocker: transactions column inconsistency or referential overlap zero

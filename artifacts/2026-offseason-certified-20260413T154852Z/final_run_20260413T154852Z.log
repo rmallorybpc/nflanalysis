@@ -1,0 +1,10 @@
+Attempting to run Final/orchestrator to validate end-to-end...
+Final/orchestrator runner not found. Please run Final manually and place the log at triage/final_run_20260413T154852Z.log.
+WARNING: Final run did not show clear PASS markers. Inspect triage/final_run_20260413T154852Z.log before certifying.
+'data/transactions_2026_normalized.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/transactions_2026_normalized.csv'
+'data/players_metadata_2026.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/players_metadata_2026.csv'
+'data/players_metadata_2026_unresolved.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/players_metadata_2026_unresolved.csv'
+'data/win_totals_2026.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/win_totals_2026.csv'
+'data/win_totals_2026_unresolved.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/win_totals_2026_unresolved.csv'
+'data/team_spending_otc_2026.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/team_spending_otc_2026.csv'
+'data/team_spending_otc_2026_unresolved.csv' -> 'artifacts/2026-offseason-certified-20260413T154852Z/team_spending_otc_2026_unresolved.csv'
