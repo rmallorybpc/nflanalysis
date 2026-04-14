@@ -5,6 +5,7 @@
   --text: #1a1f2a;
   --muted: #4e5b69;
   --line: rgba(16, 30, 44, 0.12);
+  --color-surface: #e2e8ef;
   --positive: #0f8a5f;
   --negative: #c13f2d;
   --neutral: #2d6db3;
@@ -368,6 +369,49 @@ h1 {
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.72rem;
   background: rgba(16, 37, 58, 0.07);
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.skeleton {
+  background: var(--color-surface, #e2e8f0);
+  border-radius: 4px;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-list {
+  display: grid;
+  gap: 8px;
+}
+
+.skeleton-row {
+  max-width: 100%;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 24px 0;
+  color: var(--color-muted, #94a3b8);
+  font-size: 0.875rem;
+}
+
+.panel .empty-state {
+  min-height: 68px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.empty-state.error-state {
+  color: var(--color-amber, #f59e0b);
 }
 
 @keyframes rise {

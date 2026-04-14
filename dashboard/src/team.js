@@ -108,6 +108,42 @@ function setStatus(message, isError = false) {
   el.classList.toggle("error", Boolean(isError));
 }
 
+function renderEmptyState(container, message) {
+  container.innerHTML = `<div class="empty-state">${message}</div>`;
+}
+
+function renderErrorState(container) {
+  container.innerHTML = '<div class="empty-state error-state">Failed to load data. Refresh the page or try again.</div>';
+}
+
+function teamSeasonEmptyMessage() {
+  return `No data available for ${state.teamId} ${state.season}.`;
+}
+
+function skeletonRows(count, widths, height = 20, rowClass = "") {
+  return Array.from({ length: count }, (_, index) => {
+    const width = widths[index] || widths[widths.length - 1] || "100%";
+    const className = rowClass ? `skeleton-row ${rowClass}` : "skeleton-row";
+    return `<div class="${className} skeleton" style="height:${height}px;width:${width};"></div>`;
+  }).join("");
+}
+
+function showTeamSkeletons() {
+  document.getElementById("timeline").innerHTML = `
+    <div class="skeleton-list timeline-skeleton-list">
+      ${skeletonRows(3, ["100%", "100%", "100%"], 80, "timeline-skeleton-card")}
+    </div>
+  `;
+  document.getElementById("trend").innerHTML = `<div class="skeleton skeleton-chart" style="height:120px;width:100%;"></div>`;
+  document.getElementById("position").innerHTML = `<div class="skeleton-list">${skeletonRows(4, ["100%", "100%", "100%", "100%"], 20)}</div>`;
+}
+
+function showTeamErrorStates() {
+  renderErrorState(document.getElementById("timeline"));
+  renderErrorState(document.getElementById("trend"));
+  renderErrorState(document.getElementById("position"));
+}
+
 function isTeamDetailPayload(payload) {
   return Boolean(
     payload &&
@@ -309,10 +345,7 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
   });
 
   if (normalizedEvents.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "movement-empty";
-    empty.textContent = `No movement events recorded for ${teamId} in ${season}.`;
-    container.appendChild(empty);
+    renderEmptyState(container, teamSeasonEmptyMessage());
     return;
   }
 
@@ -421,7 +454,8 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
 
 function renderTrend(payload) {
   const latestByOutcome = {};
-  payload.charts.mis_trend.forEach((point) => {
+  const sourceRows = Array.isArray(payload?.charts?.mis_trend) ? payload.charts.mis_trend : [];
+  sourceRows.forEach((point) => {
     const key = point.outcome_name;
     if (!latestByOutcome[key] || point.nfl_week > latestByOutcome[key].nfl_week) {
       latestByOutcome[key] = point;
@@ -429,11 +463,16 @@ function renderTrend(payload) {
   });
 
   const rows = Object.values(latestByOutcome);
-  const maxAbs = Math.max(...rows.map((row) => Math.abs(row.mis_value)), 1);
-
   const container = document.getElementById("trend");
   const template = document.getElementById("trendTemplate");
   container.innerHTML = "";
+
+  if (rows.length === 0) {
+    renderEmptyState(container, teamSeasonEmptyMessage());
+    return;
+  }
+
+  const maxAbs = Math.max(...rows.map((row) => Math.abs(row.mis_value)), 1);
 
   rows.forEach((row) => {
     const node = template.content.firstElementChild.cloneNode(true);
@@ -449,11 +488,17 @@ function renderTrend(payload) {
 }
 
 function renderPosition(payload) {
+  const rows = Array.isArray(payload?.charts?.position_group_delta) ? payload.charts.position_group_delta : [];
   const container = document.getElementById("position");
   const template = document.getElementById("positionTemplate");
   container.innerHTML = "";
 
-  payload.charts.position_group_delta.forEach((point) => {
+  if (rows.length === 0) {
+    renderEmptyState(container, teamSeasonEmptyMessage());
+    return;
+  }
+
+  rows.forEach((point) => {
     const node = template.content.firstElementChild.cloneNode(true);
     node.querySelector(".position-label").textContent = point.position_group;
     const valueEl = node.querySelector(".position-value");
@@ -503,6 +548,7 @@ async function refreshTeamDetail() {
   readControlState();
   syncControls();
   writeQueryState();
+  showTeamSkeletons();
 
   setStatus(`Loading ${state.teamId} ${state.season}...`);
   try {
@@ -515,6 +561,7 @@ async function refreshTeamDetail() {
     setStatus("");
   } catch (err) {
     resetRenderedData();
+    showTeamErrorStates();
     document.getElementById("title").textContent = `Team ${state.teamId}`;
     document.getElementById("meta").textContent = `Season ${state.season} | Generated --`;
     const message = err instanceof Error

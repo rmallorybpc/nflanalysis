@@ -322,6 +322,44 @@ function setStatus(message, isError = false) {
   el.classList.toggle("error", Boolean(isError));
 }
 
+function renderEmptyState(container, message) {
+  container.innerHTML = `<div class="empty-state">${message}</div>`;
+}
+
+function renderErrorState(container) {
+  container.innerHTML = '<div class="empty-state error-state">Failed to load data. Refresh the page or try again.</div>';
+}
+
+function teamSeasonEmptyMessage() {
+  return `No data available for ${state.teamId} ${state.season}.`;
+}
+
+function skeletonRows(count, widths, height = 20, rowClass = "") {
+  return Array.from({ length: count }, (_, index) => {
+    const width = widths[index] || widths[widths.length - 1] || "100%";
+    const className = rowClass ? `skeleton-row ${rowClass}` : "skeleton-row";
+    return `<div class="${className} skeleton" style="height:${height}px;width:${width};"></div>`;
+  }).join("");
+}
+
+function showScenarioSkeletons() {
+  document.getElementById("deltaSummary").innerHTML = `<div class="skeleton-list">${skeletonRows(2, ["100%", "100%"], 20)}</div>`;
+  document.getElementById("baseline").innerHTML = `<div class="skeleton-list">${skeletonRows(2, ["100%", "100%"], 20)}</div>`;
+  document.getElementById("scenario").innerHTML = `<div class="skeleton-list">${skeletonRows(2, ["100%", "100%"], 20)}</div>`;
+  document.getElementById("comparisonChartPanel").style.display = "block";
+  document.getElementById("comparisonChart").innerHTML = `<div class="skeleton skeleton-chart" style="height:180px;width:100%;"></div>`;
+  document.getElementById("comparisonChartTooltip").hidden = true;
+}
+
+function showScenarioErrorStates() {
+  renderErrorState(document.getElementById("deltaSummary"));
+  renderErrorState(document.getElementById("baseline"));
+  renderErrorState(document.getElementById("scenario"));
+  document.getElementById("comparisonChartPanel").style.display = "block";
+  renderErrorState(document.getElementById("comparisonChart"));
+  document.getElementById("comparisonChartTooltip").hidden = true;
+}
+
 function isScenarioPayload(payload) {
   return Boolean(
     payload &&
@@ -399,6 +437,11 @@ function renderEstimates(containerId, rows) {
   const template = document.getElementById("estimateTemplate");
   container.innerHTML = "";
 
+  if (!Array.isArray(rows) || rows.length === 0) {
+    renderEmptyState(container, teamSeasonEmptyMessage());
+    return;
+  }
+
   rows.forEach((row) => {
     const node = template.content.firstElementChild.cloneNode(true);
     node.querySelector(".estimate-outcome").textContent = row.outcome_name;
@@ -412,6 +455,11 @@ function renderDeltas(rows) {
   const container = document.getElementById("deltaSummary");
   const template = document.getElementById("deltaTemplate");
   container.innerHTML = "";
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+    renderEmptyState(container, teamSeasonEmptyMessage());
+    return;
+  }
 
   rows.forEach((row) => {
     const node = template.content.firstElementChild.cloneNode(true);
@@ -488,8 +536,9 @@ function renderComparisonChart(baselineRows, scenarioRows) {
   chartRoot.innerHTML = "";
   tooltip.hidden = true;
 
-  if (!Array.isArray(baselineRows) || !Array.isArray(scenarioRows)) {
-    panel.style.display = "none";
+  if (!Array.isArray(baselineRows) || !Array.isArray(scenarioRows) || baselineRows.length === 0 || scenarioRows.length === 0) {
+    panel.style.display = "block";
+    renderEmptyState(chartRoot, teamSeasonEmptyMessage());
     return;
   }
 
@@ -732,6 +781,7 @@ async function runScenario() {
   writeQueryState();
 
   const payload = payloadFromInputs();
+  showScenarioSkeletons();
   setStatus("Running scenario...");
   try {
     const data = await fetchScenario(payload);
@@ -742,6 +792,7 @@ async function runScenario() {
     setStatus("");
   } catch (err) {
     resetRenderedData();
+    showScenarioErrorStates();
     const message = err instanceof Error
       ? err.message
       : "Data collection failed. Please check source data coverage and pipeline outputs.";

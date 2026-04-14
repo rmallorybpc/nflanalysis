@@ -4,6 +4,7 @@
   --muted: #536274;
   --panel: rgba(255, 255, 255, 0.9);
   --line: rgba(17, 36, 58, 0.15);
+  --color-surface: #dce3ea;
   --pos: #0f8f5f;
   --neg: #c5532f;
   --neu: #2a6798;
@@ -211,6 +212,53 @@ button {
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.skeleton {
+  background: var(--color-surface, #e2e8f0);
+  border-radius: 4px;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-list {
+  display: grid;
+  gap: 8px;
+}
+
+.skeleton-row {
+  max-width: 100%;
+}
+
+.skeleton-chart {
+  border-radius: 10px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 24px 0;
+  color: var(--color-muted, #94a3b8);
+  font-size: 0.875rem;
+}
+
+.panel .empty-state {
+  min-height: 68px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.empty-state.error-state {
+  color: var(--color-amber, #f59e0b);
 }
 
 @media (max-width: 980px) {

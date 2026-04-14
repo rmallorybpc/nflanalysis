@@ -96,6 +96,42 @@ function setStatus(message, isError = false) {
   el.classList.toggle("error", Boolean(isError));
 }
 
+function renderEmptyState(container, message) {
+  container.innerHTML = `<div class="empty-state">${message}</div>`;
+}
+
+function renderErrorState(container) {
+  container.innerHTML = '<div class="empty-state error-state">Failed to load data. Refresh the page or try again.</div>';
+}
+
+function teamSeasonEmptyMessage() {
+  return `No data available for ${state.teamId} ${state.season}.`;
+}
+
+function skeletonRows(count, widths, height = 20, rowClass = "") {
+  return Array.from({ length: count }, (_, index) => {
+    const width = widths[index] || widths[widths.length - 1] || "100%";
+    const className = rowClass ? `skeleton-row ${rowClass}` : "skeleton-row";
+    return `<div class="${className} skeleton" style="height:${height}px;width:${width};"></div>`;
+  }).join("");
+}
+
+function showOverviewSkeletons() {
+  document.getElementById("rankingChart").innerHTML = `<div class="skeleton-list">${skeletonRows(5, ["100%", "100%", "100%", "100%", "100%"], 20)}</div>`;
+  document.getElementById("distributionChart").innerHTML = `<div class="skeleton-list">${skeletonRows(3, ["100%", "70%", "45%"], 20)}</div>`;
+  document.getElementById("scopeList").innerHTML = `<div class="skeleton-list">${skeletonRows(2, ["100%", "100%"], 16)}</div>`;
+  document.getElementById("seasonCoverageChart").innerHTML = "";
+  document.getElementById("geographyChart").innerHTML = `<div class="skeleton-list">${skeletonRows(3, ["100%", "70%", "45%"], 20)}</div>`;
+}
+
+function showOverviewErrorStates() {
+  renderErrorState(document.getElementById("rankingChart"));
+  renderErrorState(document.getElementById("distributionChart"));
+  renderErrorState(document.getElementById("scopeList"));
+  renderErrorState(document.getElementById("seasonCoverageChart"));
+  renderErrorState(document.getElementById("geographyChart"));
+}
+
 function isOverviewPayload(payload) {
   return Boolean(
     payload &&
@@ -156,9 +192,15 @@ function renderRanking(payload) {
   const template = document.getElementById("rankingRowTemplate");
   container.innerHTML = "";
 
-  const maxAbs = Math.max(...payload.charts.league_ranking.map((row) => Math.abs(row.mis_value)), 1);
+  const rows = Array.isArray(payload?.charts?.league_ranking) ? payload.charts.league_ranking : [];
+  if (rows.length === 0) {
+    renderEmptyState(container, teamSeasonEmptyMessage());
+    return;
+  }
 
-  payload.charts.league_ranking.forEach((row) => {
+  const maxAbs = Math.max(...rows.map((row) => Math.abs(row.mis_value)), 1);
+
+  rows.forEach((row) => {
     const node = template.content.firstElementChild.cloneNode(true);
     node.classList.add("clickable");
     node.setAttribute("role", "button");
@@ -183,16 +225,23 @@ function renderRanking(payload) {
 }
 
 function renderDistribution(payload) {
+  const rows = Array.isArray(payload?.charts?.outcome_distribution) ? payload.charts.outcome_distribution : [];
+  const container = document.getElementById("distributionChart");
+  const template = document.getElementById("distributionRowTemplate");
+
+  if (rows.length === 0) {
+    renderEmptyState(container, teamSeasonEmptyMessage());
+    return;
+  }
+
   const grouped = {};
-  for (const row of payload.charts.outcome_distribution) {
+  for (const row of rows) {
     if (!grouped[row.outcome_name]) {
       grouped[row.outcome_name] = [];
     }
     grouped[row.outcome_name].push(row);
   }
 
-  const container = document.getElementById("distributionChart");
-  const template = document.getElementById("distributionRowTemplate");
   container.innerHTML = "";
 
   Object.keys(grouped)
@@ -214,6 +263,12 @@ function renderDistribution(payload) {
 function renderScope(payload) {
   const scope = payload.scope;
   const scopeList = document.getElementById("scopeList");
+
+  if (!scope) {
+    renderEmptyState(scopeList, "No data available.");
+    return;
+  }
+
   const moveTypes = scope.included_move_types.join(", ");
   const outcomes = scope.outcomes.join(", ");
   const geos = scope.geography_dimensions.join(", ");
@@ -229,10 +284,15 @@ function renderScope(payload) {
 }
 
 function renderSeasonCoverage(payload) {
-  const points = payload.charts.season_coverage;
+  const points = Array.isArray(payload?.charts?.season_coverage) ? payload.charts.season_coverage : [];
   const container = document.getElementById("seasonCoverageChart");
   const template = document.getElementById("seasonCoverageRowTemplate");
   container.innerHTML = "";
+
+  if (points.length === 0) {
+    renderEmptyState(container, teamSeasonEmptyMessage());
+    return;
+  }
 
   const maxTeams = Math.max(...points.map((point) => point.team_count), 1);
   points.forEach((point) => {
@@ -246,10 +306,15 @@ function renderSeasonCoverage(payload) {
 }
 
 function renderGeography(payload) {
-  const rows = payload.charts.geography_impact_profile;
+  const rows = Array.isArray(payload?.charts?.geography_impact_profile) ? payload.charts.geography_impact_profile : [];
   const container = document.getElementById("geographyChart");
   const template = document.getElementById("geoRowTemplate");
   container.innerHTML = "";
+
+  if (rows.length === 0) {
+    renderEmptyState(container, "No data available.");
+    return;
+  }
 
   rows.forEach((row) => {
     const node = template.content.firstElementChild.cloneNode(true);
@@ -302,6 +367,7 @@ async function refreshOverview() {
   state.teamId = toTeamId(document.getElementById("teamInput").value) || state.teamId;
   syncControls();
   writeQueryState();
+  showOverviewSkeletons();
 
   setStatus(`Loading season ${state.season}...`);
   try {
@@ -316,6 +382,7 @@ async function refreshOverview() {
     setStatus("");
   } catch (err) {
     resetRenderedData();
+    showOverviewErrorStates();
     document.getElementById("seasonLabel").textContent = `Season: ${state.season}`;
     document.getElementById("generatedLabel").textContent = "Generated: --";
     const message = err instanceof Error
