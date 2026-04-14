@@ -157,15 +157,266 @@ function renderCards(payload) {
 
 function renderTimeline(payload) {
   const container = document.getElementById("timeline");
-  const template = document.getElementById("timelineTemplate");
   container.innerHTML = "";
 
-  payload.timeline.forEach((event) => {
-    const node = template.content.firstElementChild.cloneNode(true);
-    node.querySelector(".timeline-week").textContent = `W${event.nfl_week}`;
-    node.querySelector(".timeline-content").textContent = `${event.move_type}: ${event.player_id} ${event.from_team_id} -> ${event.to_team_id} (impact ${fmt(event.impact_estimate)})`;
-    container.appendChild(node);
+  renderMovementCards(payload.timeline, state.teamId, state.season, container);
+}
+
+function pickField(row, keys, fallback = "") {
+  for (const key of keys) {
+    if (!(key in row)) {
+      continue;
+    }
+    const value = row[key];
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      return value;
+    }
+  }
+  return fallback;
+}
+
+function toFiniteNumber(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+function fmtSigned(num) {
+  const fixed = Number(num).toFixed(3);
+  return Number(num) >= 0 ? `+${fixed}` : fixed;
+}
+
+function intervalForEvent(event) {
+  const i90Low = toFiniteNumber(pickField(event, ["interval_90_low"]));
+  const i90High = toFiniteNumber(pickField(event, ["interval_90_high"]));
+  if (i90Low !== null && i90High !== null) {
+    return {
+      label: "90% interval",
+      low: i90Low,
+      high: i90High,
+    };
+  }
+
+  const nested90 = event.interval_90;
+  if (nested90 && typeof nested90 === "object") {
+    const nestedLow = toFiniteNumber(nested90.low);
+    const nestedHigh = toFiniteNumber(nested90.high);
+    if (nestedLow !== null && nestedHigh !== null) {
+      return {
+        label: "90% interval",
+        low: nestedLow,
+        high: nestedHigh,
+      };
+    }
+  }
+
+  const i50Low = toFiniteNumber(pickField(event, ["interval_50_low"]));
+  const i50High = toFiniteNumber(pickField(event, ["interval_50_high"]));
+  if (i50Low !== null && i50High !== null) {
+    return {
+      label: "50% interval",
+      low: i50Low,
+      high: i50High,
+    };
+  }
+
+  const nested50 = event.interval_50;
+  if (nested50 && typeof nested50 === "object") {
+    const nestedLow = toFiniteNumber(nested50.low);
+    const nestedHigh = toFiniteNumber(nested50.high);
+    if (nestedLow !== null && nestedHigh !== null) {
+      return {
+        label: "50% interval",
+        low: nestedLow,
+        high: nestedHigh,
+      };
+    }
+  }
+
+  return null;
+}
+
+function misBandClass(misZOrProxy) {
+  if (misZOrProxy >= 1.0) {
+    return "band-positive-strong";
+  }
+  if (misZOrProxy >= 0.3) {
+    return "band-positive-light";
+  }
+  if (misZOrProxy > -0.3) {
+    return "band-neutral";
+  }
+  if (misZOrProxy > -1.0) {
+    return "band-negative-light";
+  }
+  return "band-negative-strong";
+}
+
+function renderIntervalSvg(point, interval, min, max) {
+  const width = 160;
+  const toX = (value) => {
+    if (max <= min) {
+      return width / 2;
+    }
+    const ratio = (value - min) / (max - min);
+    return Math.max(0, Math.min(width, ratio * width));
+  };
+
+  const leftX = toX(interval.low);
+  const rightX = toX(interval.high);
+  const pointX = toX(point);
+
+  return `
+    <svg class="movement-interval-svg" viewBox="0 0 160 16" aria-hidden="true" focusable="false">
+      <line x1="0" y1="8" x2="160" y2="8" stroke="#334155" stroke-width="2" />
+      <line x1="${leftX}" y1="8" x2="${rightX}" y2="8" stroke="#38bdf8" stroke-width="3" />
+      <line x1="${leftX}" y1="4" x2="${leftX}" y2="12" stroke="#7dd3fc" stroke-width="2" />
+      <line x1="${rightX}" y1="4" x2="${rightX}" y2="12" stroke="#7dd3fc" stroke-width="2" />
+      <circle cx="${pointX}" cy="8" r="3" fill="#f8fafc" />
+    </svg>
+  `;
+}
+
+function renderMovementCards(events, teamId, season, containerEl = null) {
+  const container = containerEl || document.getElementById("timeline");
+  container.innerHTML = "";
+
+  const normalizedEvents = (events || []).map((event) => {
+    const toTeam = String(pickField(event, ["to_team_id", "to_team"], "")).trim().toUpperCase();
+    const fromTeam = String(pickField(event, ["from_team_id", "from_team"], "")).trim().toUpperCase();
+    const direction = toTeam === teamId ? "inbound" : "outbound";
+    const pointEstimate = toFiniteNumber(pickField(event, ["impact_estimate", "mis_value"], 0)) || 0;
+    const misZ = toFiniteNumber(pickField(event, ["mis_z"], pointEstimate));
+    const interval = intervalForEvent(event);
+    const outcomeName = String(pickField(event, ["outcome_name"], "win_pct")).trim() || "win_pct";
+
+    return {
+      original: event,
+      direction,
+      pointEstimate,
+      misZ: misZ === null ? pointEstimate : misZ,
+      interval,
+      outcomeName,
+      playerId: String(pickField(event, ["player_id"], "")).trim(),
+      playerName: String(pickField(event, ["player_name", "player_display_name", "player_id"], "Unknown Player")).trim(),
+      position: String(pickField(event, ["position", "position_group"], "")).trim().toUpperCase(),
+      fromTeam,
+      toTeam,
+      moveType: String(pickField(event, ["move_type"], "")).trim(),
+      week: toFiniteNumber(pickField(event, ["nfl_week", "week"], "")),
+      eventDate: String(pickField(event, ["event_date", "effective_date", "date"], "")).trim(),
+      lowConfidence: String(pickField(event, ["low_confidence_flag", "low_confidence"], "false")).toLowerCase() === "true",
+    };
   });
+
+  if (normalizedEvents.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "movement-empty";
+    empty.textContent = `No movement events recorded for ${teamId} in ${season}.`;
+    container.appendChild(empty);
+    return;
+  }
+
+  normalizedEvents.sort((a, b) => {
+    const impactDiff = Math.abs(b.pointEstimate) - Math.abs(a.pointEstimate);
+    if (impactDiff !== 0) {
+      return impactDiff;
+    }
+    if (a.direction !== b.direction) {
+      return a.direction === "inbound" ? -1 : 1;
+    }
+    return 0;
+  });
+
+  const scalesByOutcome = {};
+  normalizedEvents.forEach((item) => {
+    if (!item.interval) {
+      return;
+    }
+    const key = item.outcomeName;
+    if (!scalesByOutcome[key]) {
+      scalesByOutcome[key] = {
+        min: Math.min(item.interval.low, item.pointEstimate),
+        max: Math.max(item.interval.high, item.pointEstimate),
+      };
+      return;
+    }
+    scalesByOutcome[key].min = Math.min(scalesByOutcome[key].min, item.interval.low, item.pointEstimate);
+    scalesByOutcome[key].max = Math.max(scalesByOutcome[key].max, item.interval.high, item.pointEstimate);
+  });
+
+  const cardsRoot = document.createElement("div");
+  cardsRoot.className = "movement-cards";
+
+  normalizedEvents.forEach((item) => {
+    const directionLabel = item.direction === "inbound" ? "▼ INBOUND" : "▲ OUTBOUND";
+    const directionClass = item.direction;
+    const moveTypeLabel = item.moveType === "free_agency"
+      ? "FREE AGENCY"
+      : item.moveType === "trade"
+        ? "TRADE"
+        : item.moveType.replace(/_/g, " ").toUpperCase();
+    const teamBoldFrom = item.fromTeam === teamId ? `<strong>${item.fromTeam}</strong>` : item.fromTeam;
+    const teamBoldTo = item.toTeam === teamId ? `<strong>${item.toTeam}</strong>` : item.toTeam;
+    const whenText = item.week && item.week > 0
+      ? `Wk ${Math.trunc(item.week)}`
+      : item.eventDate || "Date unavailable";
+
+    const params = new URLSearchParams({
+      team_id: teamId,
+      season: String(season),
+      player_id: item.playerId,
+      from_team: item.fromTeam,
+      to_team: item.toTeam,
+    });
+    const whatIfHref = `./scenario.html?${params.toString()}`;
+
+    let intervalHtml = "";
+    if (item.interval) {
+      const scale = scalesByOutcome[item.outcomeName] || {
+        min: Math.min(item.interval.low, item.pointEstimate),
+        max: Math.max(item.interval.high, item.pointEstimate),
+      };
+      intervalHtml = `
+        <div class="movement-interval">
+          <div class="movement-row">
+            <span class="movement-interval-label">${item.interval.label}</span>
+          </div>
+          ${renderIntervalSvg(item.pointEstimate, item.interval, scale.min, scale.max)}
+          <div class="movement-interval-text">[${fmt(item.interval.low)}, ${fmt(item.interval.high)}]</div>
+        </div>
+      `;
+    }
+
+    const lowConfidenceHtml = item.lowConfidence
+      ? '<div class="movement-low-confidence">LOW CONFIDENCE</div>'
+      : "";
+
+    const positionHtml = item.position ? `<span class="movement-position">${item.position}</span>` : "";
+
+    const card = document.createElement("article");
+    card.className = `movement-card ${directionClass}`;
+    card.innerHTML = `
+      <div class="movement-row">
+        <span class="movement-direction ${directionClass}">${directionLabel}</span>
+        <span class="movement-badge">${moveTypeLabel || "MOVE"}</span>
+      </div>
+      <div class="movement-player">
+        <span class="movement-player-name">${item.playerName}</span>${positionHtml}
+      </div>
+      <div class="movement-route">${teamBoldFrom} &rarr; ${teamBoldTo}</div>
+      <div class="movement-when">${whenText}</div>
+      <div class="movement-mis-row">
+        <span class="movement-mis-label">MIS (win%)</span>
+        <span class="movement-mis-value ${misBandClass(item.misZ)}">${fmtSigned(item.pointEstimate)}</span>
+      </div>
+      ${intervalHtml}
+      ${lowConfidenceHtml}
+      <div class="movement-footer"><a href="${whatIfHref}">Run What-If &rarr;</a></div>
+    `;
+    cardsRoot.appendChild(card);
+  });
+
+  container.appendChild(cardsRoot);
 }
 
 function renderTrend(payload) {
@@ -258,9 +509,9 @@ async function refreshTeamDetail() {
     const payload = await loadData(state.teamId, state.season);
     applyMeta(payload);
     renderCards(payload);
-    renderTimeline(payload);
     renderTrend(payload);
     renderPosition(payload);
+    renderMovementCards(payload.timeline, state.teamId, state.season);
     setStatus("");
   } catch (err) {
     resetRenderedData();
