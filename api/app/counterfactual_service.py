@@ -159,6 +159,18 @@ class CounterfactualService:
     def _available_seasons(self) -> list[int]:
         return sorted({int(row["nfl_season"]) for row in self.model_rows})
 
+    def _resolve_season(self, requested_season: int) -> int:
+        seasons = self._available_seasons()
+        if not seasons:
+            raise ValueError("no model outputs available")
+        if requested_season in seasons:
+            return requested_season
+        if requested_season < seasons[0]:
+            return seasons[0]
+        if requested_season > seasons[-1]:
+            return seasons[-1]
+        return min(seasons, key=lambda season: abs(season - requested_season))
+
     def _build_season_coverage(self, seasons: list[int]) -> list[dict[str, int]]:
         points: list[dict[str, int]] = []
         for season in seasons:
@@ -224,6 +236,7 @@ class CounterfactualService:
         return points
 
     def _team_base_rows(self, team_id: str, season: int, week: int | None) -> list[dict[str, str]]:
+        season = self._resolve_season(season)
         rows = [
             row
             for row in self.model_rows
@@ -271,6 +284,7 @@ class CounterfactualService:
     def build_overview_payload(self, season: int) -> dict[str, Any]:
         """Build overview dashboard payload using canonical schema fields."""
 
+        season = self._resolve_season(season)
         season_rows = [row for row in self.model_rows if int(row["nfl_season"]) == season]
         if not season_rows:
             raise ValueError(f"no model outputs found for season={season}")
@@ -401,6 +415,7 @@ class CounterfactualService:
     def build_team_detail_payload(self, team_id: str, season: int) -> dict[str, Any]:
         """Build team detail dashboard payload using schema contract fields."""
 
+        season = self._resolve_season(season)
         team_rows = [
             row
             for row in self.model_rows
@@ -535,6 +550,7 @@ class CounterfactualService:
         """Return canonical team impact and scenario-adjusted estimates."""
 
         base_rows = self._team_base_rows(team_id=team_id, season=season, week=week)
+        resolved_season = int(base_rows[0]["nfl_season"])
 
         team_estimates = [self._build_estimate(row, adjustment=0.0) for row in base_rows]
 
@@ -548,7 +564,7 @@ class CounterfactualService:
         result = {
             "team_impact": {
                 "team_id": team_id,
-                "season": season,
+                "season": resolved_season,
                 "period": period,
                 "estimates": [
                     {
@@ -562,7 +578,7 @@ class CounterfactualService:
             "scenario_output": {
                 "scenario_id": scenario_id,
                 "team_id": team_id,
-                "season": season,
+                "season": resolved_season,
                 "applied_moves": moves,
                 "estimates": [
                     {
@@ -631,7 +647,7 @@ class CounterfactualService:
         return {
             "scenario_id": scenario_id,
             "team_id": team_id,
-            "season": season,
+            "season": result["team_impact"]["season"],
             "period": result["team_impact"]["period"],
             "applied_moves": moves,
             "baseline_estimates": baseline,
