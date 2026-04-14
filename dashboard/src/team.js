@@ -12,6 +12,9 @@ const state = {
   season: 2024,
 };
 
+const SHARE_DEFAULT_LABEL = "🔗 Share This View";
+const SHARE_SUCCESS_LABEL = "✓ Link Copied";
+
 function toTeamId(value) {
   const normalized = String(value || "")
     .trim()
@@ -88,6 +91,96 @@ function writeQueryState() {
     season: String(state.season),
   });
   window.history.replaceState({}, "", `?${params.toString()}`);
+}
+
+async function copyToClipboard(text) {
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (_err) {
+      // Fall back to legacy copy path below.
+    }
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  textarea.style.top = "0";
+  document.body.appendChild(textarea);
+
+  const selection = document.getSelection();
+  const selectedRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+
+  let didCopy = false;
+  try {
+    didCopy = Boolean(document.execCommand && document.execCommand("copy"));
+  } catch (_err) {
+    didCopy = false;
+  }
+
+  document.body.removeChild(textarea);
+  if (selection) {
+    selection.removeAllRanges();
+    if (selectedRange) {
+      selection.addRange(selectedRange);
+    }
+  }
+
+  return didCopy;
+}
+
+function bindShareButton() {
+  const shareButton = document.getElementById("shareViewBtn");
+  const shareFeedback = document.getElementById("shareFeedback");
+  if (!shareButton || !shareFeedback) {
+    return;
+  }
+
+  let successTimer = null;
+  let failureTimer = null;
+
+  shareButton.textContent = SHARE_DEFAULT_LABEL;
+
+  shareButton.addEventListener("click", async () => {
+    const url = window.location.href;
+
+    if (successTimer) {
+      window.clearTimeout(successTimer);
+      successTimer = null;
+    }
+    if (failureTimer) {
+      window.clearTimeout(failureTimer);
+      failureTimer = null;
+    }
+
+    shareFeedback.textContent = "";
+
+    const didCopy = await copyToClipboard(url);
+    if (didCopy) {
+      shareButton.classList.add("copied");
+      shareButton.textContent = SHARE_SUCCESS_LABEL;
+      successTimer = window.setTimeout(() => {
+        shareButton.classList.remove("copied");
+        shareButton.textContent = SHARE_DEFAULT_LABEL;
+        successTimer = null;
+      }, 2000);
+      return;
+    }
+
+    shareButton.classList.remove("copied");
+    shareButton.textContent = SHARE_DEFAULT_LABEL;
+    shareFeedback.textContent = `Copy failed — try manually: ${url}`;
+    failureTimer = window.setTimeout(() => {
+      shareFeedback.textContent = "";
+      failureTimer = null;
+    }, 4000);
+  });
 }
 
 function readControlState() {
@@ -604,6 +697,7 @@ function main() {
   rewriteNavLinksFromParams();
   const { hasTeam, hasSeason } = parseQueryState();
   syncControls();
+  bindShareButton();
   const { reloadAction } = bindControls();
   if (hasTeam && hasSeason) {
     reloadAction();
