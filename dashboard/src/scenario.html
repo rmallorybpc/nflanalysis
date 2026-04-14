@@ -8,6 +8,95 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./scenario.css" />
+    <style>
+      .typeahead-wrap {
+        position: relative;
+      }
+
+      .typeahead-list {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 4px);
+        z-index: 20;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border: 1px solid #4f5561;
+        background: #0f1726;
+        max-height: 260px;
+        overflow-y: auto;
+      }
+
+      .typeahead-option {
+        padding: 8px 10px;
+        cursor: pointer;
+      }
+
+      .typeahead-option:hover,
+      .typeahead-option.active {
+        background: #1c2f52;
+      }
+
+      .comparison-chart-panel {
+        margin-top: 0.8rem;
+      }
+
+      .comparison-chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .comparison-chart-title {
+        margin: 0;
+      }
+
+      .comparison-chart-legend {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
+      .comparison-chart-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .comparison-chart-swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+      }
+
+      .comparison-chart-wrap {
+        margin-top: 0.65rem;
+        position: relative;
+      }
+
+      .comparison-chart-tooltip {
+        position: absolute;
+        pointer-events: none;
+        z-index: 5;
+        background: var(--ink);
+        color: #fff;
+        border-radius: 8px;
+        padding: 0.4rem 0.5rem;
+        font-size: 0.75rem;
+        line-height: 1.25;
+        white-space: nowrap;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+      }
+
+      .comparison-chart-tooltip[hidden] {
+        display: none;
+      }
+    </style>
   </head>
   <body>
     <main class="page">
@@ -42,14 +131,18 @@
             <input id="week" type="number" value="6" />
           </label>
           <label>Scenario ID
-            <input id="scenarioId" value="sandbox-demo" />
+            <span id="scenarioId" aria-live="polite">pending-run</span>
           </label>
         </div>
 
         <h3>Move</h3>
         <div class="control-grid move-grid">
-          <label>Player ID
-            <input id="playerId" value="p_003" />
+          <label>Player
+            <div class="typeahead-wrap">
+              <input id="playerSearch" type="text" autocomplete="off" placeholder="Search player name" />
+              <input id="playerId" type="hidden" value="p_003" />
+              <ul id="playerSearchList" class="typeahead-list" role="listbox" hidden></ul>
+            </div>
           </label>
           <label>From Team
             <select id="fromTeam" aria-label="Move from team selector"></select>
@@ -88,6 +181,24 @@
           <h2>Scenario Estimates</h2>
           <div id="scenario" class="estimate-list"></div>
         </article>
+      </section>
+
+      <section id="comparisonChartPanel" class="panel comparison-chart-panel" style="display: none;">
+        <div class="comparison-chart-header">
+          <h2 class="comparison-chart-title">Baseline vs Scenario</h2>
+          <div class="comparison-chart-legend" aria-label="Chart legend">
+            <span class="comparison-chart-legend-item">
+              <span class="comparison-chart-swatch" style="background: var(--neu);"></span>
+              Baseline
+            </span>
+            <span class="comparison-chart-legend-item">
+              <span class="comparison-chart-swatch" style="background: var(--pos);"></span>
+              Scenario
+            </span>
+          </div>
+        </div>
+        <div id="comparisonChart" class="comparison-chart-wrap" aria-label="Baseline versus scenario grouped bar chart"></div>
+        <div id="comparisonChartTooltip" class="comparison-chart-tooltip" hidden></div>
       </section>
     </main>
 
