@@ -37,6 +37,8 @@ function ensureTeamOptions(selectId) {
 
 function parseQueryState() {
   const params = new URLSearchParams(window.location.search);
+  const hasTeam = params.has("team_id");
+  const hasSeason = params.has("season");
   const teamId = toTeamId(params.get("team_id"));
   const season = Number(params.get("season"));
   if (teamId) {
@@ -45,6 +47,23 @@ function parseQueryState() {
   if (Number.isFinite(season) && season > 0) {
     state.season = Math.trunc(season);
   }
+  return { hasTeam, hasSeason };
+}
+
+function rewriteNavLinksFromParams() {
+  const params = new URLSearchParams(window.location.search);
+  const season = params.get("season") || "";
+  const teamId = params.get("team_id") || "";
+  const suffix = (season || teamId)
+    ? `?season=${encodeURIComponent(season)}&team_id=${encodeURIComponent(teamId)}`
+    : "";
+
+  document.querySelectorAll("nav a").forEach((a) => {
+    const base = a.href.split("?")[0];
+    if (suffix) {
+      a.href = base + suffix;
+    }
+  });
 }
 
 function syncControls() {
@@ -253,10 +272,12 @@ function bindControls() {
 }
 
 function main() {
+  rewriteNavLinksFromParams();
   parseQueryState();
   syncControls();
   bindControls();
-  runScenario().catch((err) => console.error(err));
 }
 
-main();
+document.addEventListener("DOMContentLoaded", () => {
+  main();
+});

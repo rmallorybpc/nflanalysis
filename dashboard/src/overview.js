@@ -61,6 +61,22 @@ function updateTeamLinks() {
   document.getElementById("scenarioPageLink").href = `./scenario.html?${params.toString()}`;
 }
 
+function rewriteNavLinksFromParams() {
+  const params = new URLSearchParams(window.location.search);
+  const season = params.get("season") || "";
+  const teamId = params.get("team_id") || "";
+  const suffix = (season || teamId)
+    ? `?season=${encodeURIComponent(season)}&team_id=${encodeURIComponent(teamId)}`
+    : "";
+
+  document.querySelectorAll("nav a").forEach((a) => {
+    const base = a.href.split("?")[0];
+    if (suffix) {
+      a.href = base + suffix;
+    }
+  });
+}
+
 function navigateToTeam(teamId) {
   const safeTeam = toTeamId(teamId) || state.teamId;
   const params = new URLSearchParams({
@@ -311,6 +327,8 @@ async function refreshOverview() {
 
 function parseQueryState() {
   const params = new URLSearchParams(window.location.search);
+  const hasSeason = params.has("season");
+  const hasTeamId = params.has("team_id");
   const season = Number(params.get("season"));
   if (Number.isFinite(season) && season > 0) {
     state.season = Math.trunc(season);
@@ -319,6 +337,7 @@ function parseQueryState() {
   if (teamId) {
     state.teamId = teamId;
   }
+  return { hasSeason, hasTeamId };
 }
 
 function writeQueryState() {
@@ -354,15 +373,20 @@ function bindControls() {
       }
     });
   });
+
+  return { refreshAction };
 }
 
-async function main() {
-  parseQueryState();
+function main() {
+  rewriteNavLinksFromParams();
+  const { hasSeason, hasTeamId } = parseQueryState();
   syncControls();
-  bindControls();
-  await refreshOverview();
+  const { refreshAction } = bindControls();
+  if (hasSeason || hasTeamId) {
+    refreshAction();
+  }
 }
 
-main().catch((err) => {
-  console.error(err);
+document.addEventListener("DOMContentLoaded", () => {
+  main();
 });
