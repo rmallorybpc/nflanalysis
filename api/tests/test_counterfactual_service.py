@@ -168,24 +168,23 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertEqual(delta_by_outcome["win_pct"]["direction"], "positive")
         self.assertGreater(delta_by_outcome["win_pct"]["mis_delta"], 0)
 
-    def test_overview_falls_back_when_season_missing(self) -> None:
-        payload = self.service.build_overview_payload(season=2026)
-        self.assertEqual(payload["season"], 2024)
+    def test_overview_raises_when_season_missing(self) -> None:
+        with self.assertRaisesRegex(ValueError, "data not available for season=2026"):
+            self.service.build_overview_payload(season=2026)
 
-    def test_team_detail_falls_back_when_season_missing(self) -> None:
-        payload = self.service.build_team_detail_payload(team_id="BUF", season=2026)
-        self.assertEqual(payload["season"], 2024)
+    def test_team_detail_raises_when_season_missing(self) -> None:
+        with self.assertRaisesRegex(ValueError, "data not available for season=2026"):
+            self.service.build_team_detail_payload(team_id="BUF", season=2026)
 
-    def test_simulate_falls_back_when_season_missing(self) -> None:
-        response = self.service.simulate(
-            team_id="BUF",
-            season=2026,
-            week=6,
-            scenario_id="fallback-year",
-            moves=[],
-        )
-        self.assertEqual(response["team_impact"]["season"], 2024)
-        self.assertEqual(response["scenario_output"]["season"], 2024)
+    def test_simulate_raises_when_season_missing(self) -> None:
+        with self.assertRaisesRegex(ValueError, "data not available for season=2026"):
+            self.service.simulate(
+                team_id="BUF",
+                season=2026,
+                week=6,
+                scenario_id="missing-year",
+                moves=[],
+            )
 
 
 if __name__ == "__main__":
