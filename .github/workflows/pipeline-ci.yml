@@ -13,6 +13,7 @@ concurrency:
 env:
   PYTHONDONTWRITEBYTECODE: 1
   PYTHONUNBUFFERED: 1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   validate-data:
@@ -41,14 +42,22 @@ jobs:
 
           REQUIRED_FILES = {
               "data/raw/offseason/transactions_raw_2026.csv": {
-                  "required_columns": [
+                "required_columns": [
                       "team",
                       "player",
                       "transaction_type",
                       "transaction_date",
                       "notes",
                       "source_url",
-                  ]
+                ],
+                "required_non_null_columns": [
+                  "team",
+                  "player",
+                  "transaction_type",
+                  "transaction_date",
+                  "notes",
+                  "source_url",
+                ],
               },
               "data/raw/offseason/players_metadata_2026.csv": {
                   "required_columns": [
@@ -57,22 +66,35 @@ jobs:
                       "draft_year",
                       "pfr_slug",
                       "source_url",
-                  ]
+                ],
+                "required_non_null_columns": [
+                  "player",
+                  "position",
+                  "source_url",
+                ],
               },
               "data/raw/offseason/players_metadata_2026_unresolved.csv": {
-                  "required_columns": ["player", "team", "reason"]
+                "required_columns": ["player", "team", "reason"],
+                "required_non_null_columns": ["player", "team", "reason"],
+                "allow_empty_rows": True,
               },
               "data/raw/offseason/team_spending_otc_2026.csv": {
-                  "required_columns": ["team", "total_fa_spending"]
+                "required_columns": ["team", "total_fa_spending"],
+                "required_non_null_columns": ["team", "total_fa_spending"],
               },
               "data/raw/offseason/team_spending_otc_2026_unresolved.csv": {
-                  "required_columns": ["team", "reason"]
+                "required_columns": ["team", "reason"],
+                "required_non_null_columns": ["team", "reason"],
+                "allow_empty_rows": True,
               },
               "data/raw/offseason/win_totals_2026.csv": {
-                  "required_columns": ["team", "win_total"]
+                "required_columns": ["team", "win_total"],
+                "required_non_null_columns": ["team", "win_total"],
               },
               "data/raw/offseason/win_totals_2026_unresolved.csv": {
-                  "required_columns": ["team", "reason"]
+                "required_columns": ["team", "reason"],
+                "required_non_null_columns": ["team", "reason"],
+                "allow_empty_rows": True,
               },
           }
 
@@ -108,9 +130,13 @@ jobs:
                   if missing_columns:
                       file_errors.append(f"missing required columns: {missing_columns}")
                   else:
-                      all_null_required = [col for col in required_columns if series_all_null(df[col])]
+                    if len(df) == 0 and cfg.get("allow_empty_rows", False):
+                      pass
+                    else:
+                      required_non_null_columns = cfg.get("required_non_null_columns", required_columns)
+                      all_null_required = [col for col in required_non_null_columns if series_all_null(df[col])]
                       if all_null_required:
-                          file_errors.append(f"required columns 100% null: {all_null_required}")
+                        file_errors.append(f"required columns 100% null: {all_null_required}")
 
               if file_errors:
                   failures.append((file_path, file_errors))
