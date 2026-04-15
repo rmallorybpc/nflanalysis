@@ -113,10 +113,11 @@ class CounterfactualService:
     def __init__(self, config: ServiceConfig | None = None) -> None:
         self.config = config or ServiceConfig()
         self.model_rows = self._load_model_rows()
+        self.player_dim = _read_csv(self.config.players)
         self.effect_map = self._load_effects()
         self.player_group = self._load_player_groups()
         self.player_name: dict[str, str] = {}
-        for row in _read_csv(self.config.players):
+        for row in self.player_dim:
             player_id = row["player_id"].strip()
             full_name = (row.get("full_name", "") or "").strip()
             self.player_name[player_id] = full_name or player_id
@@ -140,9 +141,30 @@ class CounterfactualService:
 
     def _load_player_groups(self) -> dict[str, str]:
         out: dict[str, str] = {}
-        for row in _read_csv(self.config.players):
+        for row in self.player_dim:
             out[row["player_id"].strip()] = (row.get("position_group", "") or "other").strip().lower()
         return out
+
+    def build_players_payload(self) -> dict[str, Any]:
+        """Return list of players for typeahead search."""
+        players = []
+        for row in self.player_dim:
+            player_id = str(row.get("player_id", "")).strip()
+            full_name = str(row.get("full_name", "")).strip()
+            position = str(row.get("position", "")).strip()
+            team_id = str(row.get("team_id", "")).strip()
+            if not player_id:
+                continue
+            players.append(
+                {
+                    "player_id": player_id,
+                    "full_name": full_name or player_id,
+                    "position": position,
+                    "team_id": team_id,
+                }
+            )
+        players.sort(key=lambda player: player["full_name"])
+        return {"players": players, "count": len(players)}
 
     def _build_mis_stats(self) -> dict[str, tuple[float, float]]:
         grouped: dict[str, list[float]] = {}

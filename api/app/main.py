@@ -124,6 +124,14 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # pylint: disable=broad-except
                 self._write_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
                 return
+        if parsed.path == "/v1/dashboard/players":
+            try:
+                payload = SERVICE.build_players_payload()
+                self._write_json(HTTPStatus.OK, payload)
+                return
+            except Exception as exc:  # pylint: disable=broad-except
+                self._write_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+                return
         self._write_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
 
     def do_POST(self) -> None:  # noqa: N802

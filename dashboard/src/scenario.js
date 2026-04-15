@@ -1,6 +1,6 @@
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
 const API_URL = `${API_BASE}/v1/dashboard/scenario-sandbox`;
-const PLAYERS_METADATA_URL = "../../../data/raw/offseason/players_metadata_2026.csv";
+const PLAYERS_API_URL = `${API_BASE}/v1/dashboard/players`;
 
 const TEAM_OPTIONS = [
   { id: "ARI", name: "Arizona Cardinals" },
@@ -62,7 +62,7 @@ let hasInitializedMoveTeams = false;
 
 const state = {
   teamId: "BUF",
-  season: 2024,
+  season: 2026,
 };
 
 function toTeamId(value) {
@@ -142,98 +142,34 @@ function syncControls() {
   updateNavLinks();
 }
 
-function parseCsvLine(line) {
-  const values = [];
-  let current = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i += 1) {
-    const char = line[i];
-    if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"';
-        i += 1;
-      } else {
-        inQuotes = !inQuotes;
-      }
-      continue;
-    }
-    if (char === "," && !inQuotes) {
-      values.push(current);
-      current = "";
-      continue;
-    }
-    current += char;
-  }
-  values.push(current);
-  return values;
-}
-
-function findHeaderIndex(headers, candidates) {
-  const lowered = headers.map((header) => header.trim().toLowerCase());
-  for (const candidate of candidates) {
-    const idx = lowered.indexOf(candidate);
-    if (idx >= 0) {
-      return idx;
-    }
-  }
-  return -1;
-}
-
-function deriveIdFromRow(row, idColumnIndex, sourceUrlColumnIndex) {
-  if (idColumnIndex >= 0) {
-    const idValue = String(row[idColumnIndex] || "").trim();
-    if (idValue) {
-      return idValue;
-    }
-  }
-  if (sourceUrlColumnIndex >= 0) {
-    const sourceUrl = String(row[sourceUrlColumnIndex] || "").trim();
-    const match = sourceUrl.match(/\/players\/([^/]+)\/?$/i);
-    if (match && match[1]) {
-      return `nfl:${match[1]}`;
-    }
-  }
-  return "";
-}
-
 async function loadPlayersMetadata() {
   if (playersCache) {
     return playersCache;
   }
 
-  const response = await fetch(PLAYERS_METADATA_URL);
-  if (!response.ok) {
-    throw new Error(`Failed to load players metadata: status ${response.status}`);
-  }
-
-  const csvText = await response.text();
-  const lines = csvText.split(/\r?\n/).filter((line) => line.trim().length > 0);
-  if (lines.length <= 1) {
+  try {
+    const resp = await fetch(PLAYERS_API_URL);
+    if (!resp.ok) {
+      playersCache = [];
+      return playersCache;
+    }
+    const data = await resp.json();
+    window._playerList = (data.players || []).map((p) => ({
+      id: p.player_id,
+      name: p.full_name,
+      position: p.position,
+      team_id: p.team_id,
+    }));
+    playersCache = window._playerList.map((p) => ({
+      playerId: p.id,
+      playerName: p.name,
+      position: p.position,
+      team: p.team_id,
+    }));
+  } catch (_) {
+    // typeahead degrades silently if API unavailable
     playersCache = [];
-    return playersCache;
   }
-
-  const headers = parseCsvLine(lines[0]);
-  const idCol = findHeaderIndex(headers, ["player_id", "id", "pfr_slug"]);
-  const nameCol = findHeaderIndex(headers, ["player", "player_name", "full_name", "name"]);
-  const positionCol = findHeaderIndex(headers, ["position", "pos"]);
-  const teamCol = findHeaderIndex(headers, ["team", "team_id", "team_abbr"]);
-  const sourceUrlCol = findHeaderIndex(headers, ["source_url", "url", "profile_url"]);
-
-  playersCache = lines.slice(1).map((line) => {
-    const row = parseCsvLine(line);
-    const playerName = String(row[nameCol] || "").trim();
-    const position = String(row[positionCol] || "").trim();
-    const team = String(row[teamCol] || "").trim();
-    const playerId = deriveIdFromRow(row, idCol, sourceUrlCol);
-    return {
-      playerName,
-      position,
-      team,
-      playerId,
-    };
-  }).filter((row) => row.playerName && row.playerId);
 
   return playersCache;
 }

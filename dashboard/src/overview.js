@@ -8,7 +8,7 @@ const TEAM_IDS = [
 ];
 
 const state = {
-  season: 2024,
+  season: 2026,
   teamId: "BUF",
 };
 
