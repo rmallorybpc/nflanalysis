@@ -115,6 +115,11 @@ class CounterfactualService:
         self.model_rows = self._load_model_rows()
         self.effect_map = self._load_effects()
         self.player_group = self._load_player_groups()
+        self.player_name: dict[str, str] = {}
+        for row in _read_csv(self.config.players):
+            player_id = row["player_id"].strip()
+            full_name = (row.get("full_name", "") or "").strip()
+            self.player_name[player_id] = full_name or player_id
         self.mis_stats = self._build_mis_stats()
 
     def _load_model_rows(self) -> list[dict[str, str]]:
@@ -464,6 +469,7 @@ class CounterfactualService:
                     "nfl_week": int(row.get("nfl_week", "0") or "0"),
                     "move_type": row.get("move_type", "").strip(),
                     "player_id": player_id,
+                    "player_name": self.player_name.get(player_id, player_id),
                     "from_team_id": row.get("from_team_id", "").strip(),
                     "to_team_id": row.get("to_team_id", "").strip(),
                     "impact_estimate": round(impact, 6),
