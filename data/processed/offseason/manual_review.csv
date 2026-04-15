@@ -1,57 +1,16 @@
 issue_type,transaction_date,team,player,transaction_type,notes
-missing_player_id,2026-01-05,LAC,Marcus Maye,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-05,PIT,Tre Flowers,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-06,CAR,Hunter Renfrow,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-06,DEN,Geron Christian,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-06,DEN,Marcedes Lewis,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-06,GB,Clayton Tune,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-06,HOU,K'Von Wallace,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-06,KC,Shane Buechele,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-06,LAC,Marcus Maye,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-06,PIT,Tre Flowers,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-07,CAR,Hunter Renfrow,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-07,GB,Clayton Tune,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-07,HOU,K'Von Wallace,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-12,HOU,Darrell Taylor,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-13,HOU,Darrell Taylor,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-13,LAR,Nick Hampton,signed,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-14,CAR,D'Anthony Bell,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-01-15,CAR,D'Anthony Bell,waived,player not found in players_metadata.csv by exact name
 missing_player_id,2026-02-13,SEA,Jalan Gaines,signed,player not found in players_metadata.csv by exact name
-missing_player_id,2026-02-17,MIA,Nick Westbrook-Ikhine,released,player not found in players_metadata.csv by exact name
-missing_player_id,2026-02-18,LAR,Robert Woods,signed,player not found in players_metadata.csv by exact name
-missing_player_id,2026-02-20,DAL,Logan Wilson,released,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-03,CLE,Justin Osborne,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-04,CLE,Justin Osborne,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-04,LAC,Savion Washington,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-05,DAL,Perrion Winfrey,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-05,LAC,Savion Washington,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-06,DAL,Perrion Winfrey,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-10,CAR,A'Shawn Robinson,released,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-10,CAR,Popo Aumavae,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-10,JAX,Johnny Mundt,released,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-10,NYG,Anthony Johnson Jr.,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-11,ARI,Kyler Murray,released,player not found in players_metadata.csv by exact name
 trade_missing_explicit_teams,2026-03-11,BUF,DJ Moore,traded,trade with unresolved from/to team ids
-missing_player_id,2026-03-11,CAR,Popo Aumavae,waived,player not found in players_metadata.csv by exact name
 trade_missing_explicit_teams,2026-03-11,CHI,Garrett Bradbury,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-11,CLE,Tytus Howard,traded,trade with unresolved from/to team ids
-missing_player_id,2026-03-11,CLE,Wyatt Teller,released,player not found in players_metadata.csv by exact name
 trade_missing_explicit_teams,2026-03-11,DAL,Rashan Gary,traded,trade with unresolved from/to team ids
-missing_player_id,2026-03-11,DEN,Dre Greenlaw,released,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-11,DET,Joshua Paschal,waived,player not found in players_metadata.csv by exact name
 trade_missing_explicit_teams,2026-03-11,DET,Juice Scruggs,traded,trade with unresolved from/to team ids
-missing_player_id,2026-03-11,GB,Nate Hobbs,released,player not found in players_metadata.csv by exact name
 trade_missing_explicit_teams,2026-03-11,GB,Zaire Franklin,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-11,HOU,David Montgomery,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-11,HOU,Kai Kroeger,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-11,IND,Colby Wooden,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-11,LAR,Trent McDuffie,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-11,LV,Taron Johnson,traded,trade with unresolved from/to team ids
-missing_player_id,2026-03-11,MIA,Bradley Chubb,released,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-11,MIN,Javon Hargrave,released,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-11,MIN,Jonathan Allen,released,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-11,NYG,Anthony Johnson Jr.,waived,player not found in players_metadata.csv by exact name
 trade_missing_explicit_teams,2026-03-11,NYJ,Geno Smith,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-11,NYJ,Minkah Fitzpatrick,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-11,NYJ,T'Vondre Sweat,traded,trade with unresolved from/to team ids
@@ -59,11 +18,6 @@ trade_missing_explicit_teams,2026-03-11,PIT,Michael Pittman,traded,trade with un
 trade_missing_explicit_teams,2026-03-11,SF,Osa Odighizuwa,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-11,TEN,Jermaine Johnson II,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-11,TEN,Solomon Thomas,traded,trade with unresolved from/to team ids
-missing_player_id,2026-03-12,ARI,Evan Brown,released,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-12,MIA,Tua Tagovailoa,released,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-12,SF,Bryce Huff,released,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-13,MIN,Zeke Correll,waived,player not found in players_metadata.csv by exact name
-missing_player_id,2026-03-14,MIN,Zeke Correll,waived,player not found in players_metadata.csv by exact name
 trade_missing_explicit_teams,2026-03-18,DEN,Jaylen Waddle,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-19,KC,Justin Fields,traded,trade with unresolved from/to team ids
 trade_missing_explicit_teams,2026-03-23,ATL,Sydney Brown,traded,trade with unresolved from/to team ids
