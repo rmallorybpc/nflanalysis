@@ -382,7 +382,6 @@ function payloadFromInputs() {
   return {
     team_id: document.getElementById("teamId").value,
     season: Number(document.getElementById("season").value),
-    week: Number(document.getElementById("week").value),
     scenario_id: getScenarioIdText(),
     applied_moves: [
       {
@@ -818,7 +817,7 @@ function bindControls() {
     });
   });
 
-  ["teamId", "season", "week", "playerSearch", "fromTeam", "toTeam", "moveType", "action"].forEach((id) => {
+  ["teamId", "season", "playerSearch", "fromTeam", "toTeam", "moveType", "action"].forEach((id) => {
     document.getElementById(id).addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         event.preventDefault();
