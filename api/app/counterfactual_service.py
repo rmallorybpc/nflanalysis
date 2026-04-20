@@ -80,6 +80,20 @@ def _move_scope(from_team: str, to_team: str) -> str:
     return "same_division"
 
 
+def _infer_scope_from_destination(to_team: str) -> str:
+    """
+    For free agency moves with no source team, classify scope by
+    the destination team's conference. Cross-conference free agency
+    is not meaningful without a source, so assign all one-sided moves
+    to 'cross_division' as a conservative default that reflects
+    genuine roster change without implying a specific rivalry context.
+    Return 'unknown' only if to_team is also missing.
+    """
+    if not to_team or to_team not in TEAM_GEO:
+        return "unknown"
+    return "cross_division"
+
+
 @dataclass
 class ServiceConfig:
     """Input sources for the counterfactual service."""
@@ -232,10 +246,16 @@ class CounterfactualService:
             if move_type not in {"trade", "free_agency"}:
                 continue
 
-            scope = _move_scope(
-                row.get("from_team_id", "").strip(),
-                row.get("to_team_id", "").strip(),
-            )
+            from_team = row.get("from_team_id", "").strip()
+            to_team = row.get("to_team_id", "").strip()
+
+            if from_team and to_team:
+                scope = _move_scope(from_team, to_team)
+            elif to_team:
+                scope = _infer_scope_from_destination(to_team)
+            else:
+                scope = "unknown"
+
             if scope not in allowed_scopes:
                 continue
 
