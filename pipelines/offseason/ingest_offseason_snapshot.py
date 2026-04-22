@@ -19,6 +19,7 @@ from pathlib import Path
 DEFAULT_TRANSACTIONS_PATH = Path("data/raw/offseason/transactions_raw.csv")
 DEFAULT_PLAYERS_PATH = Path("data/raw/offseason/players_metadata.csv")
 DEFAULT_WIN_TOTALS_PATH = Path("data/raw/offseason/win_totals.csv")
+DEFAULT_CALENDAR_PATH = Path("data/external/nfl_calendar_mapping.csv")
 
 MOVE_TYPE_MAP = {
     "signed": "free_agency",
@@ -161,6 +162,13 @@ def read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def read_csv_if_exists(path: Path) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+    with path.open(newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
 def write_csv(path: Path, fields: list[str], rows: list[dict[str, str]], append: bool = False) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     mode = "a" if append else "w"
@@ -181,6 +189,23 @@ def clean_team(value: str) -> str:
 
 def clean_type(value: str) -> str:
     return " ".join((value or "").strip().lower().split())
+
+
+def resolve_anchor_effective_date(season: int, week: int) -> str:
+    rows = read_csv(DEFAULT_CALENDAR_PATH)
+    candidates = [
+        (row.get("calendar_date") or "").strip()
+        for row in rows
+        if (row.get("nfl_season") or "").strip() == str(season)
+        and (row.get("season_phase") or "").strip() == "regular"
+        and (row.get("nfl_week") or "").strip() == str(week)
+        and (row.get("calendar_date") or "").strip()
+    ]
+    if not candidates:
+        raise ValueError(
+            f"could not find calendar anchor for season={season}, week={week} in {DEFAULT_CALENDAR_PATH}"
+        )
+    return sorted(candidates)[0]
 
 
 def to_float(value: str, field_name: str) -> float:
@@ -274,8 +299,51 @@ def build_movement_events(
 ) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
     out: list[dict[str, str]] = []
     review: list[dict[str, str]] = []
+    anchor_effective_date = resolve_anchor_effective_date(season, week)
+    inferred_players_metadata_mode = bool(rows) and "transaction_type" not in rows[0]
 
     for idx, row in enumerate(rows, start=1):
+        if inferred_players_metadata_mode:
+            team = clean_team(row.get("team", ""))
+            if not team:
+                continue
+
+            player_name = (row.get("player") or "").strip()
+            player_id = derive_player_id(row) or player_by_name.get(player_name.lower(), "")
+            if not player_id:
+                review.append(
+                    {
+                        "issue_type": "missing_player_id",
+                        "transaction_date": anchor_effective_date,
+                        "team": team,
+                        "player": player_name,
+                        "transaction_type": "inferred_players_metadata",
+                        "notes": "players_metadata row missing pfr_slug and could not map name",
+                    }
+                )
+                continue
+
+            move_id = f"ofs_{season}_{week:02d}_{idx:05d}"
+            out.append(
+                {
+                    "move_id": move_id,
+                    "event_date": anchor_effective_date,
+                    "effective_date": anchor_effective_date,
+                    "move_type": "free_agency",
+                    "player_id": player_id,
+                    "from_team_id": "",
+                    "to_team_id": team,
+                    "transaction_detail": "inferred_from_players_metadata",
+                    "source": (row.get("source_url") or "manual").strip() or "manual",
+                    "nfl_season": str(season),
+                    "season_phase": "regular",
+                    "phase_week": str(week),
+                    "nfl_week": str(week),
+                    "ingested_at": now_iso,
+                }
+            )
+            continue
+
         tx_type = clean_type(row.get("transaction_type", ""))
         if tx_type in IGNORE_TYPES or tx_type not in MOVE_TYPE_MAP:
             continue
@@ -313,7 +381,7 @@ def build_movement_events(
             )
             detail = (detail + " | manual_review:missing_trade_teams").strip(" |")
 
-        event_date = (row.get("transaction_date") or "").strip()
+        event_date = (row.get("transaction_date") or "").strip() or anchor_effective_date
         move_id = f"ofs_{season}_{week:02d}_{idx:05d}"
 
         out.append(
@@ -357,16 +425,18 @@ def build_outcomes_from_win_totals(rows: list[dict[str, str]], season: int, week
         win_pct = max(min(win_total / 17.0, 1.0), 0.0)
         point_diff = (win_total - league_avg) * 1.5
         off_epa = (win_total - league_avg) * 0.01
-        wins = int(round(win_total))
+        games_played = 17
+        wins = max(min(int(round(win_total)), games_played), 0)
+        losses = games_played - wins
 
         out.append(
             {
                 "team_id": team,
                 "nfl_season": str(season),
                 "nfl_week": str(week),
-                "games_played": "1",
-                "wins": str(max(min(wins, 17), 0)),
-                "losses": "0",
+                "games_played": str(games_played),
+                "wins": str(wins),
+                "losses": str(losses),
                 "ties": "0",
                 "win_pct": f"{win_pct:.4f}",
                 "point_diff_per_game": f"{point_diff:.4f}",
@@ -394,6 +464,62 @@ def main() -> None:
     movement_out, review_out = build_movement_events(tx_rows, player_by_name, args.season, args.week, now_iso)
     outcomes_out = build_outcomes_from_win_totals(win_total_rows, args.season, args.week, now_iso)
 
+    skipped_existing_players = 0
+    skipped_existing_moves = 0
+    skipped_existing_outcomes = 0
+    if args.append:
+        existing_player_ids = {
+            (row.get("player_id") or "").strip()
+            for row in read_csv_if_exists(args.players_output)
+            if (row.get("player_id") or "").strip()
+        }
+        filtered_players: list[dict[str, str]] = []
+        for row in players_out:
+            player_id = (row.get("player_id") or "").strip()
+            if player_id in existing_player_ids:
+                skipped_existing_players += 1
+                continue
+            existing_player_ids.add(player_id)
+            filtered_players.append(row)
+        players_out = filtered_players
+
+        existing_move_ids = {
+            (row.get("move_id") or "").strip()
+            for row in read_csv_if_exists(args.movement_output)
+            if (row.get("move_id") or "").strip()
+        }
+        filtered_moves: list[dict[str, str]] = []
+        for row in movement_out:
+            move_id = (row.get("move_id") or "").strip()
+            if move_id in existing_move_ids:
+                skipped_existing_moves += 1
+                continue
+            existing_move_ids.add(move_id)
+            filtered_moves.append(row)
+        movement_out = filtered_moves
+
+        existing_outcome_keys = {
+            (
+                (row.get("team_id") or "").strip(),
+                (row.get("nfl_season") or "").strip(),
+                (row.get("nfl_week") or "").strip(),
+            )
+            for row in read_csv_if_exists(args.outcomes_output)
+        }
+        filtered_outcomes: list[dict[str, str]] = []
+        for row in outcomes_out:
+            key = (
+                (row.get("team_id") or "").strip(),
+                (row.get("nfl_season") or "").strip(),
+                (row.get("nfl_week") or "").strip(),
+            )
+            if key in existing_outcome_keys:
+                skipped_existing_outcomes += 1
+                continue
+            existing_outcome_keys.add(key)
+            filtered_outcomes.append(row)
+        outcomes_out = filtered_outcomes
+
     write_csv(args.players_output, PLAYER_FIELDS, players_out, append=args.append)
     write_csv(args.movement_output, MOVEMENT_FIELDS, movement_out, append=args.append)
     write_csv(args.outcomes_output, OUTCOME_FIELDS, outcomes_out, append=args.append)
@@ -404,6 +530,11 @@ def main() -> None:
         f"players={len(players_out)}, movements={len(movement_out)}, outcomes={len(outcomes_out)}, "
         f"manual_review={len(review_out)}"
     )
+    if args.append:
+        print(
+            "Skipped existing rows while appending: "
+            f"players={skipped_existing_players}, moves={skipped_existing_moves}, outcomes={skipped_existing_outcomes}"
+        )
 
 
 if __name__ == "__main__":
