@@ -139,6 +139,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--players-output", type=Path, default=Path("data/processed/offseason/player_dimension.csv"))
     parser.add_argument("--outcomes-output", type=Path, default=Path("data/processed/offseason/team_week_outcomes.csv"))
     parser.add_argument("--review-output", type=Path, default=Path("data/processed/offseason/manual_review.csv"))
+    parser.add_argument("--append", action="store_true", default=False)
     return parser.parse_args()
 
 
@@ -160,11 +161,17 @@ def read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
-def write_csv(path: Path, fields: list[str], rows: list[dict[str, str]]) -> None:
+def write_csv(path: Path, fields: list[str], rows: list[dict[str, str]], append: bool = False) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as handle:
+    mode = "a" if append else "w"
+    write_header = True
+    if append and path.exists() and path.stat().st_size > 0:
+        write_header = False
+
+    with path.open(mode, newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
-        writer.writeheader()
+        if write_header:
+            writer.writeheader()
         writer.writerows(rows)
 
 
@@ -387,10 +394,10 @@ def main() -> None:
     movement_out, review_out = build_movement_events(tx_rows, player_by_name, args.season, args.week, now_iso)
     outcomes_out = build_outcomes_from_win_totals(win_total_rows, args.season, args.week, now_iso)
 
-    write_csv(args.players_output, PLAYER_FIELDS, players_out)
-    write_csv(args.movement_output, MOVEMENT_FIELDS, movement_out)
-    write_csv(args.outcomes_output, OUTCOME_FIELDS, outcomes_out)
-    write_csv(args.review_output, REVIEW_FIELDS, review_out)
+    write_csv(args.players_output, PLAYER_FIELDS, players_out, append=args.append)
+    write_csv(args.movement_output, MOVEMENT_FIELDS, movement_out, append=args.append)
+    write_csv(args.outcomes_output, OUTCOME_FIELDS, outcomes_out, append=args.append)
+    write_csv(args.review_output, REVIEW_FIELDS, review_out, append=args.append)
 
     print(
         "Built offseason snapshot tables: "
