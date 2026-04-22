@@ -19,6 +19,7 @@ import csv
 import io
 import gzip
 import re
+from html.parser import HTMLParser
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Iterable
@@ -235,17 +236,205 @@ def csv_rows_from_url(url: str, source_name: str) -> tuple[Iterable[dict[str, st
     return reader, url, ",".join(reader.fieldnames or []), size
 
 
+class PFRTableParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.tables: list[dict[str, object]] = []
+        self._table_stack: list[int] = []
+        self._in_row = False
+        self._in_cell = False
+        self._cell_parts: list[str] = []
+        self._current_row: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag == "table":
+            attrs_map = {k: (v or "") for k, v in attrs}
+            table_obj: dict[str, object] = {"id": attrs_map.get("id", ""), "rows": []}
+            self.tables.append(table_obj)
+            self._table_stack.append(len(self.tables) - 1)
+            return
+
+        if not self._table_stack:
+            return
+
+        if tag == "tr":
+            self._in_row = True
+            self._current_row = []
+            return
+
+        if self._in_row and tag in {"th", "td"}:
+            self._in_cell = True
+            self._cell_parts = []
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "table":
+            if self._table_stack:
+                self._table_stack.pop()
+            return
+
+        if not self._table_stack:
+            return
+
+        if self._in_row and self._in_cell and tag in {"th", "td"}:
+            cell = " ".join("".join(self._cell_parts).split()).strip()
+            self._current_row.append(cell)
+            self._in_cell = False
+            self._cell_parts = []
+            return
+
+        if self._in_row and tag == "tr":
+            if self._current_row:
+                table_rows = self.tables[self._table_stack[-1]]["rows"]
+                if isinstance(table_rows, list):
+                    table_rows.append(self._current_row)
+            self._in_row = False
+            self._current_row = []
+
+    def handle_data(self, data: str) -> None:
+        if self._in_cell:
+            self._cell_parts.append(data)
+
+
+def _header_index(headers: list[str], options: tuple[str, ...]) -> int:
+    for idx, header in enumerate(headers):
+        cleaned = re.sub(r"\s+", " ", header.strip().lower())
+        if cleaned in options:
+            return idx
+    return -1
+
+
+def parse_pfr_transactions_table(html: str) -> list[dict[str, str]] | None:
+    parser = PFRTableParser()
+    parser.feed(html)
+
+    # Prefer the canonical transactions table id; if unavailable, try all parsed tables.
+    candidates = [
+        t for t in parser.tables
+        if isinstance(t.get("id"), str) and t.get("id") == "transactions"
+    ]
+    if not candidates:
+        candidates = parser.tables
+
+    for table in candidates:
+        rows = table.get("rows")
+        if not isinstance(rows, list) or len(rows) < 2:
+            continue
+
+        header_row = next((r for r in rows if isinstance(r, list) and r), None)
+        if not isinstance(header_row, list):
+            continue
+        headers = [str(h) for h in header_row]
+
+        date_idx = _header_index(headers, ("date",))
+        team_idx = _header_index(headers, ("team", "tm", "to"))
+        tx_idx = _header_index(headers, ("transaction", "transaction description", "description", "type", "details", "detail"))
+        player_idx = _header_index(headers, ("player", "name", "acquired"))
+
+        if min(date_idx, team_idx, tx_idx, player_idx) < 0:
+            continue
+
+        parsed: list[dict[str, str]] = []
+        header_found = False
+        for row in rows:
+            if not isinstance(row, list) or not row:
+                continue
+            if not header_found and row == header_row:
+                header_found = True
+                continue
+            if len(row) <= max(date_idx, team_idx, tx_idx, player_idx):
+                continue
+
+            parsed.append(
+                {
+                    "date": row[date_idx].strip(),
+                    "team": row[team_idx].strip(),
+                    "transaction": row[tx_idx].strip(),
+                    "player": row[player_idx].strip(),
+                }
+            )
+
+        if parsed:
+            return parsed
+
+    return None
+
+
+def fetch_pfr_free_agency_rows(season: int, imported_at: str) -> list[dict[str, str]]:
+    url = f"https://www.pro-football-reference.com/years/{season}/transactions.htm"
+    headers = {
+        "User-Agent": "nflanalysis-fetch/1.0",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    }
+    req = request.Request(url, headers=headers)
+
+    try:
+        resp = request.urlopen(req, timeout=60)
+    except error.HTTPError as exc:
+        print(f"[WARN] pfr_transactions: {url} returned HTTP {exc.code}; continuing with trades-only")
+        return []
+    except Exception as exc:  # pragma: no cover - network failures are environment dependent
+        print(f"[WARN] pfr_transactions: failed to fetch {url}: {exc}; continuing with trades-only")
+        return []
+
+    status = getattr(resp, "status", 200)
+    if status != 200:
+        print(f"[WARN] pfr_transactions: {url} returned non-200 status {status}; continuing with trades-only")
+        return []
+
+    html = io.TextIOWrapper(resp, encoding="utf-8", newline="").read()
+    parsed = parse_pfr_transactions_table(html)
+    if not parsed:
+        print(f"[WARN] pfr_transactions: unable to parse transactions table from {url}; continuing with trades-only")
+        return []
+
+    fetched = len(parsed)
+    kept = 0
+    rows: list[dict[str, str]] = []
+    for row in parsed:
+        description = (row.get("transaction") or "").strip()
+        desc_lower = description.lower()
+        if "signed" not in desc_lower:
+            continue
+        if "practice squad" in desc_lower or "reserve" in desc_lower:
+            continue
+
+        player = (row.get("player") or "").strip()
+        team = normalize_team(row.get("team", ""))
+        if not player or not team:
+            continue
+
+        rows.append(
+            {
+                "player": player,
+                "position": "",
+                "team": team,
+                "age": "",
+                "height": "",
+                "weight": "",
+                "experience": "",
+                "college": "",
+                "draft_year": "",
+                "draft_round": "",
+                "draft_pick": "",
+                "pfr_slug": "",
+                "source_url": url,
+                "import_method": "pfr_transactions",
+                "imported_at": imported_at,
+            }
+        )
+        kept += 1
+
+    print(f"[INFO] pfr_transactions: {url} fetched_rows={fetched} kept_rows={kept}")
+    return rows
+
+
 def load_roster_index(season: int) -> dict[str, dict[str, str]]:
     urls = [
-        f"https://raw.githubusercontent.com/nflverse/nfldata/master/data/roster_{season}.csv",
+        f"https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_{season}.csv",
         "https://raw.githubusercontent.com/nflverse/nfldata/master/data/rosters.csv",
-        "https://github.com/nflverse/nflreadr/raw/main/data/roster_weekly.rds",
     ]
 
     for url in urls:
-        if url.endswith(".rds"):
-            print(f"[WARN] rosters: {url} is .rds and is intentionally skipped")
-            continue
         reader, used_url, _headers, _size = csv_rows_from_url(url, "rosters")
         if reader is None:
             continue
@@ -273,102 +462,106 @@ def load_roster_index(season: int) -> dict[str, dict[str, str]]:
 
 
 def build_players_metadata(season: int, imported_at: str) -> list[dict[str, str]]:
-    tx_urls = [
-        "https://raw.githubusercontent.com/nflverse/nfldata/master/data/transactions.csv",
-        "https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv",
-    ]
+    trades_url = "https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv"
 
     roster_idx = load_roster_index(season)
 
     seen: set[tuple[str, str]] = set()
     out: list[dict[str, str]] = []
 
-    for url in tx_urls:
-        reader, used_url, headers, _size = csv_rows_from_url(url, "transactions")
-        if reader is None:
+    for row in fetch_pfr_free_agency_rows(season, imported_at):
+        key = (row["player"].lower(), row["team"])
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(row)
+
+    reader, used_url, headers, _size = csv_rows_from_url(trades_url, "transactions")
+    if reader is None:
+        out.sort(key=lambda r: (r["team"], r["player"]))
+        return out
+
+    fetched = 0
+    kept_scope = 0
+    kept_output = 0
+
+    header_set = {h.strip() for h in headers.split(",") if h.strip()}
+    uses_trade_fallback = "trade_id" in header_set and "pfr_name" in header_set
+
+    for row in reader:
+        fetched += 1
+        row_season = parse_int(row.get("season", ""))
+        if not row_season or int(row_season) != season:
             continue
 
-        fetched = 0
-        kept_scope = 0
-        kept_output = 0
-
-        header_set = {h.strip() for h in headers.split(",") if h.strip()}
-        uses_trade_fallback = "trade_id" in header_set and "pfr_name" in header_set
-
-        for row in reader:
-            fetched += 1
-            row_season = parse_int(row.get("season", ""))
-            if not row_season or int(row_season) != season:
+        if uses_trade_fallback:
+            tx_type = "TRADED"
+            player = (row.get("pfr_name") or "").strip()
+            team = normalize_team(row.get("received", ""))
+            position = ""
+            pfr_slug = (row.get("pfr_id") or "").strip()
+            source_url = used_url
+            experience = ""
+        else:
+            tx_type = (row.get("transaction_type") or "").strip().upper()
+            if tx_type not in TRANSACTION_TYPE_ALLOW:
                 continue
-
-            if uses_trade_fallback:
-                tx_type = "TRADED"
-                player = (row.get("pfr_name") or "").strip()
-                team = normalize_team(row.get("received", ""))
-                position = ""
-                pfr_slug = (row.get("pfr_id") or "").strip()
-                source_url = used_url
-                experience = ""
-            else:
-                tx_type = (row.get("transaction_type") or "").strip().upper()
-                if tx_type not in TRANSACTION_TYPE_ALLOW:
-                    continue
-                kept_scope += 1
-                player = (row.get("player") or row.get("name") or "").strip()
-                team = normalize_team(row.get("team", ""))
-                position = (row.get("position") or "").strip().upper()
-                pfr_slug = (row.get("pfr_id") or row.get("pfr_slug") or "").strip()
-                source_url = (row.get("source_url") or used_url).strip()
-                experience = ""
-
-            if tx_type not in TRANSACTION_TYPE_PLAYERS:
+            if tx_type != "TRADED":
                 continue
+            kept_scope += 1
+            player = (row.get("player") or row.get("name") or "").strip()
+            team = normalize_team(row.get("team", ""))
+            position = (row.get("position") or "").strip().upper()
+            pfr_slug = (row.get("pfr_id") or row.get("pfr_slug") or "").strip()
+            source_url = (row.get("source_url") or used_url).strip()
+            experience = ""
 
-            if not player:
-                continue
+        if tx_type not in TRANSACTION_TYPE_PLAYERS:
+            continue
 
-            key = (player.lower(), team)
-            if key in seen:
-                continue
-            seen.add(key)
+        if not player:
+            continue
 
-            if pfr_slug in roster_idx:
-                roster = roster_idx[pfr_slug]
-                if not position:
-                    position = roster.get("position", "")
-                if not experience:
-                    experience = roster.get("experience", "")
+        key = (player.lower(), team)
+        if key in seen:
+            continue
+        seen.add(key)
 
-            if uses_trade_fallback:
-                kept_scope += 1
+        if pfr_slug in roster_idx:
+            roster = roster_idx[pfr_slug]
+            if not position:
+                position = roster.get("position", "")
+            if not experience:
+                experience = roster.get("experience", "")
 
-            out.append(
-                {
-                    "player": player,
-                    "position": position,
-                    "team": team,
-                    "age": "",
-                    "height": "",
-                    "weight": "",
-                    "experience": experience,
-                    "college": "",
-                    "draft_year": "",
-                    "draft_round": "",
-                    "draft_pick": "",
-                    "pfr_slug": pfr_slug,
-                    "source_url": source_url,
-                    "import_method": "nflverse_transactions" if not uses_trade_fallback else "nflverse_trades_fallback",
-                    "imported_at": imported_at,
-                }
-            )
-            kept_output += 1
+        if uses_trade_fallback:
+            kept_scope += 1
 
-        print(
-            f"[INFO] transactions: {used_url} fetched_rows={fetched} "
-            f"rows_kept_scope={kept_scope} rows_kept_output={kept_output}"
+        out.append(
+            {
+                "player": player,
+                "position": position,
+                "team": team,
+                "age": "",
+                "height": "",
+                "weight": "",
+                "experience": experience,
+                "college": "",
+                "draft_year": "",
+                "draft_round": "",
+                "draft_pick": "",
+                "pfr_slug": pfr_slug,
+                "source_url": source_url,
+                "import_method": "nflverse_trades_fallback" if uses_trade_fallback else "nflverse_transactions",
+                "imported_at": imported_at,
+            }
         )
-        if out:
-            break
+        kept_output += 1
+
+    print(
+        f"[INFO] transactions: {used_url} fetched_rows={fetched} "
+        f"rows_kept_scope={kept_scope} rows_kept_output={kept_output}"
+    )
 
     out.sort(key=lambda r: (r["team"], r["player"]))
     return out
