@@ -362,7 +362,7 @@ def parse_pfr_transactions_table(html: str) -> list[dict[str, str]] | None:
 def fetch_pfr_free_agency_rows(season: int, imported_at: str) -> list[dict[str, str]]:
     url = f"https://www.pro-football-reference.com/years/{season}/transactions.htm"
     headers = {
-        "User-Agent": "nflanalysis-fetch/1.0",
+        "User-Agent": "Mozilla/5.0 (compatible; nflanalysis-research/1.0)",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     }
     req = request.Request(url, headers=headers)
