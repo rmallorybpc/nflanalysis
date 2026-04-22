@@ -188,6 +188,7 @@ def build_features(
             group_delta[key][group] -= weight
 
     out: list[dict[str, str]] = []
+    schedule_strength_values: list[float] = []
     for row in outcome_rows:
         team = (row.get("team_id") or "").strip().upper()
         season = (row.get("nfl_season") or "").strip()
@@ -226,11 +227,20 @@ def build_features(
                 "special_teams_value_delta": f"{group_vals['special_teams_value_delta']:.4f}",
                 "other_value_delta": f"{group_vals['other_value_delta']:.4f}",
                 "position_value_delta": f"{position_total:.4f}",
-                "schedule_strength_index": f"{win_factor:.4f}",
+                "schedule_strength_index": "0.0000",
                 "feature_version": feature_version,
                 "generated_at": generated_at,
             }
         )
+        schedule_strength_values.append(win_factor)
+
+    if schedule_strength_values:
+        max_abs = max(abs(v) for v in schedule_strength_values)
+        if max_abs > 0:
+            schedule_strength_values = [v / max_abs for v in schedule_strength_values]
+
+    for row, schedule_strength_value in zip(out, schedule_strength_values):
+        row["schedule_strength_index"] = f"{schedule_strength_value:.4f}"
 
     out.sort(key=lambda r: (r["team_id"], int(r["nfl_season"]), int(r["nfl_week"])))
     return out
