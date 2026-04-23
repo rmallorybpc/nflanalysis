@@ -183,8 +183,13 @@ if [[ ! -f data/processed/model_outputs_hierarchical.csv ]]; then
   exit 1
 fi
 
-if [[ ! -f models/artifacts/hierarchical_effects.csv ]]; then
-  echo "Missing models/artifacts/hierarchical_effects.csv"
+HIERARCHICAL_EFFECTS_PATH=""
+if [[ -s models/artifacts/offseason/hierarchical_effects.csv ]]; then
+  HIERARCHICAL_EFFECTS_PATH="models/artifacts/offseason/hierarchical_effects.csv"
+elif [[ -s models/artifacts/hierarchical_effects.csv ]]; then
+  HIERARCHICAL_EFFECTS_PATH="models/artifacts/hierarchical_effects.csv"
+else
+  echo "Missing non-empty hierarchical effects artifact; checked models/artifacts/offseason/hierarchical_effects.csv and models/artifacts/hierarchical_effects.csv"
   exit 1
 fi
 
@@ -308,8 +313,9 @@ if missing:
 print(f"validated pretrend/placebo artifacts: summary={len(summary_rows)} details={len(detail_rows)}")
 PY
 
-python3 - <<'PY'
+python3 - "$HIERARCHICAL_EFFECTS_PATH" <<'PY'
 import csv
+import sys
 
 path = "data/processed/model_outputs_hierarchical.csv"
 required = {
@@ -345,11 +351,11 @@ for row in rows:
   if row["outcome_name"].strip() not in allowed_outcomes:
     raise SystemExit(f"invalid outcome_name in model_outputs_hierarchical.csv: {row['outcome_name']}")
 
-effects_path = "models/artifacts/hierarchical_effects.csv"
+effects_path = sys.argv[1]
 with open(effects_path, newline="", encoding="utf-8") as f:
   effect_rows = list(csv.DictReader(f))
 if not effect_rows:
-  raise SystemExit("hierarchical_effects.csv is empty")
+  raise SystemExit(f"{effects_path} is empty")
 
 required_effect = {
   "outcome_name",
@@ -363,7 +369,7 @@ required_effect = {
 }
 missing = required_effect - set(effect_rows[0].keys())
 if missing:
-  raise SystemExit(f"hierarchical_effects.csv missing columns: {sorted(missing)}")
+  raise SystemExit(f"{effects_path} missing columns: {sorted(missing)}")
 
 print(f"validated hierarchical artifacts: outputs={len(rows)} effects={len(effect_rows)}")
 PY
