@@ -13,12 +13,25 @@ class CounterfactualServiceTests(unittest.TestCase):
 
     def setUp(self) -> None:
         self.service = CounterfactualService()
+        self.season = max(int(row["nfl_season"]) for row in self.service.model_rows)
+        self.team_id = "BUF"
+        self.test_player_id = "p_003"
+        self.week = max(
+            int(row["nfl_week"])
+            for row in self.service.model_rows
+            if row["team_id"].strip() == self.team_id and int(row["nfl_season"]) == self.season
+        )
+        available = {int(row["nfl_season"]) for row in self.service.model_rows}
+        self.missing_season = max(available) + 1
+
+        # Keep move-impact tests deterministic even when artifact effects are all zeros.
+        self.service.effect_map[("win_pct", "player", self.test_player_id)] = 0.05
 
     def test_simulate_returns_schema_fields(self) -> None:
         response = self.service.simulate(
-            team_id="BUF",
-            season=2024,
-            week=6,
+            team_id=self.team_id,
+            season=self.season,
+            week=self.week,
             scenario_id="test-baseline",
             moves=[],
         )
@@ -29,13 +42,13 @@ class CounterfactualServiceTests(unittest.TestCase):
         team_impact = response["team_impact"]
         scenario = response["scenario_output"]
 
-        self.assertEqual(team_impact["team_id"], "BUF")
-        self.assertEqual(team_impact["season"], 2024)
+        self.assertEqual(team_impact["team_id"], self.team_id)
+        self.assertEqual(team_impact["season"], self.season)
         self.assertTrue(team_impact["period"].startswith("week_"))
 
         self.assertEqual(scenario["scenario_id"], "test-baseline")
-        self.assertEqual(scenario["team_id"], "BUF")
-        self.assertEqual(scenario["season"], 2024)
+        self.assertEqual(scenario["team_id"], self.team_id)
+        self.assertEqual(scenario["season"], self.season)
         self.assertEqual(scenario["applied_moves"], [])
 
         for estimate in scenario["estimates"]:
@@ -52,21 +65,21 @@ class CounterfactualServiceTests(unittest.TestCase):
 
     def test_add_move_changes_scenario_estimate(self) -> None:
         baseline = self.service.simulate(
-            team_id="BUF",
-            season=2024,
-            week=6,
+            team_id=self.team_id,
+            season=self.season,
+            week=self.week,
             scenario_id="baseline",
             moves=[],
         )
         with_move = self.service.simulate(
-            team_id="BUF",
-            season=2024,
-            week=6,
+            team_id=self.team_id,
+            season=self.season,
+            week=self.week,
             scenario_id="add-p003",
             moves=[
                 {
                     "move_id": "custom_001",
-                    "player_id": "p_003",
+                    "player_id": self.test_player_id,
                     "from_team_id": "NYJ",
                     "to_team_id": "BUF",
                     "move_type": "trade",
@@ -88,9 +101,9 @@ class CounterfactualServiceTests(unittest.TestCase):
         )
 
     def test_overview_payload_contains_required_sections(self) -> None:
-        payload = self.service.build_overview_payload(season=2024)
+        payload = self.service.build_overview_payload(season=self.season)
 
-        self.assertEqual(payload["season"], 2024)
+        self.assertEqual(payload["season"], self.season)
         self.assertIn("generated_at", payload)
         self.assertIn("scope", payload)
         self.assertIn("cards", payload)
@@ -118,10 +131,10 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertGreaterEqual(len(charts["geography_impact_profile"]), 1)
 
     def test_team_detail_payload_contains_required_sections(self) -> None:
-        payload = self.service.build_team_detail_payload(team_id="BUF", season=2024)
+        payload = self.service.build_team_detail_payload(team_id=self.team_id, season=self.season)
 
-        self.assertEqual(payload["team_id"], "BUF")
-        self.assertEqual(payload["season"], 2024)
+        self.assertEqual(payload["team_id"], self.team_id)
+        self.assertEqual(payload["season"], self.season)
         self.assertIn("generated_at", payload)
         self.assertIn("cards", payload)
         self.assertIn("timeline", payload)
@@ -139,14 +152,14 @@ class CounterfactualServiceTests(unittest.TestCase):
 
     def test_scenario_sandbox_payload_contains_delta_summary(self) -> None:
         payload = self.service.build_scenario_sandbox_payload(
-            team_id="BUF",
-            season=2024,
-            week=6,
+            team_id=self.team_id,
+            season=self.season,
+            week=self.week,
             scenario_id="sandbox-add-p003",
             moves=[
                 {
                     "move_id": "custom_002",
-                    "player_id": "p_003",
+                    "player_id": self.test_player_id,
                     "from_team_id": "NYJ",
                     "to_team_id": "BUF",
                     "move_type": "trade",
@@ -156,8 +169,8 @@ class CounterfactualServiceTests(unittest.TestCase):
         )
 
         self.assertEqual(payload["scenario_id"], "sandbox-add-p003")
-        self.assertEqual(payload["team_id"], "BUF")
-        self.assertEqual(payload["season"], 2024)
+        self.assertEqual(payload["team_id"], self.team_id)
+        self.assertEqual(payload["season"], self.season)
         self.assertTrue(payload["period"].startswith("week_"))
 
         self.assertGreaterEqual(len(payload["baseline_estimates"]), 1)
@@ -169,19 +182,19 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertGreater(delta_by_outcome["win_pct"]["mis_delta"], 0)
 
     def test_overview_raises_when_season_missing(self) -> None:
-        with self.assertRaisesRegex(ValueError, "data not available for season=2026"):
-            self.service.build_overview_payload(season=2026)
+        with self.assertRaisesRegex(ValueError, f"data not available for season={self.missing_season}"):
+            self.service.build_overview_payload(season=self.missing_season)
 
     def test_team_detail_raises_when_season_missing(self) -> None:
-        with self.assertRaisesRegex(ValueError, "data not available for season=2026"):
-            self.service.build_team_detail_payload(team_id="BUF", season=2026)
+        with self.assertRaisesRegex(ValueError, f"data not available for season={self.missing_season}"):
+            self.service.build_team_detail_payload(team_id=self.team_id, season=self.missing_season)
 
     def test_simulate_raises_when_season_missing(self) -> None:
-        with self.assertRaisesRegex(ValueError, "data not available for season=2026"):
+        with self.assertRaisesRegex(ValueError, f"data not available for season={self.missing_season}"):
             self.service.simulate(
-                team_id="BUF",
-                season=2026,
-                week=6,
+                team_id=self.team_id,
+                season=self.missing_season,
+                week=self.week,
                 scenario_id="missing-year",
                 moves=[],
             )
