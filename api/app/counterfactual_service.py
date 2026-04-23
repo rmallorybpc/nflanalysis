@@ -46,6 +46,16 @@ TEAM_GEO = {
     "WAS": ("NFC", "East"),
 }
 
+POSITION_GROUP_FEATURE = {
+    "offense_skill": "offense_skill_value_delta",
+    "offense_line": "offense_line_value_delta",
+    "defense_front": "defense_front_value_delta",
+    "defense_second_level": "defense_second_level_value_delta",
+    "defense_secondary": "defense_secondary_value_delta",
+    "special_teams": "special_teams_value_delta",
+    "other": "other_value_delta",
+}
+
 
 def _to_float(value: str, field_name: str) -> float:
     try:
@@ -101,6 +111,7 @@ class ServiceConfig:
     model_outputs: Path = Path("data/processed/model_outputs_hierarchical.csv")
     fallback_outputs: Path = Path("data/processed/model_outputs.csv")
     effects: Path = Path("models/artifacts/hierarchical_effects.csv")
+    baseline_coefficients: Path = Path("models/artifacts/baseline_coefficients.csv")
     players: Path = Path("data/processed/player_dimension.csv")
     movement_events: Path = Path("data/processed/movement_events.csv")
     team_week_features: Path = Path("data/processed/team_week_features.csv")
@@ -115,6 +126,7 @@ class ServiceConfig:
             model_outputs=env_path("MODEL_OUTPUTS_PATH", cls.model_outputs),
             fallback_outputs=env_path("FALLBACK_OUTPUTS_PATH", cls.fallback_outputs),
             effects=env_path("HIERARCHICAL_EFFECTS_PATH", cls.effects),
+            baseline_coefficients=env_path("BASELINE_COEFFICIENTS_PATH", cls.baseline_coefficients),
             players=env_path("PLAYER_DIMENSION_PATH", cls.players),
             movement_events=env_path("MOVEMENT_EVENTS_PATH", cls.movement_events),
             team_week_features=env_path("TEAM_WEEK_FEATURES_PATH", cls.team_week_features),
@@ -130,6 +142,7 @@ class CounterfactualService:
         self.player_dim = _read_csv(self.config.players)
         self.effect_map = self._load_effects()
         self.player_group = self._load_player_groups()
+        self.baseline_coefs = self._load_baseline_coefs()
         self.player_name: dict[str, str] = {}
         for row in self.player_dim:
             player_id = row["player_id"].strip()
@@ -157,6 +170,16 @@ class CounterfactualService:
         out: dict[str, str] = {}
         for row in self.player_dim:
             out[row["player_id"].strip()] = (row.get("position_group", "") or "other").strip().lower()
+        return out
+
+    def _load_baseline_coefs(self) -> dict[tuple[str, str], float]:
+        out: dict[tuple[str, str], float] = {}
+        if not self.config.baseline_coefficients.exists():
+            return out
+        for row in _read_csv(self.config.baseline_coefficients):
+            outcome = row["outcome_name"].strip()
+            feature_name = row["feature_name"].strip()
+            out[(outcome, feature_name)] = _to_float(row["coefficient"], "coefficient")
         return out
 
     def build_players_payload(self) -> dict[str, Any]:
@@ -318,11 +341,20 @@ class CounterfactualService:
                 continue
 
             if player_id:
-                adjustment += direction * self.effect_map.get((outcome_name, "player", player_id), 0.0)
-
                 position_group = self.player_group.get(player_id, "other")
-                key = f"{position_group}|{team_id}"
-                adjustment += direction * self.effect_map.get((outcome_name, "position_team", key), 0.0)
+                player_effect = self.effect_map.get((outcome_name, "player", player_id))
+                if player_effect is not None:
+                    effect = player_effect
+                else:
+                    key = f"{position_group}|{team_id}"
+                    position_team_effect = self.effect_map.get((outcome_name, "position_team", key))
+                    if position_team_effect is not None:
+                        effect = position_team_effect
+                    else:
+                        feature_name = POSITION_GROUP_FEATURE.get(position_group, POSITION_GROUP_FEATURE["other"])
+                        effect = self.baseline_coefs.get((outcome_name, feature_name), 0.0)
+
+                adjustment += direction * effect
 
         return adjustment
 

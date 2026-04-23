@@ -199,6 +199,116 @@ class CounterfactualServiceTests(unittest.TestCase):
                 moves=[],
             )
 
+    def test_scenario_adjustment_prefers_player_effect(self) -> None:
+        player_id = "test_player_layer"
+        self.service.player_group[player_id] = "offense_skill"
+        self.service.effect_map[("win_pct", "player", player_id)] = 0.02
+        self.service.effect_map[("win_pct", "position_team", f"offense_skill|{self.team_id}")] = 0.08
+        self.service.baseline_coefs[("win_pct", "offense_skill_value_delta")] = 0.12
+
+        adjustment = self.service._scenario_adjustment(
+            team_id=self.team_id,
+            outcome_name="win_pct",
+            moves=[
+                {
+                    "move_id": "custom_layer_1",
+                    "player_id": player_id,
+                    "from_team_id": "NYJ",
+                    "to_team_id": self.team_id,
+                    "move_type": "trade",
+                    "action": "add",
+                }
+            ],
+        )
+
+        self.assertAlmostEqual(adjustment, 0.02, places=6)
+
+    def test_scenario_adjustment_uses_position_team_when_player_missing(self) -> None:
+        player_id = "test_position_team_layer"
+        self.service.player_group[player_id] = "offense_line"
+        self.service.effect_map.pop(("win_pct", "player", player_id), None)
+        self.service.effect_map[("win_pct", "position_team", f"offense_line|{self.team_id}")] = 0.03
+        self.service.baseline_coefs[("win_pct", "offense_line_value_delta")] = 0.11
+
+        adjustment = self.service._scenario_adjustment(
+            team_id=self.team_id,
+            outcome_name="win_pct",
+            moves=[
+                {
+                    "move_id": "custom_layer_2",
+                    "player_id": player_id,
+                    "from_team_id": "NYJ",
+                    "to_team_id": self.team_id,
+                    "move_type": "trade",
+                    "action": "add",
+                }
+            ],
+        )
+
+        self.assertAlmostEqual(adjustment, 0.03, places=6)
+
+    def test_scenario_adjustment_uses_baseline_when_hierarchical_missing(self) -> None:
+        player_id = "nfl:dane-jackson"
+        self.service.effect_map.pop(("win_pct", "player", player_id), None)
+        self.service.effect_map.pop(("win_pct", "position_team", f"defense_secondary|{self.team_id}"), None)
+
+        add_adjustment = self.service._scenario_adjustment(
+            team_id=self.team_id,
+            outcome_name="win_pct",
+            moves=[
+                {
+                    "move_id": "custom_layer_3_add",
+                    "player_id": player_id,
+                    "from_team_id": "NYJ",
+                    "to_team_id": self.team_id,
+                    "move_type": "trade",
+                    "action": "add",
+                }
+            ],
+        )
+
+        remove_adjustment = self.service._scenario_adjustment(
+            team_id=self.team_id,
+            outcome_name="win_pct",
+            moves=[
+                {
+                    "move_id": "custom_layer_3_remove",
+                    "player_id": player_id,
+                    "from_team_id": self.team_id,
+                    "to_team_id": "NYJ",
+                    "move_type": "trade",
+                    "action": "remove",
+                }
+            ],
+        )
+
+        self.assertAlmostEqual(add_adjustment, -0.00286369, places=6)
+        self.assertAlmostEqual(remove_adjustment, 0.00286369, places=6)
+
+    def test_scenario_adjustment_zero_player_effect_does_not_fallback(self) -> None:
+        player_id = "test_zero_effect"
+        self.service.player_group[player_id] = "special_teams"
+        self.service.effect_map[("win_pct", "player", player_id)] = 0.0
+        self.service.effect_map[("win_pct", "position_team", f"special_teams|{self.team_id}")] = 0.04
+        self.service.baseline_coefs[("win_pct", "special_teams_value_delta")] = 0.09
+
+        adjustment = self.service._scenario_adjustment(
+            team_id=self.team_id,
+            outcome_name="win_pct",
+            moves=[
+                {
+                    "move_id": "custom_zero_effect",
+                    "player_id": player_id,
+                    "from_team_id": "NYJ",
+                    "to_team_id": self.team_id,
+                    "move_type": "trade",
+                    "action": "add",
+                }
+            ],
+        )
+
+        self.assertEqual(adjustment, 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
