@@ -9,7 +9,7 @@ const TEAM_IDS = [
 
 const state = {
   teamId: "BUF",
-  season: 2024,
+  season: 2026,
 };
 
 const SHARE_DEFAULT_LABEL = "🔗 Share This View";

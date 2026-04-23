@@ -20,8 +20,8 @@
           <p class="kicker">NFL Analysis</p>
           <nav class="top-nav" aria-label="Dashboard pages">
             <a href="./index.html" aria-current="page">Overview</a>
-            <a id="teamPageLink" href="./team.html?team_id=BUF&season=2024">Team Detail</a>
-            <a id="scenarioPageLink" href="./scenario.html?team_id=BUF&season=2024">Scenario Sandbox</a>
+            <a id="teamPageLink" href="./team.html?team_id=BUF&season=2026">Team Detail</a>
+            <a id="scenarioPageLink" href="./scenario.html?team_id=BUF&season=2026">Scenario Sandbox</a>
           </nav>
         </div>
         <h1>Movement Impact Overview</h1>
@@ -30,13 +30,19 @@
         </p>
         <div class="hero-controls" aria-label="Overview filters">
           <label>Season
-            <input id="seasonInput" type="number" value="2024" min="2010" max="2100" />
+            <select id="seasonInput" aria-label="Season selector">
+              <option value="2022">2022</option>
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026" selected>2026</option>
+            </select>
           </label>
           <label>Team Drilldown
             <select id="teamInput" aria-label="Team drilldown selector"></select>
           </label>
           <button id="refreshBtn" type="button">Refresh</button>
-          <a id="openTeamBtn" class="cta-link" href="./team.html?team_id=BUF&season=2024">Open Team Detail</a>
+          <a id="openTeamBtn" class="cta-link" href="./team.html?team_id=BUF&season=2026">Open Team Detail</a>
         </div>
         <div class="hero-meta">
           <span id="seasonLabel">Season: --</span>
