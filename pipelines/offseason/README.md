@@ -134,3 +134,19 @@ Optional flags:
 - `--allow-partial-publish`: publish successful seasons even if some requested seasons fail.
 - `--skip-publish-train`: skip consolidated model retraining (writes combined features/outcomes/movement/players only).
 - `--publish-dirname <name>`: publish consolidated files to `data/processed/offseason/<name>/` and `models/artifacts/offseason/<name>/`.
+
+## 7) Promote Bundle To API Runtime Checks
+
+Run API smoke checks against the consolidated serving bundle:
+
+```bash
+OFFSEASON_SERVING_BUNDLE=data/processed/offseason/backfill_2022_2025 \
+bash scripts/ci_check_api_season_smoke.sh
+```
+
+The check validates:
+
+- Overview, team-detail, and scenario-sandbox payload generation for seasons 2022-2025.
+- Unsupported season handling remains strict.
+
+`scripts/run_final.sh` includes this smoke check in its required gate sequence.

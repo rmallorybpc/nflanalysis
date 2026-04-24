@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import unittest
 
-from api.app.counterfactual_service import CounterfactualService
+from api.app.counterfactual_service import CounterfactualService, POSITION_GROUP_FEATURE
 
 
 class CounterfactualServiceTests(unittest.TestCase):
@@ -26,6 +26,17 @@ class CounterfactualServiceTests(unittest.TestCase):
 
         # Keep move-impact tests deterministic even when artifact effects are all zeros.
         self.service.effect_map[("win_pct", "player", self.test_player_id)] = 0.05
+
+    def _team_week_for_season(self, season: int) -> tuple[str, int]:
+        rows = [
+            row
+            for row in self.service.model_rows
+            if int(row["nfl_season"]) == season and row["outcome_name"].strip() == "win_pct"
+        ]
+        self.assertTrue(rows, msg=f"missing win_pct rows for season={season}")
+        team_id = rows[0]["team_id"].strip()
+        week = max(int(row["nfl_week"]) for row in rows if row["team_id"].strip() == team_id)
+        return team_id, week
 
     def test_simulate_returns_schema_fields(self) -> None:
         response = self.service.simulate(
@@ -181,6 +192,31 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertEqual(delta_by_outcome["win_pct"]["direction"], "positive")
         self.assertGreater(delta_by_outcome["win_pct"]["mis_delta"], 0)
 
+    def test_overview_available_for_backfill_seasons(self) -> None:
+        for season in (2022, 2023, 2024, 2025):
+            payload = self.service.build_overview_payload(season=season)
+            self.assertEqual(payload["season"], season)
+
+    def test_team_detail_available_for_backfill_seasons(self) -> None:
+        for season in (2022, 2023, 2024, 2025):
+            team_id, _ = self._team_week_for_season(season)
+            payload = self.service.build_team_detail_payload(team_id=team_id, season=season)
+            self.assertEqual(payload["team_id"], team_id)
+            self.assertEqual(payload["season"], season)
+
+    def test_scenario_sandbox_available_for_backfill_seasons(self) -> None:
+        for season in (2022, 2023, 2024, 2025):
+            team_id, week = self._team_week_for_season(season)
+            payload = self.service.build_scenario_sandbox_payload(
+                team_id=team_id,
+                season=season,
+                week=week,
+                scenario_id=f"smoke-{season}",
+                moves=[],
+            )
+            self.assertEqual(payload["team_id"], team_id)
+            self.assertEqual(payload["season"], season)
+
     def test_overview_raises_when_season_missing(self) -> None:
         with self.assertRaisesRegex(ValueError, f"data not available for season={self.missing_season}"):
             self.service.build_overview_payload(season=self.missing_season)
@@ -251,6 +287,9 @@ class CounterfactualServiceTests(unittest.TestCase):
         player_id = "nfl:dane-jackson"
         self.service.effect_map.pop(("win_pct", "player", player_id), None)
         self.service.effect_map.pop(("win_pct", "position_team", f"defense_secondary|{self.team_id}"), None)
+        position_group = self.service.player_group.get(player_id, "other")
+        feature_name = POSITION_GROUP_FEATURE.get(position_group, POSITION_GROUP_FEATURE["other"])
+        expected_coef = self.service.baseline_coefs[("win_pct", feature_name)]
 
         add_adjustment = self.service._scenario_adjustment(
             team_id=self.team_id,
@@ -282,8 +321,8 @@ class CounterfactualServiceTests(unittest.TestCase):
             ],
         )
 
-        self.assertAlmostEqual(add_adjustment, -0.00286369, places=6)
-        self.assertAlmostEqual(remove_adjustment, 0.00286369, places=6)
+        self.assertAlmostEqual(add_adjustment, expected_coef, places=6)
+        self.assertAlmostEqual(remove_adjustment, -expected_coef, places=6)
 
     def test_scenario_adjustment_zero_player_effect_does_not_fallback(self) -> None:
         player_id = "test_zero_effect"

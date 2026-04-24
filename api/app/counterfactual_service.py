@@ -115,6 +115,7 @@ class ServiceConfig:
     players: Path = Path("data/processed/player_dimension.csv")
     movement_events: Path = Path("data/processed/movement_events.csv")
     team_week_features: Path = Path("data/processed/team_week_features.csv")
+    required_seasons: tuple[int, ...] = ()
 
     @classmethod
     def from_env(cls) -> "ServiceConfig":
@@ -122,14 +123,50 @@ class ServiceConfig:
             raw = os.getenv(var_name, "").strip()
             return Path(raw) if raw else default
 
+        bundle_env = os.getenv("OFFSEASON_SERVING_BUNDLE", "").strip()
+        default_bundle = Path("data/processed/offseason/backfill_2022_2025")
+        bundle_path = Path(bundle_env) if bundle_env else default_bundle
+
+        using_bundle = bool(bundle_env) or default_bundle.exists()
+
+        if using_bundle:
+            default_model_outputs = bundle_path / "model_outputs_hierarchical.csv"
+            default_fallback_outputs = bundle_path / "model_outputs.csv"
+            default_players = bundle_path / "player_dimension.csv"
+            default_movement = bundle_path / "movement_events.csv"
+            default_features = bundle_path / "team_week_features.csv"
+            default_effects = Path("models/artifacts/offseason") / bundle_path.name / "hierarchical_effects.csv"
+            default_coefs = Path("models/artifacts/offseason") / bundle_path.name / "baseline_coefficients.csv"
+        else:
+            default_model_outputs = cls.model_outputs
+            default_fallback_outputs = cls.fallback_outputs
+            default_players = cls.players
+            default_movement = cls.movement_events
+            default_features = cls.team_week_features
+            default_effects = cls.effects
+            default_coefs = cls.baseline_coefficients
+
+        required_raw = os.getenv("OFFSEASON_REQUIRED_SEASONS", "").strip()
+        if required_raw:
+            required_seasons = tuple(
+                int(token.strip())
+                for token in required_raw.split(",")
+                if token.strip()
+            )
+        elif using_bundle:
+            required_seasons = (2022, 2023, 2024, 2025)
+        else:
+            required_seasons = ()
+
         return cls(
-            model_outputs=env_path("MODEL_OUTPUTS_PATH", cls.model_outputs),
-            fallback_outputs=env_path("FALLBACK_OUTPUTS_PATH", cls.fallback_outputs),
-            effects=env_path("HIERARCHICAL_EFFECTS_PATH", cls.effects),
-            baseline_coefficients=env_path("BASELINE_COEFFICIENTS_PATH", cls.baseline_coefficients),
-            players=env_path("PLAYER_DIMENSION_PATH", cls.players),
-            movement_events=env_path("MOVEMENT_EVENTS_PATH", cls.movement_events),
-            team_week_features=env_path("TEAM_WEEK_FEATURES_PATH", cls.team_week_features),
+            model_outputs=env_path("MODEL_OUTPUTS_PATH", default_model_outputs),
+            fallback_outputs=env_path("FALLBACK_OUTPUTS_PATH", default_fallback_outputs),
+            effects=env_path("HIERARCHICAL_EFFECTS_PATH", default_effects),
+            baseline_coefficients=env_path("BASELINE_COEFFICIENTS_PATH", default_coefs),
+            players=env_path("PLAYER_DIMENSION_PATH", default_players),
+            movement_events=env_path("MOVEMENT_EVENTS_PATH", default_movement),
+            team_week_features=env_path("TEAM_WEEK_FEATURES_PATH", default_features),
+            required_seasons=required_seasons,
         )
 
 
@@ -137,7 +174,7 @@ class CounterfactualService:
     """Loads model artifacts and computes scenario deltas with uncertainty."""
 
     def __init__(self, config: ServiceConfig | None = None) -> None:
-        self.config = config or ServiceConfig()
+        self.config = config or ServiceConfig.from_env()
         self.model_rows = self._load_model_rows()
         self.player_dim = _read_csv(self.config.players)
         self.effect_map = self._load_effects()
@@ -149,6 +186,7 @@ class CounterfactualService:
             full_name = (row.get("full_name", "") or "").strip()
             self.player_name[player_id] = full_name or player_id
         self.mis_stats = self._build_mis_stats()
+        self._validate_required_seasons()
 
     def _load_model_rows(self) -> list[dict[str, str]]:
         if self.config.model_outputs.exists():
@@ -222,6 +260,19 @@ class CounterfactualService:
 
     def _available_seasons(self) -> list[int]:
         return sorted({int(row["nfl_season"]) for row in self.model_rows})
+
+    def _validate_required_seasons(self) -> None:
+        required = set(self.config.required_seasons)
+        if not required:
+            return
+
+        available = set(self._available_seasons())
+        missing = sorted(required - available)
+        if missing:
+            raise ValueError(
+                "configured serving bundle missing required seasons: "
+                f"{missing}; available seasons: {sorted(available)}"
+            )
 
     def _validate_season_available(self, requested_season: int) -> None:
         seasons = self._available_seasons()
