@@ -150,3 +150,29 @@ The check validates:
 - Unsupported season handling remains strict.
 
 `scripts/run_final.sh` includes this smoke check in its required gate sequence.
+
+## 8) Deployment Profile For Serving Bundle
+
+Use the deployment profile to set all serving paths consistently:
+
+```bash
+source scripts/env_offseason_backfill_2022_2025.sh
+```
+
+Then run release checks or API startup with the same environment:
+
+```bash
+bash scripts/run_final.sh
+```
+
+```bash
+/usr/bin/python3 -m api.app.main --host 0.0.0.0 --port 8080
+```
+
+Rollback to legacy serving profile:
+
+```bash
+source scripts/env_offseason_rollback_legacy.sh
+```
+
+This forces explicit legacy runtime paths and season requirements for quick fallback.

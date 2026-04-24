@@ -47,6 +47,20 @@ BASELINE_COEFFICIENTS_PATH=models/artifacts/offseason/backfill_2022_2025/baselin
 /usr/bin/python3 -m api.app.main --host 0.0.0.0 --port 8080
 ```
 
+Deployment profile shortcut:
+
+```bash
+source scripts/env_offseason_backfill_2022_2025.sh
+/usr/bin/python3 -m api.app.main --host 0.0.0.0 --port 8080
+```
+
+Rollback profile shortcut (legacy dataset):
+
+```bash
+source scripts/env_offseason_rollback_legacy.sh
+/usr/bin/python3 -m api.app.main --host 0.0.0.0 --port 8080
+```
+
 Health check:
 
 ```bash
