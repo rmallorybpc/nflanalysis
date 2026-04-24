@@ -104,3 +104,33 @@ TEAM_WEEK_FEATURES_PATH=data/processed/offseason/team_week_features.csv \
   --season 2026 \
   --require-full
 ```
+
+## 6) Backfill 2022-2025 And Publish Consolidated Outputs
+
+Run the multi-season orchestrator to build isolated per-season artifacts,
+validate each season, then publish consolidated outputs:
+
+```bash
+/usr/bin/python3 pipelines/offseason/backfill_multi_season.py \
+  --start-season 2022 \
+  --end-season 2025
+```
+
+What this does:
+
+- Writes per-season intermediate outputs under:
+  - `data/processed/offseason/<season>/...`
+  - `models/artifacts/offseason/<season>/...`
+- Runs per-season gates:
+  - non-empty movement events
+  - season label coherence across movement/outcomes/features/model outputs
+  - full 32-team coverage check
+- Publishes consolidated canonical files under:
+  - `data/processed/offseason/`
+  - `models/artifacts/offseason/`
+
+Optional flags:
+
+- `--allow-partial-publish`: publish successful seasons even if some requested seasons fail.
+- `--skip-publish-train`: skip consolidated model retraining (writes combined features/outcomes/movement/players only).
+- `--publish-dirname <name>`: publish consolidated files to `data/processed/offseason/<name>/` and `models/artifacts/offseason/<name>/`.

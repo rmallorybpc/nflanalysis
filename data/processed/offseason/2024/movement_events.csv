@@ -1,0 +1,26 @@
+move_id,event_date,effective_date,move_type,player_id,from_team_id,to_team_id,transaction_detail,source,nfl_season,season_phase,phase_week,nfl_week,ingested_at
+ofs_2024_01_00001,2024-03-29,2024-03-29,free_agency,L/LownJa01,,CAR,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00002,2024-03-29,2024-03-29,free_agency,K/KlinSa02,,CAR,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00003,2024-03-29,2024-03-29,free_agency,E/EsmyCh03,,NO,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00004,2024-03-29,2024-03-29,free_agency,Z/ZammLo04,,KC,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00005,2024-03-28,2024-03-28,free_agency,U/UdfeNa05,,DET,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00006,2024-03-28,2024-03-28,free_agency,J/JoseGr06,,GB,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00007,2024-03-28,2024-03-28,free_agency,E/EguaJo07,,JAX,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00008,2024-03-28,2024-03-28,free_agency,K/KsheRa08,,CAR,Exclusive Rights Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00009,2024-03-28,2024-03-28,free_agency,L/LliaDe09,,BUF,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00010,2024-03-28,2024-03-28,free_agency,O/OhnsAu10,,BUF,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00011,2024-03-28,2024-03-28,free_agency,F/FultKr11,,LAC,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00012,2024-03-28,2024-03-28,free_agency,Y/YnolJo12,,DEN,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00013,2024-03-27,2024-03-27,free_agency,K/KscoNi13,,CAR,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00014,2024-03-26,2024-03-26,free_agency,N/NbryTa14,,IND,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00015,2024-03-26,2024-03-26,free_agency,H/HolmJa15,,NYJ,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00016,2024-03-25,2024-03-25,free_agency,O/OdgiIs16,,NYG,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00017,2024-03-25,2024-03-25,free_agency,L/LclaWi17,,BUF,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00018,2024-03-25,2024-03-25,free_agency,C/ChisLa18,,LAR,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00019,2024-03-25,2024-03-25,free_agency,S/SlucCo19,,WAS,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00020,2024-03-25,2024-03-25,free_agency,L/LeodRo20,,CLE,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00021,2024-03-25,2024-03-25,free_agency,D/DeyoCa21,,CLE,Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00022,2024-03-25,2024-03-25,free_agency,D/DeitMi22,,WAS,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00023,2024-03-22,2024-03-22,free_agency,O/OlamIs23,,LV,Exclusive Rights Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00024,2024-03-22,2024-03-22,free_agency,D/DersCj24,,HOU,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
+ofs_2024_01_00025,2024-03-22,2024-03-22,free_agency,O/OremDo25,,CLE,Unrestricted Free Agent Signing,https://www.nfl.com/transactions/league/signings/2024/3,2024,regular,1,1,2026-04-24T18:27:22Z
