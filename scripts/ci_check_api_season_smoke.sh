@@ -3,13 +3,13 @@ set -euo pipefail
 
 echo "Running API season smoke checks..."
 
-export OFFSEASON_SERVING_BUNDLE="${OFFSEASON_SERVING_BUNDLE:-data/processed/offseason/backfill_2022_2025}"
+export OFFSEASON_SERVING_BUNDLE="${OFFSEASON_SERVING_BUNDLE:-data/processed/offseason/backfill_2022_2026}"
 
 python3 - <<'PY'
 from api.app.counterfactual_service import CounterfactualService, ServiceConfig
 
 service = CounterfactualService(config=ServiceConfig.from_env())
-required = [2022, 2023, 2024, 2025]
+required = [2022, 2023, 2024, 2025, 2026]
 
 for season in required:
     overview = service.build_overview_payload(season=season)

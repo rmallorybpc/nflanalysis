@@ -3,7 +3,7 @@ set -euo pipefail
 
 echo "Running offseason backfill coverage checks..."
 
-BACKFILL_DIR="${OFFSEASON_BACKFILL_DIR:-data/processed/offseason/backfill_2022_2025}"
+BACKFILL_DIR="${OFFSEASON_BACKFILL_DIR:-data/processed/offseason/backfill_2022_2026}"
 MODEL_OUTPUTS_PATH="${BACKFILL_DIR}/model_outputs_hierarchical.csv"
 MOVEMENT_EVENTS_PATH="${BACKFILL_DIR}/movement_events.csv"
 
@@ -26,10 +26,10 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-backfill_dir = Path(os.environ.get("OFFSEASON_BACKFILL_DIR", "data/processed/offseason/backfill_2022_2025"))
+backfill_dir = Path(os.environ.get("OFFSEASON_BACKFILL_DIR", "data/processed/offseason/backfill_2022_2026"))
 model_outputs = backfill_dir / "model_outputs_hierarchical.csv"
 movement_events = backfill_dir / "movement_events.csv"
-expected = {2022, 2023, 2024, 2025}
+expected = {2022, 2023, 2024, 2025, 2026}
 
 with model_outputs.open(newline="", encoding="utf-8") as f:
     model_rows = list(csv.DictReader(f))

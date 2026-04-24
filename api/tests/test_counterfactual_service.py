@@ -193,19 +193,19 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertGreater(delta_by_outcome["win_pct"]["mis_delta"], 0)
 
     def test_overview_available_for_backfill_seasons(self) -> None:
-        for season in (2022, 2023, 2024, 2025):
+        for season in (2022, 2023, 2024, 2025, 2026):
             payload = self.service.build_overview_payload(season=season)
             self.assertEqual(payload["season"], season)
 
     def test_team_detail_available_for_backfill_seasons(self) -> None:
-        for season in (2022, 2023, 2024, 2025):
+        for season in (2022, 2023, 2024, 2025, 2026):
             team_id, _ = self._team_week_for_season(season)
             payload = self.service.build_team_detail_payload(team_id=team_id, season=season)
             self.assertEqual(payload["team_id"], team_id)
             self.assertEqual(payload["season"], season)
 
     def test_scenario_sandbox_available_for_backfill_seasons(self) -> None:
-        for season in (2022, 2023, 2024, 2025):
+        for season in (2022, 2023, 2024, 2025, 2026):
             team_id, week = self._team_week_for_season(season)
             payload = self.service.build_scenario_sandbox_payload(
                 team_id=team_id,

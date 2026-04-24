@@ -105,7 +105,7 @@ TEAM_WEEK_FEATURES_PATH=data/processed/offseason/team_week_features.csv \
   --require-full
 ```
 
-## 6) Backfill 2022-2025 And Publish Consolidated Outputs
+## 6) Backfill 2022-2026 And Publish Consolidated Outputs
 
 Run the multi-season orchestrator to build isolated per-season artifacts,
 validate each season, then publish consolidated outputs:
@@ -113,7 +113,7 @@ validate each season, then publish consolidated outputs:
 ```bash
 /usr/bin/python3 pipelines/offseason/backfill_multi_season.py \
   --start-season 2022 \
-  --end-season 2025
+  --end-season 2026
 ```
 
 What this does:
@@ -140,13 +140,13 @@ Optional flags:
 Run API smoke checks against the consolidated serving bundle:
 
 ```bash
-OFFSEASON_SERVING_BUNDLE=data/processed/offseason/backfill_2022_2025 \
+OFFSEASON_SERVING_BUNDLE=data/processed/offseason/backfill_2022_2026 \
 bash scripts/ci_check_api_season_smoke.sh
 ```
 
 The check validates:
 
-- Overview, team-detail, and scenario-sandbox payload generation for seasons 2022-2025.
+- Overview, team-detail, and scenario-sandbox payload generation for seasons 2022-2026.
 - Unsupported season handling remains strict.
 
 `scripts/run_final.sh` includes this smoke check in its required gate sequence.
@@ -156,7 +156,7 @@ The check validates:
 Use the deployment profile to set all serving paths consistently:
 
 ```bash
-source scripts/env_offseason_backfill_2022_2025.sh
+source scripts/env_offseason_backfill_2022_2026.sh
 ```
 
 Then run release checks or API startup with the same environment:

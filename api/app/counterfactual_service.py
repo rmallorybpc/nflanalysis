@@ -124,7 +124,7 @@ class ServiceConfig:
             return Path(raw) if raw else default
 
         bundle_env = os.getenv("OFFSEASON_SERVING_BUNDLE", "").strip()
-        default_bundle = Path("data/processed/offseason/backfill_2022_2025")
+        default_bundle = Path("data/processed/offseason/backfill_2022_2026")
         bundle_path = Path(bundle_env) if bundle_env else default_bundle
 
         using_bundle = bool(bundle_env) or default_bundle.exists()
@@ -154,7 +154,7 @@ class ServiceConfig:
                 if token.strip()
             )
         elif using_bundle:
-            required_seasons = (2022, 2023, 2024, 2025)
+            required_seasons = (2022, 2023, 2024, 2025, 2026)
         else:
             required_seasons = ()
 

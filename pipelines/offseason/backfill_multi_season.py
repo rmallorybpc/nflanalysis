@@ -146,7 +146,7 @@ class SeasonResult:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Backfill offseason seasons and publish consolidated outputs")
     parser.add_argument("--start-season", type=int, default=2022)
-    parser.add_argument("--end-season", type=int, default=2025)
+    parser.add_argument("--end-season", type=int, default=2026)
     parser.add_argument("--week", type=int, default=1)
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--processed-root", type=Path, default=Path("data/processed/offseason"))
