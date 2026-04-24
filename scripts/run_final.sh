@@ -9,6 +9,7 @@ echo "=== Final orchestrator started: $(date -u +"%Y-%m-%dT%H:%M:%SZ") ==="
 
 CHECKS=(
   "scripts/ci_check_data_quality.sh"
+  "scripts/ci_check_offseason_backfill_coverage.sh"
   "scripts/ci_check_dashboard_contracts.sh"
   "scripts/ci_check_model_regression_contract.sh"
 )
