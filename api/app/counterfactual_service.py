@@ -613,7 +613,24 @@ class CounterfactualService:
 
             sign = 1.0 if row.get("to_team_id", "").strip() == team_id else -1.0
             player_id = row.get("player_id", "").strip()
-            impact = sign * self.effect_map.get(("win_pct", "player", player_id), 0.0)
+            # Layer 1: player-level hierarchical effect
+            player_effect = self.effect_map.get(("win_pct", "player", player_id), None)
+
+            # Layer 2: position-team hierarchical effect
+            position_group = self.player_group.get(player_id, "other")
+            pos_team_key = f"{position_group}|{team_id}"
+            pos_team_effect = self.effect_map.get(("win_pct", "position_team", pos_team_key), None)
+
+            if player_effect is not None or pos_team_effect is not None:
+                raw_impact = (player_effect or 0.0) + (pos_team_effect or 0.0)
+            else:
+                feature_name = POSITION_GROUP_FEATURE.get(position_group)
+                raw_impact = 0.0
+                if feature_name:
+                    coef = self.baseline_coefs.get(("win_pct", feature_name), 0.0)
+                    raw_impact = coef * 1.0
+
+            impact = sign * raw_impact
 
             relevant_moves.append(
                 {
