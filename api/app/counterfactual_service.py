@@ -46,7 +46,7 @@ TEAM_GEO = {
     "WAS": ("NFC", "East"),
 }
 
-POSITION_GROUP_FEATURE = {
+POSITION_GROUP_FEATURE: dict[str, str] = {
     "offense_skill": "offense_skill_value_delta",
     "offense_line": "offense_line_value_delta",
     "defense_front": "defense_front_value_delta",
@@ -210,14 +210,24 @@ class CounterfactualService:
             out[row["player_id"].strip()] = (row.get("position_group", "") or "other").strip().lower()
         return out
 
-    def _load_baseline_coefs(self) -> dict[tuple[str, str], float]:
+    def _load_baseline_coefs(
+        self,
+    ) -> dict[tuple[str, str], float]:
+        """
+        Load baseline ridge coefficients keyed by
+        (outcome_name, feature_name).
+        Returns empty dict if the file does not exist or is empty.
+        """
+        path = self.config.baseline_coefficients
+        if not path.exists():
+            return {}
         out: dict[tuple[str, str], float] = {}
-        if not self.config.baseline_coefficients.exists():
-            return out
-        for row in _read_csv(self.config.baseline_coefficients):
-            outcome = row["outcome_name"].strip()
-            feature_name = row["feature_name"].strip()
-            out[(outcome, feature_name)] = _to_float(row["coefficient"], "coefficient")
+        for row in _read_csv(path):
+            outcome = row.get("outcome_name", "").strip()
+            feature = row.get("feature_name", "").strip()
+            coef = _to_float(row.get("coefficient", "0"), "coefficient")
+            if outcome and feature:
+                out[(outcome, feature)] = coef
         return out
 
     def build_players_payload(self) -> dict[str, Any]:
@@ -375,7 +385,12 @@ class CounterfactualService:
         rows.sort(key=lambda row: OUTCOME_ORDER.index(row["outcome_name"]))
         return rows
 
-    def _scenario_adjustment(self, team_id: str, outcome_name: str, moves: list[dict[str, Any]]) -> float:
+    def _scenario_adjustment(
+        self,
+        team_id: str,
+        outcome_name: str,
+        moves: list[dict[str, Any]],
+    ) -> float:
         adjustment = 0.0
         for move in moves:
             player_id = str(move.get("player_id", "")).strip()
@@ -391,21 +406,35 @@ class CounterfactualService:
             else:
                 continue
 
-            if player_id:
-                position_group = self.player_group.get(player_id, "other")
-                player_effect = self.effect_map.get((outcome_name, "player", player_id))
-                if player_effect is not None:
-                    effect = player_effect
-                else:
-                    key = f"{position_group}|{team_id}"
-                    position_team_effect = self.effect_map.get((outcome_name, "position_team", key))
-                    if position_team_effect is not None:
-                        effect = position_team_effect
-                    else:
-                        feature_name = POSITION_GROUP_FEATURE.get(position_group, POSITION_GROUP_FEATURE["other"])
-                        effect = self.baseline_coefs.get((outcome_name, feature_name), 0.0)
+            # Layer 1: player-level hierarchical effect
+            player_effect = self.effect_map.get(
+                (outcome_name, "player", player_id), None
+            )
 
-                adjustment += direction * effect
+            # Layer 2: position-team hierarchical effect
+            position_group = self.player_group.get(player_id, "other")
+            pos_team_key = f"{position_group}|{team_id}"
+            pos_team_effect = self.effect_map.get(
+                (outcome_name, "position_team", pos_team_key), None
+            )
+
+            if player_effect is not None:
+                adjustment += direction * player_effect
+            elif pos_team_effect is not None:
+                adjustment += direction * pos_team_effect
+            else:
+                # Layer 3: fallback to baseline coefficient
+                # Use the position group value delta coefficient as a
+                # proxy for the marginal impact of one roster move in
+                # that position group
+                feature_name = POSITION_GROUP_FEATURE.get(
+                    position_group
+                )
+                if feature_name:
+                    coef = self.baseline_coefs.get(
+                        (outcome_name, feature_name), 0.0
+                    )
+                    adjustment += direction * coef * 1.0
 
         return adjustment
 
