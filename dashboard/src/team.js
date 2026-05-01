@@ -39,6 +39,8 @@ function syncControls() {
   overviewLink.href = `./index.html?season=${state.season}&team_id=${state.teamId}`;
   const scenarioLink = document.getElementById("scenarioLink");
   scenarioLink.href = `./scenario.html?season=${state.season}&team_id=${state.teamId}`;
+  const explorerLink = document.getElementById("explorerLink");
+  explorerLink.href = `./explorer.html?season=${state.season}&team_id=${state.teamId}`;
 }
 
 function rewriteNavLinksFromParams() {

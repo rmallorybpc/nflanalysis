@@ -3,10 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NFL Team Detail</title>
+    <title>NFL Player Movement Explorer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./team.css" />
     <style>
       .movement-cards {
@@ -171,46 +172,28 @@
         padding: 1.15rem 0.5rem;
       }
 
-      .share-control {
-        margin-left: auto;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 0.35rem;
+      #controlsRow select {
+        min-width: 120px;
       }
 
-      .share-btn {
-        background: var(--panel-bg, rgba(15, 23, 42, 0.45));
-        color: var(--text-muted, #cbd5e1);
-        border: 1px solid var(--panel-border, rgba(148, 163, 184, 0.35));
-        border-radius: 10px;
-        padding: 0.5rem 0.8rem;
-        font-size: 0.8rem;
-        font-weight: 700;
-        line-height: 1;
-        cursor: pointer;
-        transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
-      }
-
-      .share-btn:hover,
-      .share-btn:focus-visible {
-        background: var(--panel-bg-hover, rgba(30, 41, 59, 0.65));
-        border-color: var(--accent-soft, rgba(125, 211, 252, 0.65));
-        color: var(--text-main, #f8fafc);
-      }
-
-      .share-btn.copied {
-        border-color: var(--success-color, rgba(34, 197, 94, 0.7));
-        color: var(--success-text, #86efac);
-      }
-
-      .share-feedback {
+      #loadProgress {
+        margin: 0.4rem 0 0;
         min-height: 1.05rem;
-        max-width: min(44ch, 60vw);
-        font-size: 0.72rem;
-        color: var(--danger-color, #fca5a5);
-        text-align: right;
-        overflow-wrap: anywhere;
+        color: #d7e8f8;
+        font-size: 0.82rem;
+      }
+
+      #resultsCount {
+        margin: 0.6rem 0 0;
+        color: #d7e8f8;
+        font-size: 0.85rem;
+      }
+
+      #partialLoadNotice {
+        margin: 0.35rem 0 0;
+        min-height: 1.05rem;
+        color: #f59e0b;
+        font-size: 0.82rem;
       }
     </style>
   </head>
@@ -218,82 +201,77 @@
     <main class="wrap">
       <header class="hero">
         <div class="hero-top">
-          <p class="label">Team Detail</p>
+          <p class="label">Player Movement Explorer</p>
           <nav class="top-nav" aria-label="Dashboard pages">
             <a id="overviewLink" href="./index.html?season=2026&team_id=BUF">Overview</a>
-            <a href="./team.html" aria-current="page">Team Detail</a>
+            <a id="teamLink" href="./team.html?season=2026&team_id=BUF">Team Detail</a>
             <a id="scenarioLink" href="./scenario.html?season=2026&team_id=BUF">Scenario Sandbox</a>
-            <a href="./explorer.html" id="explorerLink">Explorer</a>
+            <a href="./explorer.html" id="explorerLink" aria-current="page">Explorer</a>
           </nav>
         </div>
-        <h1 id="title">Team --</h1>
-        <p id="meta">Season --</p>
-        <div class="hero-controls" aria-label="Team detail controls">
-          <label>Team
-            <select id="teamInput" aria-label="Team selector"></select>
-          </label>
+        <h1>Player Movement Explorer</h1>
+        <p id="meta">Browse and filter all player movement events across seasons.</p>
+        <div id="controlsRow" class="hero-controls" aria-label="Player movement explorer controls">
           <label>Season
-            <input id="seasonInput" type="number" value="2026" min="2010" max="2100" />
+            <select id="seasonInput" aria-label="Season selector">
+              <option value="2022">2022</option>
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026" selected>2026</option>
+            </select>
           </label>
-          <button id="reloadBtn" type="button">Reload Team</button>
-          <div class="share-control">
-            <button id="shareViewBtn" class="share-btn" type="button">🔗 Share This View</button>
-            <p id="shareFeedback" class="share-feedback" role="status" aria-live="polite"></p>
-          </div>
+          <label>Team
+            <select id="teamFilter" aria-label="Team filter"></select>
+          </label>
+          <label>Position Group
+            <select id="positionFilter" aria-label="Position group filter"></select>
+          </label>
+          <label>Move Type
+            <select id="moveTypeFilter" aria-label="Move type filter">
+              <option value="">All</option>
+              <option value="trade">Trade</option>
+              <option value="free_agency">Free Agency</option>
+            </select>
+          </label>
+          <label>Direction
+            <select id="directionFilter" aria-label="Direction filter">
+              <option value="">All</option>
+              <option value="inbound">Inbound</option>
+              <option value="outbound">Outbound</option>
+            </select>
+          </label>
+          <label>Impact Band
+            <select id="misBandFilter" aria-label="Impact band filter">
+              <option value="">All</option>
+              <option value="high_pos">High Positive</option>
+              <option value="mod_pos">Moderate Positive</option>
+              <option value="neutral">Neutral</option>
+              <option value="mod_neg">Moderate Negative</option>
+              <option value="high_neg">High Negative</option>
+            </select>
+          </label>
+          <label>Sort
+            <select id="sortInput" aria-label="Sort order">
+              <option value="abs_desc" selected>Impact High→Low</option>
+              <option value="abs_asc">Impact Low→High</option>
+              <option value="date_desc">Date Newest</option>
+              <option value="date_asc">Date Oldest</option>
+            </select>
+          </label>
         </div>
+        <p id="resultsCount" role="status" aria-live="polite">Showing 0 of 0 movement events</p>
+        <p id="loadProgress" role="status" aria-live="polite"></p>
+        <div id="partialLoadNotice" role="status" aria-live="polite"></div>
         <p id="statusMessage" class="status-message" role="status" aria-live="polite"></p>
       </header>
 
-      <section class="helper panel" aria-label="How to use team detail page">
-        <h2>How To Use</h2>
-        <p>Choose a team and season, then click Reload Team. Use the top navigation to return to overview or run a what-if in the scenario sandbox with this same context.</p>
-      </section>
-
-      <section class="cards">
-        <article class="card" id="cardCurrent"></article>
-        <article class="card" id="cardMoves"></article>
-        <article class="card" id="cardPosition"></article>
-      </section>
-
-      <section class="grid">
-        <article class="panel">
-          <h2>Movement Timeline</h2>
-          <div id="timeline" class="timeline"></div>
-        </article>
-        <article class="panel">
-          <h2>MIS Trend</h2>
-          <div id="trend" class="trend"></div>
-        </article>
-      </section>
-
       <section class="panel">
-        <h2>Position Group Delta</h2>
-        <div id="position" class="position"></div>
+        <h2>Movement Timeline</h2>
+        <div id="explorerResults" class="timeline"></div>
       </section>
     </main>
 
-    <template id="timelineTemplate">
-      <div class="timeline-item">
-        <div class="timeline-week"></div>
-        <div class="timeline-content"></div>
-      </div>
-    </template>
-
-    <template id="trendTemplate">
-      <div class="trend-row">
-        <div class="trend-label"></div>
-        <div class="trend-track"><div class="trend-fill"></div></div>
-        <div class="trend-value"></div>
-      </div>
-    </template>
-
-    <template id="positionTemplate">
-      <div class="position-row">
-        <div class="position-label"></div>
-        <div class="position-value"></div>
-      </div>
-    </template>
-
-    <script type="module" src="./team.js"></script>
+    <script type="module" src="./explorer.js"></script>
   </body>
 </html>
