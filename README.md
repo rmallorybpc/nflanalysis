@@ -58,6 +58,14 @@ Local check:
 bash scripts/ci_check_data_quality.sh
 ```
 
+## Research Foundation
+
+This project is grounded in behavioral economics research on how disruption and roster change affect performance outcomes.
+
+The primary inspiration is Hengchen Dai's research on the **reset effect** in Major League Baseball, featured in the Freakonomics Radio episode [Are You Ready for a Fresh Start?](https://freakonomics.com/podcast/are-you-ready-for-a-fresh-start-update/). Dai studied approximately 700 trades from 1975 to 2014 and found that when a struggling player is traded across leagues, triggering a statistical reset, their performance improves significantly compared to players traded within the same league. For players performing well before the trade, the reset had the opposite effect.
+
+The implication for NFL roster analysis is direct: player movement is not a neutral event. A trade or free agency signing carries a measurable signal about expected performance change, and that signal varies by context: the player's prior trajectory, the receiving team's environment, and the competitive geography of the move. The Movement Impact Score (MIS) modeled in this project attempts to quantify that signal at the team level.
+
 ## Metric Specification
 
 Use this as the first model contract for analytics + product.
