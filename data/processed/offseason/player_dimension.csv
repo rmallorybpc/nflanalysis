@@ -572,3 +572,8 @@ WillNo01,Nohl Williams,other,DB,1900-01-01,2024,1,active,https://github.com/nflv
 WillNo01,Nohl Williams,other,DB,1900-01-01,2024,1,active,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,2026-04-22T20:15:19Z
 WilsJa02,Jared Wilson,other,UNK,1900-01-01,2024,1,active,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,2026-04-22T20:15:19Z
 WinsKe02,Kevin Winston,other,DB,1900-01-01,2024,1,active,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,2026-04-22T20:15:19Z
+"JackJC00","J.C. Jackson","defense_secondary","CB","1900-01-01","2021","1","active","https://www.nfl.com/players/j-c-jackson/","2026-05-04T16:53:47Z"
+"CarrDe02","Derek Carr","offense_skill","QB","1900-01-01","2014","9","active","https://www.nfl.com/players/derek-carr/","2026-05-04T16:53:47Z"
+"CousKi00","Kirk Cousins","offense_skill","QB","1900-01-01","2023","1","active","https://www.nfl.com/players/kirk-cousins/","2026-05-04T16:53:47Z"
+"McKiXa00","Xavier McKinney","defense_secondary","S","1900-01-01","2023","1","active","https://www.nfl.com/players/xavier-mckinney/","2026-05-04T16:53:47Z"
+"WilkCh01","Christian Wilkins","defense_front","DT","1900-01-01","2023","1","active","https://www.nfl.com/players/christian-wilkins/","2026-05-04T16:53:47Z"

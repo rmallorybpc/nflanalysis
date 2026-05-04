@@ -63,3 +63,4 @@ player,position,team,age,height,weight,experience,college,draft_year,draft_round
 "Evan Carter","G","TEN",28,"6-4",308,5,"Missouri",2018,4,129,"C/CartEv02","https://www.pro-football-reference.com/players/C/CartEv02.htm","manual","2023-03-20T00:00:00Z"
 "Caleb Johnson","EDGE","WAS",27,"6-3",252,4,"Virginia Tech",2019,3,82,"J/JohnCa02","https://www.pro-football-reference.com/players/J/JohnCa02.htm","manual","2023-03-20T00:00:00Z"
 "Isaiah White","S","WAS",29,"6-0",205,6,"NC State",2017,4,126,"W/WhitIs01","https://www.pro-football-reference.com/players/W/WhitIs01.htm","manual","2023-03-20T00:00:00Z"
+"Derek Carr","QB","NO","","","",9,"",2014,"","","CarrDe02","https://www.nfl.com/players/derek-carr/","manual_correction","2026-05-04T00:00:00Z"
