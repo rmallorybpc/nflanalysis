@@ -358,4 +358,88 @@ if all_zero_schedule:
 print("validated cross-table consistency checks")
 PY
 
+python3 - <<'PY'
+import csv
+from collections import defaultdict
+from pathlib import Path
+
+
+def read_rows(path: str):
+  with open(path, newline="", encoding="utf-8") as f:
+    return list(csv.DictReader(f))
+
+
+# Rule 1: enforce a unique destination team per (player_id, nfl_season)
+# on non-inferred (verified) movement rows.
+movement_path = "data/processed/movement_events.csv"
+movement_rows = read_rows(movement_path)
+destinations = defaultdict(set)
+
+for row in movement_rows:
+  move_id = row.get("move_id", "").strip()
+  if move_id.startswith("ofs_"):
+    continue
+  player_id = row.get("player_id", "").strip()
+  season = row.get("nfl_season", "").strip()
+  to_team_id = row.get("to_team_id", "").strip()
+  if player_id and season and to_team_id:
+    destinations[(player_id, season)].add(to_team_id)
+
+for (player_id, season), teams in sorted(destinations.items()):
+  if len(teams) > 1:
+    ordered = sorted(teams)
+    print(
+      f"CONFLICT: player {player_id} has multiple destination teams in season {season}: "
+      f"{ordered[0]}, {ordered[1]}"
+    )
+    raise SystemExit(1)
+
+
+# Rule 2: warn on potentially unverified rookie/draft entries across offseason metadata files.
+for metadata_path in sorted(Path("data/raw/offseason").glob("players_metadata_*.csv")):
+  season = metadata_path.stem.rsplit("_", 1)[-1]
+  rows = read_rows(str(metadata_path))
+  for row in rows:
+    experience = row.get("experience", "").strip()
+    draft_year = row.get("draft_year", "").strip()
+    if experience == "0" and (not draft_year or draft_year == season):
+      player = row.get("player", "").strip() or "<unknown>"
+      team = row.get("team", "").strip() or "<unknown>"
+      print(
+        f"WARN: unverified rookie/draft entry: {player} team={team} "
+        f"season={season} — verify against authoritative draft results"
+      )
+
+
+# Rule 3: warn if inferred fallback movement entries exceed 50% for any season.
+cols = set(movement_rows[0].keys()) if movement_rows else set()
+if movement_rows and "ingested_at" in cols and "move_id" in cols and "nfl_season" in cols:
+  season_total = defaultdict(int)
+  season_inferred = defaultdict(int)
+
+  for row in movement_rows:
+    season = row.get("nfl_season", "").strip()
+    if not season:
+      continue
+    season_total[season] += 1
+    move_id = row.get("move_id", "").strip()
+    ingested_at = row.get("ingested_at", "").strip()
+    if ingested_at and move_id.startswith("ofs_"):
+      season_inferred[season] += 1
+
+  for season in sorted(season_total.keys()):
+    total = season_total[season]
+    if total == 0:
+      continue
+    inferred = season_inferred[season]
+    pct = inferred * 100.0 / total
+    if pct > 50.0:
+      print(
+        f"WARN: season {season} has {pct:.1f}% inferred movement events "
+        f"— consider reviewing against authoritative transaction source"
+      )
+
+print("validated semantic movement checks")
+PY
+
 echo "Data quality contract checks passed."

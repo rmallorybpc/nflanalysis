@@ -156,7 +156,6 @@ Bryce Cabeldue,,SEA,,,,,,,,,CabeBr00,https://github.com/nflverse/nflverse-data/r
 Nick Emmanwori,DB,SEA,,,,0,,,,,EmmaNi00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-04-22T19:50:48Z
 Ricky White,WR,SEA,,,,0,,,,,WhitRi01,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-04-22T19:50:48Z
 Rylie Mills,DL,SEA,,,,0,,,,,MillRy02,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-04-22T19:50:48Z
-Shedeur Sanders,QB,SEA,,,,0,,,,,SandSh00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-04-22T19:50:48Z
 Tory Horton,WR,SEA,,,,0,,,,,HortTo00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-04-22T19:50:48Z
 Brian Robinson,RB,SF,,,,3,,,,,RobiBr01,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-04-22T19:50:48Z
 Bryce Huff,DL,SF,,,,5,,,,,HuffBr00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-04-22T19:50:48Z
@@ -167,3 +166,4 @@ Marcus Harris,DB,TEN,,,,0,,,,,HarrMa10,https://github.com/nflverse/nflverse-data
 Oluwafemi Oladejo,LB,TEN,,,,0,,,,,OladOl00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-04-22T19:50:48Z
 Deebo Samuel,WR,WAS,,,,6,,,,,SamuDe00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-04-22T19:50:48Z
 Laremy Tunsil,,WAS,,,,,,,,,TunsLa00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-04-22T19:50:48Z
+Sam Darnold,QB,SEA,,,,7,,2018,1,3,DarnSa00,https://www.nfl.com/players/sam-darnold/,manual_correction,2026-05-04T00:00:00Z
