@@ -177,7 +177,7 @@ def write_csv(path: Path, fields: list[str], rows: list[dict[str, str]], append:
         write_header = False
 
     with path.open(mode, newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer = csv.DictWriter(handle, fieldnames=fields, quoting=csv.QUOTE_ALL)
         if write_header:
             writer.writeheader()
         writer.writerows(rows)
