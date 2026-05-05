@@ -528,7 +528,7 @@ class CounterfactualService:
 
         available_seasons = self._available_seasons()
         season_coverage = self._build_season_coverage(available_seasons)
-        geography_profile = self._build_geography_impact_profile(available_seasons)
+        geography_profile = self._build_geography_impact_profile([season])
         move_type_counts = {"trade": 0, "free_agency": 0}
         for row in _read_csv(self.config.movement_events):
             move_type = row.get("move_type", "").strip()
