@@ -668,6 +668,9 @@ class CounterfactualService:
                     "from_team_id": row.get("from_team_id", "").strip(),
                     "to_team_id": row.get("to_team_id", "").strip(),
                     "impact_estimate": round(impact, 6),
+                    "contract_aav": row.get("contract_aav", ""),
+                    "contract_total": row.get("contract_total", ""),
+                    "contract_years": row.get("contract_years", ""),
                 }
             )
 
