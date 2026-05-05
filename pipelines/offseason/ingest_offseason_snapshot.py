@@ -325,6 +325,26 @@ def build_movement_events(
             if not team:
                 continue
 
+            # Draft additions (no prior team in offseason metadata) are not movement events.
+            draft_year_raw = (row.get("draft_year") or "").strip()
+            experience_raw = (row.get("experience") or "").strip()
+            is_current_draft_pick = False
+            if not from_team and draft_year_raw:
+                try:
+                    draft_year = int(float(draft_year_raw))
+                except ValueError:
+                    draft_year = None
+                if draft_year == season:
+                    if not experience_raw:
+                        is_current_draft_pick = True
+                    else:
+                        try:
+                            is_current_draft_pick = int(float(experience_raw)) == 0
+                        except ValueError:
+                            is_current_draft_pick = False
+            if is_current_draft_pick:
+                continue
+
             player_name = (row.get("player") or "").strip()
             player_id = derive_player_id(row) or player_by_name.get(player_name.lower(), "")
             if not player_id:

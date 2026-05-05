@@ -37,7 +37,7 @@ KT Leveston,,CLE,,,,,,,,,,LeveKT00,https://github.com/nflverse/nflverse-data/rel
 Kenny Pickett,QB,CLE,PHI,,,,3,,,,,PickKe00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
 Mason Graham,DL,CLE,JAX,,,,0,,,,,GrahMa00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
 Quinshon Judkins,RB,CLE,JAX,,,,0,,,,,JudkQu00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
-Shedeur Sanders,QB,CLE,SEA,,,,0,,,,,SandSh00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
+Shedeur Sanders,QB,CLE,,,,,0,,2025,1,1,SandSh00,https://www.nfl.com/players/shedeur-sanders/,manual_correction,2026-05-05T00:00:00Z
 Tory Horton,WR,CLE,HOU,,,,0,,,,,HortTo00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
 George Pickens,WR,DAL,PIT,,,,3,,,,,PickGe00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
 Joe Milton,QB,DAL,NE,,,,1,,,,,MiltJo00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
@@ -156,7 +156,6 @@ Bryce Cabeldue,,SEA,CLE,,,,,,,,,CabeBr00,https://github.com/nflverse/nflverse-da
 Nick Emmanwori,DB,SEA,TEN,,,,0,,,,,EmmaNi00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
 Ricky White,WR,SEA,NE,,,,0,,,,,WhitRi01,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
 Rylie Mills,DL,SEA,MIN,,,,0,,,,,MillRy02,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
-Shedeur Sanders,QB,SEA,NE,,,,0,,,,,SandSh00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
 Tory Horton,WR,SEA,CLE,,,,0,,,,,HortTo00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
 Brian Robinson,RB,SF,WAS,,,,3,,,,,RobiBr01,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z
 Bryce Huff,DL,SF,PHI,,,,5,,,,,HuffBr00,https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv,nflverse_trades_fallback,2026-05-05T15:34:57Z

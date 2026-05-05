@@ -194,7 +194,12 @@ function readControlState() {
 }
 
 function fmt(num) {
-  return Number(num).toFixed(3);
+  const value = Number(num);
+  if (!Number.isFinite(value)) {
+    return "0.000";
+  }
+  const decimals = Math.abs(value) > 0 && Math.abs(value) < 0.001 ? 6 : 3;
+  return value.toFixed(decimals);
 }
 
 function setStatus(message, isError = false) {
@@ -312,8 +317,13 @@ function toFiniteNumber(value) {
 }
 
 function fmtSigned(num) {
-  const fixed = Number(num).toFixed(3);
-  return Number(num) >= 0 ? `+${fixed}` : fixed;
+  const value = Number(num);
+  if (!Number.isFinite(value)) {
+    return "+0.000";
+  }
+  const decimals = Math.abs(value) > 0 && Math.abs(value) < 0.001 ? 6 : 3;
+  const fixed = value.toFixed(decimals);
+  return value >= 0 ? `+${fixed}` : fixed;
 }
 
 function intervalForEvent(event) {
