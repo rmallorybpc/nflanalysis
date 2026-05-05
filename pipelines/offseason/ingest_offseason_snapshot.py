@@ -290,6 +290,22 @@ def map_transaction_teams(tx_type: str, team: str, row: dict[str, str]) -> tuple
     return "", "", False
 
 
+def infer_players_metadata_move_type(row: dict[str, str]) -> str:
+    explicit_move_type = clean_type(row.get("move_type", ""))
+    if explicit_move_type in {"trade", "free_agency"}:
+        return explicit_move_type
+
+    tx_type = clean_type(row.get("transaction_type", ""))
+    if tx_type in MOVE_TYPE_MAP:
+        return MOVE_TYPE_MAP[tx_type]
+
+    import_method = clean_type(row.get("import_method", ""))
+    if "trade" in import_method:
+        return "trade"
+
+    return "free_agency"
+
+
 def build_movement_events(
     rows: list[dict[str, str]],
     player_by_name: dict[str, str],
@@ -305,6 +321,7 @@ def build_movement_events(
     for idx, row in enumerate(rows, start=1):
         if inferred_players_metadata_mode:
             team = clean_team(row.get("team", ""))
+            from_team = clean_team(row.get("from_team", ""))
             if not team:
                 continue
 
@@ -324,14 +341,19 @@ def build_movement_events(
                 continue
 
             move_id = f"ofs_{season}_{week:02d}_{idx:05d}"
+            move_type = infer_players_metadata_move_type(row)
+            if from_team and move_type != "trade":
+                move_type = "trade"
+
+            from_team_id = from_team if move_type == "trade" else ""
             out.append(
                 {
                     "move_id": move_id,
                     "event_date": anchor_effective_date,
                     "effective_date": anchor_effective_date,
-                    "move_type": "free_agency",
+                    "move_type": move_type,
                     "player_id": player_id,
-                    "from_team_id": "",
+                    "from_team_id": from_team_id,
                     "to_team_id": team,
                     "transaction_detail": "inferred_from_players_metadata",
                     "source": (row.get("source_url") or "manual").strip() or "manual",

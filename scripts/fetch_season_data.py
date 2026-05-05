@@ -29,6 +29,7 @@ PLAYERS_FIELDS = [
     "player",
     "position",
     "team",
+    "from_team",
     "age",
     "height",
     "weight",
@@ -408,6 +409,7 @@ def fetch_pfr_free_agency_rows(season: int, imported_at: str) -> list[dict[str, 
                 "player": player,
                 "position": "",
                 "team": team,
+                "from_team": "",
                 "age": "",
                 "height": "",
                 "weight": "",
@@ -498,6 +500,7 @@ def build_players_metadata(season: int, imported_at: str) -> list[dict[str, str]
             tx_type = "TRADED"
             player = (row.get("pfr_name") or "").strip()
             team = normalize_team(row.get("received", ""))
+            from_team = normalize_team(row.get("gave", ""))
             position = ""
             pfr_slug = (row.get("pfr_id") or "").strip()
             source_url = used_url
@@ -511,6 +514,9 @@ def build_players_metadata(season: int, imported_at: str) -> list[dict[str, str]
             kept_scope += 1
             player = (row.get("player") or row.get("name") or "").strip()
             team = normalize_team(row.get("team", ""))
+            from_team = normalize_team(
+                row.get("trade_from_team") or row.get("from_team") or row.get("gave") or ""
+            )
             position = (row.get("position") or "").strip().upper()
             pfr_slug = (row.get("pfr_id") or row.get("pfr_slug") or "").strip()
             source_url = (row.get("source_url") or used_url).strip()
@@ -542,6 +548,7 @@ def build_players_metadata(season: int, imported_at: str) -> list[dict[str, str]
                 "player": player,
                 "position": position,
                 "team": team,
+                "from_team": from_team,
                 "age": "",
                 "height": "",
                 "weight": "",
