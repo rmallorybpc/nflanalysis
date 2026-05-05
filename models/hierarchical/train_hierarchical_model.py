@@ -278,7 +278,11 @@ def main() -> None:
         fit_err = rmse(y, y_h_obs)
         i50 = 0.674 * fit_err
         i90 = 1.645 * fit_err
-        low_conf = (2 * i90) > (1.5 * fit_err)
+        mis_abs_mean = sum(abs(v) for v in mis) / len(mis) if mis else 0.0
+        interval_width = 2 * i90
+        # Flag as low confidence when interval is more than 10x the mean
+        # signal magnitude - i.e., the noise dominates the estimate
+        low_conf = (mis_abs_mean == 0.0) or (interval_width > 10.0 * mis_abs_mean)
 
         for i, row in enumerate(rows):
             if mis_sigma > 0:
