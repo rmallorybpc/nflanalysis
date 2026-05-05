@@ -229,7 +229,10 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
     const fromTeam = String(pickField(event, ["from_team_id", "from_team"], "")).trim().toUpperCase();
     const direction = toTeam === teamId ? "inbound" : "outbound";
     const pointEstimate = toFiniteNumber(pickField(event, ["impact_estimate", "mis_value"], 0)) || 0;
-    const misZ = toFiniteNumber(pickField(event, ["mis_z"], pointEstimate));
+    const misZ = toFiniteNumber(pickField(event, ["mis_z"], null));
+    const scaledImpact = (toFiniteNumber(pickField(event, ["impact_estimate"], 0)) || 0) * 10;
+    // Use mis_z if available, otherwise use scaled impact as proxy.
+    const bandProxy = misZ !== null ? misZ : scaledImpact;
     const interval = intervalForEvent(event);
     const outcomeName = String(pickField(event, ["outcome_name"], "win_pct")).trim() || "win_pct";
 
@@ -237,7 +240,7 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       original: event,
       direction,
       pointEstimate,
-      misZ: misZ === null ? pointEstimate : misZ,
+      bandProxy,
       interval,
       outcomeName,
       playerId: String(pickField(event, ["player_id"], "")).trim(),
@@ -348,7 +351,7 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       <div class="movement-when">${whenText}</div>
       <div class="movement-mis-row">
         <span class="movement-mis-label">MIS (win%)</span>
-        <span class="movement-mis-value ${misBandClass(item.misZ)}">${fmtSigned(item.pointEstimate)}</span>
+        <span class="movement-mis-value ${misBandClass(item.bandProxy)}">${fmtSigned(item.pointEstimate)}</span>
       </div>
       ${intervalHtml}
       ${lowConfidenceHtml}
