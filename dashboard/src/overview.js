@@ -272,7 +272,7 @@ function renderScope(payload) {
 
   const moveTypes = scope.included_move_types.join(", ");
   const outcomes = scope.outcomes.join(", ");
-  const geos = scope.geography_dimensions.join(", ");
+  const geos = (scope.geography_dimensions || []).join(", ");
 
   scopeList.innerHTML = `
     <div class="scope-pill">Seasons: ${scope.season_range.start}-${scope.season_range.end} (${scope.season_count})</div>
