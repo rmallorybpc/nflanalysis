@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -31,9 +31,11 @@ def _parse_payload(payload: dict[str, Any]) -> dict[str, Any]:
     season = int(payload["season"])
     week = payload.get("week")
     week_int = int(week) if week is not None else None
-    moves = payload.get("applied_moves", [])
+    moves = payload.get("applied_moves")
+    if moves is None:
+        moves = payload.get("moves", [])
     if not isinstance(moves, list):
-        raise ValueError("applied_moves must be a list")
+        raise ValueError("applied_moves/moves must be a list")
 
     return {
         "team_id": str(payload["team_id"]).strip(),
@@ -54,6 +56,16 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
 
     server_version = "nflanalysis-counterfactual/0.1"
 
+    _POST_ROUTES = {"/v1/counterfactual/simulate", "/v1/dashboard/scenario-sandbox"}
+    _CORS_ROUTES = {
+        "/v1/counterfactual/simulate",
+        "/v1/dashboard/scenario-sandbox",
+        "/v1/dashboard/overview",
+        "/v1/dashboard/team-detail",
+        "/v1/dashboard/players",
+        "/health",
+    }
+
     def _allowed_origin(self) -> str | None:
         origin = self.headers.get("Origin", "").strip()
         if origin and origin in ALLOWED_ORIGINS:
@@ -65,6 +77,7 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Access-Control-Max-Age", "86400")
             return
         allowed_origin = self._allowed_origin()
         if allowed_origin is None:
@@ -73,6 +86,16 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
         self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Max-Age", "86400")
+
+    def _normalized_path(self) -> str:
+        parsed = urlparse(self.path)
+        path = unquote(parsed.path).strip()
+        if not path:
+            return "/"
+        if path != "/" and path.endswith("/"):
+            path = path.rstrip("/")
+        return path
 
     def _write_json(self, status: int, body: dict[str, Any]) -> None:
         data = json.dumps(body).encode("utf-8")
@@ -84,7 +107,10 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_OPTIONS(self) -> None:  # noqa: N802
-        self.send_response(HTTPStatus.NO_CONTENT)
+        if self._normalized_path() not in self._CORS_ROUTES:
+            self._write_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+            return
+        self.send_response(HTTPStatus.OK)
         self._set_cors_headers()
         self.end_headers()
 
@@ -135,7 +161,8 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
         self._write_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
 
     def do_POST(self) -> None:  # noqa: N802
-        if self.path not in {"/v1/counterfactual/simulate", "/v1/dashboard/scenario-sandbox"}:
+        normalized_path = self._normalized_path()
+        if normalized_path not in self._POST_ROUTES:
             self._write_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
             return
 
@@ -143,7 +170,7 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", "0"))
             raw_body = self.rfile.read(length)
             payload = json.loads(raw_body.decode("utf-8"))
-            if self.path == "/v1/counterfactual/simulate":
+            if normalized_path == "/v1/counterfactual/simulate":
                 args = _parse_payload(payload)
                 response = SERVICE.simulate(
                     team_id=args["team_id"],
