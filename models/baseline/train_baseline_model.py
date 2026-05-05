@@ -20,6 +20,7 @@ FEATURE_COLUMNS = [
     "defense_secondary_value_delta",
     "special_teams_value_delta",
     "other_value_delta",
+    "avg_contract_value_per_move",
     "position_value_delta",
     "schedule_strength_index",
 ]
@@ -35,6 +36,7 @@ COUNTERFACTUAL_ZERO_FEATURES = [
     "defense_secondary_value_delta",
     "special_teams_value_delta",
     "other_value_delta",
+    "avg_contract_value_per_move",
     "position_value_delta",
 ]
 

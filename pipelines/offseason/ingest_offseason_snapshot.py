@@ -73,6 +73,9 @@ MOVEMENT_FIELDS = [
     "player_id",
     "from_team_id",
     "to_team_id",
+    "contract_aav",
+    "contract_total",
+    "contract_years",
     "transaction_detail",
     "source",
     "nfl_season",
@@ -375,6 +378,9 @@ def build_movement_events(
                     "player_id": player_id,
                     "from_team_id": from_team_id,
                     "to_team_id": team,
+                    "contract_aav": (row.get("contract_aav") or "").strip(),
+                    "contract_total": (row.get("contract_total") or "").strip(),
+                    "contract_years": (row.get("contract_years") or "").strip(),
                     "transaction_detail": "inferred_from_players_metadata",
                     "source": (row.get("source_url") or "manual").strip() or "manual",
                     "nfl_season": str(season),
@@ -435,6 +441,9 @@ def build_movement_events(
                 "player_id": player_id,
                 "from_team_id": from_team,
                 "to_team_id": to_team,
+                "contract_aav": (row.get("contract_aav") or "").strip(),
+                "contract_total": (row.get("contract_total") or "").strip(),
+                "contract_years": (row.get("contract_years") or "").strip(),
                 "transaction_detail": detail,
                 "source": (row.get("source_url") or "manual").strip() or "manual",
                 "nfl_season": str(season),
@@ -450,6 +459,70 @@ def build_movement_events(
 
 
 def build_outcomes_from_win_totals(rows: list[dict[str, str]], season: int, week: int, now_iso: str) -> list[dict[str, str]]:
+    if not rows:
+        raise ValueError("win_totals.csv must contain at least one team")
+
+    has_actual_columns = all(
+        key in rows[0]
+        for key in ["wins", "losses", "ties", "win_pct", "point_diff_per_game", "games_played"]
+    )
+
+    if has_actual_columns:
+        values: list[tuple[str, float]] = []
+        normalized_rows: list[dict[str, str]] = []
+        for row in rows:
+            team = clean_team(row.get("team", ""))
+            if not team:
+                continue
+
+            wins = int(round(to_float((row.get("wins") or "0").strip(), "wins")))
+            losses = int(round(to_float((row.get("losses") or "0").strip(), "losses")))
+            ties = int(round(to_float((row.get("ties") or "0").strip(), "ties")))
+            games_played = int(round(to_float((row.get("games_played") or "0").strip(), "games_played")))
+            point_diff = to_float((row.get("point_diff_per_game") or "0").strip(), "point_diff_per_game")
+
+            win_total = float(wins) + 0.5 * float(ties)
+            values.append((team, win_total))
+            normalized_rows.append(
+                {
+                    "team": team,
+                    "wins": str(max(wins, 0)),
+                    "losses": str(max(losses, 0)),
+                    "ties": str(max(ties, 0)),
+                    "games_played": str(max(games_played, 0)),
+                    "win_pct": f"{to_float((row.get('win_pct') or '0').strip(), 'win_pct'):.4f}",
+                    "point_diff_per_game": f"{point_diff:.4f}",
+                    "captured_at": (row.get("captured_at") or now_iso).strip() or now_iso,
+                }
+            )
+
+        league_avg_win_total = sum(v for _, v in values) / len(values) if values else 0.0
+        out: list[dict[str, str]] = []
+        for row in sorted(normalized_rows, key=lambda r: r["team"]):
+            wins = int(row["wins"])
+            losses = int(row["losses"])
+            ties = int(row["ties"])
+            win_total = float(wins) + 0.5 * float(ties)
+            off_epa = (win_total - league_avg_win_total) * 0.01
+
+            out.append(
+                {
+                    "team_id": row["team"],
+                    "nfl_season": str(season),
+                    "nfl_week": str(week),
+                    "games_played": row["games_played"],
+                    "wins": row["wins"],
+                    "losses": row["losses"],
+                    "ties": row["ties"],
+                    "win_pct": row["win_pct"],
+                    "point_diff_per_game": row["point_diff_per_game"],
+                    "offensive_epa_per_play": f"{off_epa:.4f}",
+                    "aggregated_at": row["captured_at"],
+                }
+            )
+
+        return out
+
     values: list[tuple[str, float]] = []
     for row in rows:
         team = clean_team(row.get("team", ""))

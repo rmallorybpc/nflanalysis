@@ -25,11 +25,19 @@ from pathlib import Path
 from typing import Iterable
 from urllib import error, request
 
+
+CURRENT_SEASON = 2026
+CONTRACTS_URL = "https://github.com/nflverse/nflverse-data/releases/download/contracts/historical_contracts.csv.gz"
+_CONTRACT_ROWS_CACHE: list[dict[str, str]] | None = None
+
 PLAYERS_FIELDS = [
     "player",
     "position",
     "team",
     "from_team",
+    "contract_aav",
+    "contract_total",
+    "contract_years",
     "age",
     "height",
     "weight",
@@ -56,6 +64,13 @@ TEAM_SPENDING_FIELDS = [
 
 WIN_TOTALS_FIELDS = [
     "team",
+    "wins",
+    "losses",
+    "ties",
+    "win_pct",
+    "point_diff_per_game",
+    "games_played",
+    "source",
     "win_total",
     "provider",
     "captured_at",
@@ -207,6 +222,16 @@ def pfr_from_url(url: str) -> str:
     return ""
 
 
+def parse_float(value: str) -> float:
+    text = (value or "").strip()
+    if not text:
+        return 0.0
+    try:
+        return float(text)
+    except ValueError:
+        return 0.0
+
+
 def csv_rows_from_url(url: str, source_name: str) -> tuple[Iterable[dict[str, str]] | None, str, str, int | None]:
     req = request.Request(url, headers={"User-Agent": "nflanalysis-fetch/1.0"})
     try:
@@ -235,6 +260,54 @@ def csv_rows_from_url(url: str, source_name: str) -> tuple[Iterable[dict[str, st
 
     reader = csv.DictReader(text_handle)
     return reader, url, ",".join(reader.fieldnames or []), size
+
+
+def fetch_contracts(season: int) -> dict[str, dict[str, str]]:
+    global _CONTRACT_ROWS_CACHE
+
+    if _CONTRACT_ROWS_CACHE is None:
+        reader, used_url, _headers, _size = csv_rows_from_url(CONTRACTS_URL, "contracts")
+        if reader is None:
+            print(f"[WARN] contracts: failed to fetch source at {CONTRACTS_URL}")
+            _CONTRACT_ROWS_CACHE = []
+        else:
+            _CONTRACT_ROWS_CACHE = list(reader)
+
+    by_name: dict[str, dict[str, str]] = {}
+    kept = 0
+    for row in _CONTRACT_ROWS_CACHE or []:
+        year_signed = parse_int((row.get("year_signed") or "").strip())
+        if not year_signed:
+            continue
+
+        years_raw = parse_int(row.get("years") or "")
+        years_count = int(years_raw) if years_raw else 1
+        contract_end_year = int(year_signed) + max(years_count, 1) - 1
+        if not (int(year_signed) <= season <= contract_end_year):
+            continue
+
+        player_name = (row.get("player") or "").strip().lower()
+        if not player_name:
+            continue
+
+        aav = parse_float(row.get("apy") or "")
+        total_value = parse_float(row.get("value") or "")
+        years = years_raw
+        position = (row.get("position") or "").strip().upper()
+
+        existing = by_name.get(player_name)
+        if existing is None or aav > parse_float(existing.get("aav") or ""):
+            by_name[player_name] = {
+                "aav": str(int(round(aav))) if aav else "",
+                "total_value": str(int(round(total_value))) if total_value else "",
+                "years": years,
+                "position": position,
+            }
+        kept += 1
+
+    fetched = len(_CONTRACT_ROWS_CACHE or [])
+    print(f"[INFO] contracts: {CONTRACTS_URL} fetched_rows={fetched} kept_for_{season}={kept}")
+    return by_name
 
 
 class PFRTableParser(HTMLParser):
@@ -467,15 +540,20 @@ def build_players_metadata(season: int, imported_at: str) -> list[dict[str, str]
     trades_url = "https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv"
 
     roster_idx = load_roster_index(season)
+    contracts_by_name = fetch_contracts(season)
 
     seen: set[tuple[str, str]] = set()
     out: list[dict[str, str]] = []
 
     for row in fetch_pfr_free_agency_rows(season, imported_at):
+        contract = contracts_by_name.get((row.get("player") or "").strip().lower(), {})
         key = (row["player"].lower(), row["team"])
         if key in seen:
             continue
         seen.add(key)
+        row["contract_aav"] = contract.get("aav", "")
+        row["contract_total"] = contract.get("total_value", "")
+        row["contract_years"] = contract.get("years", "")
         out.append(row)
 
     reader, used_url, headers, _size = csv_rows_from_url(trades_url, "transactions")
@@ -549,6 +627,9 @@ def build_players_metadata(season: int, imported_at: str) -> list[dict[str, str]
                 "position": position,
                 "team": team,
                 "from_team": from_team,
+                "contract_aav": contracts_by_name.get(player.lower(), {}).get("aav", ""),
+                "contract_total": contracts_by_name.get(player.lower(), {}).get("total_value", ""),
+                "contract_years": contracts_by_name.get(player.lower(), {}).get("years", ""),
                 "age": "",
                 "height": "",
                 "weight": "",
@@ -641,8 +722,11 @@ def build_win_totals(season: int, imported_at: str) -> tuple[list[dict[str, str]
         "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
     ]
 
-    wins = {team: 0.0 for team in NFL_TEAMS}
+    wins = {team: 0 for team in NFL_TEAMS}
+    losses = {team: 0 for team in NFL_TEAMS}
+    ties = {team: 0 for team in NFL_TEAMS}
     games_played = {team: 0 for team in NFL_TEAMS}
+    point_diff_sum = {team: 0.0 for team in NFL_TEAMS}
 
     used = ""
     for url in games_urls:
@@ -673,15 +757,19 @@ def build_win_totals(season: int, imported_at: str) -> tuple[list[dict[str, str]
 
             games_played[away] += 1
             games_played[home] += 1
+            point_diff_sum[away] += away_score - home_score
+            point_diff_sum[home] += home_score - away_score
             kept += 1
 
             if away_score > home_score:
-                wins[away] += 1.0
+                wins[away] += 1
+                losses[home] += 1
             elif home_score > away_score:
-                wins[home] += 1.0
+                wins[home] += 1
+                losses[away] += 1
             else:
-                wins[away] += 0.5
-                wins[home] += 0.5
+                ties[away] += 1
+                ties[home] += 1
 
         print(f"[INFO] games: {used_url} fetched_rows={fetched} kept_rows={kept}")
         used = used_url
@@ -690,18 +778,33 @@ def build_win_totals(season: int, imported_at: str) -> tuple[list[dict[str, str]
     if not used:
         print("[WARN] games: no usable source. Writing sparse win_totals output.")
 
+    is_historical = season < CURRENT_SEASON
+    source_value = "nflverse_games_actual" if is_historical else "nflverse_games_projected"
+    provider_value = "nflverse_games_actual" if is_historical else "nflverse_games"
+
     win_pct_values: list[float] = []
     rows: list[dict[str, str]] = []
     for team in NFL_TEAMS:
         gp = games_played.get(team, 0)
-        wt = wins.get(team, 0.0)
+        w = wins.get(team, 0)
+        l = losses.get(team, 0)
+        t = ties.get(team, 0)
+        wt = float(w) + 0.5 * float(t)
         win_pct = (wt / gp) if gp else 0.0
+        point_diff_per_game = (point_diff_sum.get(team, 0.0) / gp) if gp else 0.0
         win_pct_values.append(win_pct)
         rows.append(
             {
                 "team": team,
+                "wins": str(w),
+                "losses": str(l),
+                "ties": str(t),
+                "win_pct": f"{win_pct:.4f}",
+                "point_diff_per_game": f"{point_diff_per_game:.4f}",
+                "games_played": str(gp),
+                "source": source_value,
                 "win_total": f"{wt:.1f}",
-                "provider": "nflverse_games",
+                "provider": provider_value,
                 "captured_at": imported_at,
             }
         )

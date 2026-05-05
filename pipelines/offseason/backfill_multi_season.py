@@ -37,6 +37,9 @@ MOVEMENT_FIELDS = [
     "player_id",
     "from_team_id",
     "to_team_id",
+    "contract_aav",
+    "contract_total",
+    "contract_years",
     "transaction_detail",
     "source",
     "nfl_season",
@@ -74,6 +77,7 @@ FEATURE_FIELDS = [
     "defense_secondary_value_delta",
     "special_teams_value_delta",
     "other_value_delta",
+    "avg_contract_value_per_move",
     "position_value_delta",
     "schedule_strength_index",
     "feature_version",
@@ -315,7 +319,7 @@ def run_season_pipeline(args: argparse.Namespace, season_paths: SeasonPaths) -> 
             "--coefficients-output",
             str(season_paths.baseline_coefs),
             "--model-version",
-            "baseline-ridge-v0.3.0-offseason-multiseason",
+            "baseline-ridge-v0.4.0-offseason",
         ]
     )
 
@@ -336,7 +340,7 @@ def run_season_pipeline(args: argparse.Namespace, season_paths: SeasonPaths) -> 
             "--effects-output",
             str(season_paths.effects),
             "--model-version",
-            "hierarchical-eb-v0.3.0-offseason-multiseason",
+            "hierarchical-eb-v0.4.0-offseason",
         ]
     )
 
@@ -419,7 +423,7 @@ def consolidate_publish(
             "--coefficients-output",
             str(coefs_out),
             "--model-version",
-            "baseline-ridge-v0.3.0-offseason-consolidated",
+            "baseline-ridge-v0.4.0-offseason",
         ]
     )
 
@@ -440,7 +444,7 @@ def consolidate_publish(
             "--effects-output",
             str(effects_out),
             "--model-version",
-            "hierarchical-eb-v0.3.0-offseason-consolidated",
+            "hierarchical-eb-v0.4.0-offseason",
         ]
     )
 

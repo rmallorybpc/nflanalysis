@@ -26,6 +26,7 @@ CANONICAL_FIELDS = [
     "defense_secondary_value_delta",
     "special_teams_value_delta",
     "other_value_delta",
+    "avg_contract_value_per_move",
     "position_value_delta",
     "schedule_strength_index",
     "feature_version",
@@ -116,6 +117,16 @@ def to_float(value: str, field_name: str) -> float:
         raise ValueError(f"{field_name} must be numeric, got {value}") from exc
 
 
+def parse_win_total(row: dict[str, str]) -> float:
+    raw_win_total = (row.get("win_total") or "").strip()
+    if raw_win_total:
+        return to_float(raw_win_total, "win_total")
+
+    wins = to_float((row.get("wins") or "0").strip(), "wins")
+    ties = to_float((row.get("ties") or "0").strip(), "ties")
+    return wins + 0.5 * ties
+
+
 def z_scores(values: dict[str, float]) -> dict[str, float]:
     if not values:
         return {}
@@ -146,7 +157,7 @@ def build_features(
         if (r.get("team") or "").strip()
     }
     win_totals = {
-        (r.get("team") or "").strip().upper(): to_float((r.get("win_total") or "0").strip(), "win_total")
+        (r.get("team") or "").strip().upper(): parse_win_total(r)
         for r in win_total_rows
         if (r.get("team") or "").strip()
     }
@@ -156,6 +167,7 @@ def build_features(
 
     inbound: dict[tuple[str, str, str], int] = defaultdict(int)
     outbound: dict[tuple[str, str, str], int] = defaultdict(int)
+    inbound_contract_sum: dict[tuple[str, str, str], float] = defaultdict(float)
     group_delta: dict[tuple[str, str, str], dict[str, float]] = defaultdict(lambda: defaultdict(float))
     total_delta: dict[tuple[str, str, str], float] = defaultdict(float)
 
@@ -178,6 +190,10 @@ def build_features(
         if to_team:
             key = (to_team, season, week)
             inbound[key] += 1
+            try:
+                inbound_contract_sum[key] += float((row.get("contract_aav") or "").strip() or 0.0)
+            except ValueError:
+                inbound_contract_sum[key] += 0.0
             total_delta[key] += weight
             group_delta[key][group] += weight
 
@@ -197,6 +213,7 @@ def build_features(
 
         in_count = inbound.get(key, 0)
         out_count = outbound.get(key, 0)
+        avg_contract_value = (inbound_contract_sum.get(key, 0.0) / in_count) if in_count > 0 else 0.0
         churn = (in_count + out_count) / roster_size if roster_size > 0 else 0.0
 
         spend_factor = spending_z.get(team, 0.0)
@@ -226,6 +243,7 @@ def build_features(
                 "defense_secondary_value_delta": f"{group_vals['defense_secondary_value_delta']:.4f}",
                 "special_teams_value_delta": f"{group_vals['special_teams_value_delta']:.4f}",
                 "other_value_delta": f"{group_vals['other_value_delta']:.4f}",
+                "avg_contract_value_per_move": f"{avg_contract_value:.2f}",
                 "position_value_delta": f"{position_total:.4f}",
                 "schedule_strength_index": "0.0000",
                 "feature_version": feature_version,
