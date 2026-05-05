@@ -748,6 +748,46 @@ def write_csv(path: Path, fields: list[str], rows: list[dict[str, str]]) -> None
         writer.writerows(rows)
 
 
+def load_manual_corrections(path: Path) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+
+    rows: list[dict[str, str]] = []
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle):
+            if (row.get("import_method") or "").strip() != "manual_correction":
+                continue
+            normalized = {field: (row.get(field) or "").strip() for field in PLAYERS_FIELDS}
+            rows.append(normalized)
+    return rows
+
+
+def merge_manual_corrections(
+    fetched_rows: list[dict[str, str]],
+    manual_rows: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    def key(row: dict[str, str]) -> tuple[str, str, str]:
+        return (
+            (row.get("player") or "").strip().lower(),
+            (row.get("team") or "").strip().upper(),
+            (row.get("from_team") or "").strip().upper(),
+        )
+
+    merged: dict[tuple[str, str, str], dict[str, str]] = {
+        key({field: (row.get(field) or "") for field in PLAYERS_FIELDS}): {
+            field: (row.get(field) or "") for field in PLAYERS_FIELDS
+        }
+        for row in fetched_rows
+    }
+
+    for row in manual_rows:
+        merged[key(row)] = {field: (row.get(field) or "") for field in PLAYERS_FIELDS}
+
+    out = list(merged.values())
+    out.sort(key=lambda r: ((r.get("team") or ""), (r.get("player") or "")))
+    return out
+
+
 def maybe_write(path: Path, fields: list[str], rows: list[dict[str, str]], force: bool) -> bool:
     if path.exists() and not force:
         print(f"[WARN] {path} exists. Skipping write (use --force to overwrite).")
@@ -770,8 +810,17 @@ def main() -> None:
     spending_path = output_dir / f"team_spending_otc_{args.season}.csv"
     wins_path = output_dir / f"win_totals_{args.season}.csv"
 
+    manual_rows: list[dict[str, str]] = []
+    if args.force:
+        manual_rows = load_manual_corrections(players_path)
+        if manual_rows:
+            print(f"[INFO] preserving manual_correction rows from existing file: {len(manual_rows)}")
+
     print(f"[INFO] fetching season={args.season} output_dir={output_dir}")
     players = build_players_metadata(args.season, imported_at)
+    if manual_rows:
+        players = merge_manual_corrections(players, manual_rows)
+        print(f"[INFO] reapplied manual_correction rows after fetch: {len(manual_rows)}")
     spending = build_team_spending(args.season, imported_at)
     wins, win_pcts = build_win_totals(args.season, imported_at)
 

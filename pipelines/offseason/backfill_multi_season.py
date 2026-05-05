@@ -119,6 +119,8 @@ EFFECT_FIELDS = [
     "trained_at",
 ]
 
+MIN_PRIMARY_MOVEMENT_ROWS = 10
+
 
 @dataclass
 class SeasonPaths:
@@ -249,14 +251,15 @@ def run_season_pipeline(args: argparse.Namespace, season_paths: SeasonPaths) -> 
     )
 
     movement_rows = read_csv(season_paths.movement)
-    if not movement_rows:
+    if len(movement_rows) < MIN_PRIMARY_MOVEMENT_ROWS:
         # Fallback: infer movement rows from players metadata for sparse transaction snapshots.
         players_snapshot = Path(f"data/raw/offseason/players_metadata_{season_paths.season}.csv")
         if not players_snapshot.exists():
             players_snapshot = Path("data/raw/offseason/players_metadata.csv")
 
         print(
-            "[WARN] primary transaction ingest yielded zero movement rows; "
+            "[WARN] primary transaction ingest yielded sparse movement rows "
+            f"({len(movement_rows)}); "
             f"retrying with inferred players metadata source: {players_snapshot}"
         )
         run_cmd(
@@ -455,6 +458,9 @@ def main() -> None:
     if args.end_season < args.start_season:
         raise ValueError("end-season must be >= start-season")
 
+    if not args.publish_dirname:
+        args.publish_dirname = f"backfill_{args.start_season}_{args.end_season}"
+
     seasons = list(range(args.start_season, args.end_season + 1))
     results: list[SeasonResult] = []
     successful_paths: list[SeasonPaths] = []
@@ -478,8 +484,11 @@ def main() -> None:
     if not successful_paths:
         raise SystemExit("no successful seasons available for consolidation")
 
-    publish_processed_root = args.processed_root / args.publish_dirname if args.publish_dirname else args.processed_root
-    publish_artifacts_root = args.artifacts_root / args.publish_dirname if args.publish_dirname else args.artifacts_root
+    publish_processed_root = args.processed_root / args.publish_dirname
+    publish_artifacts_root = args.artifacts_root / args.publish_dirname
+
+    print(f"[INFO] publishing consolidated processed bundle to: {publish_processed_root}")
+    print(f"[INFO] publishing consolidated model artifacts to: {publish_artifacts_root}")
 
     consolidate_publish(args, successful_paths, publish_processed_root, publish_artifacts_root)
 
