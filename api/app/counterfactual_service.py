@@ -345,7 +345,31 @@ class CounterfactualService:
 
             player_id = row.get("player_id", "").strip()
             for outcome in OUTCOME_ORDER:
-                effect = abs(self.effect_map.get((outcome, "player", player_id), 0.0))
+                # Layer 1: player-level hierarchical effect
+                player_effect = self.effect_map.get(
+                    (outcome, "player", player_id), None
+                )
+
+                # Layer 2: position-team hierarchical effect
+                position_group = self.player_group.get(player_id, "other")
+                pos_team_key = f"{position_group}|{to_team}"
+                pos_team_effect = self.effect_map.get(
+                    (outcome, "position_team", pos_team_key), None
+                )
+
+                if player_effect is not None or pos_team_effect is not None:
+                    raw_effect = (player_effect or 0.0) + (pos_team_effect or 0.0)
+                else:
+                    # Layer 3: baseline coefficient fallback
+                    feature_name = POSITION_GROUP_FEATURE.get(position_group)
+                    raw_effect = 0.0
+                    if feature_name:
+                        coef = self.baseline_coefs.get(
+                            (outcome, feature_name), 0.0
+                        )
+                        raw_effect = coef * 1.0
+
+                effect = abs(raw_effect)
                 buckets[(scope, outcome)].append(effect)
 
         points: list[dict[str, Any]] = []
