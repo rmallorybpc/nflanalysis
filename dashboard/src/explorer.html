@@ -151,6 +151,30 @@
         padding: 0.12rem 0.45rem;
       }
 
+      .movement-contract {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 4px;
+        font-size: 0.8rem;
+      }
+
+      .movement-contract-label {
+        color: var(--color-muted, #94a3b8);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .movement-contract-value {
+        color: var(--color-text, #f8fafc);
+        font-weight: 600;
+      }
+
+      .movement-contract-years {
+        color: var(--color-muted, #94a3b8);
+      }
+
       .movement-footer {
         margin-top: 0.52rem;
       }
@@ -263,6 +287,8 @@
               <option value="abs_asc">Impact Low→High</option>
               <option value="date_desc">Date Newest</option>
               <option value="date_asc">Date Oldest</option>
+              <option value="efficiency_desc">Impact per Dollar (best first)</option>
+              <option value="efficiency_asc">Impact per Dollar (worst first)</option>
             </select>
           </label>
         </div>

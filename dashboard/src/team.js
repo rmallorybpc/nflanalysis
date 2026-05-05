@@ -529,6 +529,15 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       ? '<div class="movement-low-confidence">LOW CONFIDENCE</div>'
       : "";
 
+    const contractAav = toFiniteNumber(pickField(item.original, ["contract_aav"], null));
+    const contractYears = pickField(item.original, ["contract_years"], "");
+    const contractHtml = contractAav && contractAav > 0
+      ? `<div class="movement-contract">
+           <span class="movement-contract-label">AAV</span>
+           <span class="movement-contract-value">$${(contractAav / 1_000_000).toFixed(1)}M</span>${contractYears ? ` <span class="movement-contract-years">/ ${contractYears} yr${contractYears === "1" ? "" : "s"}</span>` : ""}
+         </div>`
+      : "";
+
     const positionHtml = item.position ? `<span class="movement-position">${item.position}</span>` : "";
 
     const card = document.createElement("article");
@@ -548,6 +557,7 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
         <span class="movement-mis-value ${misBandClass(item.misZ)}">${fmtSigned(item.pointEstimate)}</span>
       </div>
       ${intervalHtml}
+      ${contractHtml}
       ${lowConfidenceHtml}
       <div class="movement-footer"><a href="${whatIfHref}">Run What-If &rarr;</a></div>
     `;
