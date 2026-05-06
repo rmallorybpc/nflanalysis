@@ -6,23 +6,65 @@
     <title>NFL Movement Impact Overview</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://rmallorybpc.github.io/tmg-brand-guide/dist/tmg.css" />
+    <style>
+      :root {
+        --tmg-cream: #fdfcf0;
+        --tmg-charcoal: #2d3436;
+        --tmg-sage: #84a98c;
+        --tmg-sage-hover: #6b8f74;
+        --tmg-white: #ffffff;
+        --tmg-bg: #fdfcf0;
+        --tmg-text: #2d3436;
+        --tmg-surface: #ffffff;
+        --tmg-border: 1px solid rgba(45, 52, 54, 0.12);
+        --tmg-bento-radius: 16px;
+        --tmg-btn-radius: 8px;
+        --tmg-gap: 24px;
+        --tmg-gap-sm: 12px;
+        --tmg-shadow-sm: 0 1px 3px rgba(45, 52, 54, 0.08);
+        --tmg-shadow-md: 0 2px 8px rgba(45, 52, 54, 0.1);
+        --tmg-success: #2e8540;
+        --tmg-warning: #c47f00;
+        --tmg-error: #b00020;
+      }
+    </style>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="noise-layer" aria-hidden="true"></div>
-    <main class="layout">
-      <header class="hero">
-        <div class="hero-top">
-          <p class="kicker">NFL Analysis</p>
-          <nav class="top-nav" aria-label="Dashboard pages">
-            <a href="./welcome.html" id="welcomeLink">Welcome</a>
-            <a href="./index.html" aria-current="page">Overview</a>
-            <a id="teamPageLink" href="./team.html?team_id=BUF&season=2026">Team Detail</a>
-            <a id="scenarioPageLink" href="./scenario.html?team_id=BUF&season=2026">Scenario Sandbox</a>
-            <a href="./explorer.html" id="explorerLink">Explorer</a>
-          </nav>
+    <nav class="tmg-nav" role="banner">
+      <div class="tmg-logo" aria-label="The Mallory Group">
+        <span>TM</span>
+        <div class="tmg-logo-divider" aria-hidden="true"></div>
+        <span>G</span>
+      </div>
+      <div class="tmg-dropdown-wrap">
+        <button class="tmg-dropdown-btn" id="tmgDdBtn" aria-haspopup="true" aria-expanded="false" aria-controls="tmgDdMenu">
+          TMG Tool Suite
+          <svg class="tmg-chevron" viewBox="0 0 12 12" fill="none" width="12" height="12" aria-hidden="true">
+            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </button>
+        <div class="tmg-dropdown-menu" id="tmgDdMenu" role="menu">
+          <a href="https://rmallorybpc.github.io/pdf-multi-agent-analysis/" target="_blank" rel="noreferrer" role="menuitem">PDF Multi-Agent Analysis</a>
+          <a href="https://rmallorybpc.github.io/housing-market-intel/" target="_blank" rel="noreferrer" role="menuitem">Housing Market Intel</a>
+          <a href="https://rmallorybpc.github.io/real-estate-report/" target="_blank" rel="noreferrer" role="menuitem">Real Estate Report</a>
+          <a href="https://rmallorybpc.github.io/nflanalysis/dashboard/src/" target="_blank" rel="noreferrer" role="menuitem">NFL Analysis</a>
+          <a href="https://rmallorybpc.github.io/recipes/" target="_blank" rel="noreferrer" role="menuitem">Recipe Book</a>
         </div>
+      </div>
+    </nav>
+
+    <div class="tmg-subnav tmg-container" aria-label="Dashboard pages">
+      <a href="./welcome.html" id="welcomeLink" class="tmg-body-sm">Welcome</a>
+      <a href="./index.html" class="tmg-body-sm" aria-current="page">Overview</a>
+      <a id="teamPageLink" href="./team.html?team_id=BUF&season=2026" class="tmg-body-sm">Team Detail</a>
+      <a id="scenarioPageLink" href="./scenario.html?team_id=BUF&season=2026" class="tmg-body-sm">Scenario Sandbox</a>
+      <a href="./explorer.html" id="explorerLink" class="tmg-body-sm">Explorer</a>
+    </div>
+
+    <main class="layout tmg-page tmg-container">
+      <header class="hero">
         <h1>NFL Free Agency Impact Dashboard</h1>
         <p class="subhead">
           See how every team's free agent signings and trades are estimated to affect their season win probability — ranked across all 32 teams.
@@ -40,8 +82,8 @@
           <label>Team Drilldown
             <select id="teamInput" aria-label="Team drilldown selector"></select>
           </label>
-          <button id="refreshBtn" type="button">Refresh</button>
-          <a id="openTeamBtn" class="cta-link" href="./team.html?team_id=BUF&season=2026">Open Team Detail</a>
+          <button id="refreshBtn" type="button" class="tmg-btn">Refresh</button>
+          <a id="openTeamBtn" class="cta-link tmg-btn-ghost" href="./team.html?team_id=BUF&season=2026">Open Team Detail</a>
         </div>
         <div class="hero-meta">
           <span id="seasonLabel">Season: --</span>
@@ -50,19 +92,19 @@
         <p id="statusMessage" class="status-message" role="status" aria-live="polite"></p>
       </header>
 
-      <section class="helper panel" aria-label="How to use overview page">
+      <section class="helper panel tmg-card-wide" aria-label="How to use overview page">
         <h2>Getting Started</h2>
         <p>Pick a season from the dropdown and click Refresh to load the league rankings. Click any team row to see a detailed breakdown of their player moves for that season.</p>
       </section>
 
       <section class="cards" id="overview-metric" aria-label="overview cards">
-        <article class="metric-card positive" id="topPositiveCard"></article>
-        <article class="metric-card negative" id="topNegativeCard"></article>
-        <article class="metric-card neutral" id="leagueCard"></article>
+        <article class="metric-card positive tmg-card" id="topPositiveCard"></article>
+        <article class="metric-card negative tmg-card" id="topNegativeCard"></article>
+        <article class="metric-card neutral tmg-card" id="leagueCard"></article>
       </section>
 
       <section class="panel-grid">
-        <article class="panel" aria-labelledby="rankingTitle">
+        <article class="panel tmg-card" aria-labelledby="rankingTitle">
           <div class="panel-header">
             <h2 id="rankingTitle">Team Rankings — Win% Impact</h2>
             <p>Teams ranked by how much their free agent and trade activity is estimated to change their chances of winning games this season.</p>
@@ -70,7 +112,7 @@
           <div id="rankingChart" class="bar-list"></div>
         </article>
 
-        <article class="panel" aria-labelledby="distributionTitle">
+        <article class="panel tmg-card" aria-labelledby="distributionTitle">
           <div class="panel-header">
             <h2 id="distributionTitle">How Moves Are Distributed</h2>
             <p>Breakdown of how many teams had positive, neutral, or negative impact from their player movement this season.</p>
@@ -80,7 +122,7 @@
       </section>
 
       <section class="panel-grid">
-        <article class="panel" aria-labelledby="scopeTitle">
+        <article class="panel tmg-card" aria-labelledby="scopeTitle">
           <div class="panel-header">
             <h2 id="scopeTitle">What This Season Covers</h2>
             <p>The seasons, types of moves (trades and free agency), and team geography dimensions included in this analysis.</p>
@@ -89,7 +131,7 @@
           <div id="seasonCoverageChart" class="bar-list"></div>
         </article>
 
-        <article class="panel" aria-labelledby="geographyTitle">
+        <article class="panel tmg-card" aria-labelledby="geographyTitle">
           <div class="panel-header">
             <h2 id="geographyTitle">Impact by Move Geography</h2>
             <p>Whether a player moved within the same division, to a different division, or across conferences — and how that affects the impact estimate on average.</p>
@@ -131,6 +173,35 @@
       </div>
     </template>
 
+    <script>
+      (function () {
+        const btn = document.getElementById("tmgDdBtn");
+        const menu = document.getElementById("tmgDdMenu");
+        if (!btn || !menu) return;
+
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const isOpen = menu.classList.toggle("open");
+          btn.classList.toggle("open", isOpen);
+          btn.setAttribute("aria-expanded", String(isOpen));
+        });
+
+        document.addEventListener("click", function () {
+          menu.classList.remove("open");
+          btn.classList.remove("open");
+          btn.setAttribute("aria-expanded", "false");
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            menu.classList.remove("open");
+            btn.classList.remove("open");
+            btn.setAttribute("aria-expanded", "false");
+            btn.focus();
+          }
+        });
+      })();
+    </script>
     <script src="./nav.js"></script>
     <script type="module" src="./overview.js"></script>
   </body>

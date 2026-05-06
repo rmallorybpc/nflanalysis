@@ -6,7 +6,28 @@
     <title>NFL Player Movement Explorer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://rmallorybpc.github.io/tmg-brand-guide/dist/tmg.css" />
+    <style>
+      :root {
+        --tmg-cream: #fdfcf0;
+        --tmg-charcoal: #2d3436;
+        --tmg-sage: #84a98c;
+        --tmg-sage-hover: #6b8f74;
+        --tmg-white: #ffffff;
+        --tmg-bg: #fdfcf0;
+        --tmg-text: #2d3436;
+        --tmg-surface: #ffffff;
+        --tmg-border: 1px solid rgba(45, 52, 54, 0.12);
+        --tmg-bento-radius: 16px;
+        --tmg-btn-radius: 8px;
+        --tmg-gap: 24px;
+        --tmg-gap-sm: 12px;
+        --tmg-shadow-sm: 0 1px 3px rgba(45, 52, 54, 0.08);
+        --tmg-shadow-md: 0 2px 8px rgba(45, 52, 54, 0.1);
+        --tmg-success: #2e8540;
+        --tmg-warning: #c47f00;
+        --tmg-error: #b00020;
+      }
+    </style>
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./team.css" />
     <style>
@@ -210,18 +231,39 @@
     </style>
   </head>
   <body>
-    <main class="wrap">
-      <header class="hero">
-        <div class="hero-top">
-          <p class="label">Player Movement Explorer</p>
-          <nav class="top-nav" aria-label="Dashboard pages">
-            <a href="./welcome.html" id="welcomeLink">Welcome</a>
-            <a id="overviewLink" href="./index.html?season=2026&team_id=BUF">Overview</a>
-            <a id="teamLink" href="./team.html?season=2026&team_id=BUF">Team Detail</a>
-            <a id="scenarioLink" href="./scenario.html?season=2026&team_id=BUF">Scenario Sandbox</a>
-            <a href="./explorer.html" id="explorerLink" aria-current="page">Explorer</a>
-          </nav>
+    <nav class="tmg-nav" role="banner">
+      <div class="tmg-logo" aria-label="The Mallory Group">
+        <span>TM</span>
+        <div class="tmg-logo-divider" aria-hidden="true"></div>
+        <span>G</span>
+      </div>
+      <div class="tmg-dropdown-wrap">
+        <button class="tmg-dropdown-btn" id="tmgDdBtn" aria-haspopup="true" aria-expanded="false" aria-controls="tmgDdMenu">
+          TMG Tool Suite
+          <svg class="tmg-chevron" viewBox="0 0 12 12" fill="none" width="12" height="12" aria-hidden="true">
+            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </button>
+        <div class="tmg-dropdown-menu" id="tmgDdMenu" role="menu">
+          <a href="https://rmallorybpc.github.io/pdf-multi-agent-analysis/" target="_blank" rel="noreferrer" role="menuitem">PDF Multi-Agent Analysis</a>
+          <a href="https://rmallorybpc.github.io/housing-market-intel/" target="_blank" rel="noreferrer" role="menuitem">Housing Market Intel</a>
+          <a href="https://rmallorybpc.github.io/real-estate-report/" target="_blank" rel="noreferrer" role="menuitem">Real Estate Report</a>
+          <a href="https://rmallorybpc.github.io/nflanalysis/dashboard/src/" target="_blank" rel="noreferrer" role="menuitem">NFL Analysis</a>
+          <a href="https://rmallorybpc.github.io/recipes/" target="_blank" rel="noreferrer" role="menuitem">Recipe Book</a>
         </div>
+      </div>
+    </nav>
+
+    <div class="tmg-subnav tmg-container" aria-label="Dashboard pages">
+      <a href="./welcome.html" id="welcomeLink" class="tmg-body-sm">Welcome</a>
+      <a id="overviewLink" href="./index.html?season=2026&team_id=BUF" class="tmg-body-sm">Overview</a>
+      <a id="teamLink" href="./team.html?season=2026&team_id=BUF" class="tmg-body-sm">Team Detail</a>
+      <a id="scenarioLink" href="./scenario.html?season=2026&team_id=BUF" class="tmg-body-sm">Scenario Sandbox</a>
+      <a href="./explorer.html" id="explorerLink" class="tmg-body-sm" aria-current="page">Explorer</a>
+    </div>
+
+    <main class="wrap tmg-page tmg-container">
+      <header class="hero">
         <h1>Browse All Player Moves</h1>
         <p id="meta">Search and filter every trade and free agency signing across all five seasons. Sort by win impact, contract value efficiency, or date.</p>
         <div id="controlsRow" class="hero-controls" aria-label="Player movement explorer controls">
@@ -282,12 +324,41 @@
         <p id="statusMessage" class="status-message" role="status" aria-live="polite"></p>
       </header>
 
-      <section class="panel">
+      <section class="panel tmg-card-wide">
         <h2 id="spend-vs-mis">Movement Timeline</h2>
         <div id="explorerResults" class="timeline"></div>
       </section>
     </main>
 
+    <script>
+      (function () {
+        const btn = document.getElementById("tmgDdBtn");
+        const menu = document.getElementById("tmgDdMenu");
+        if (!btn || !menu) return;
+
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const isOpen = menu.classList.toggle("open");
+          btn.classList.toggle("open", isOpen);
+          btn.setAttribute("aria-expanded", String(isOpen));
+        });
+
+        document.addEventListener("click", function () {
+          menu.classList.remove("open");
+          btn.classList.remove("open");
+          btn.setAttribute("aria-expanded", "false");
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            menu.classList.remove("open");
+            btn.classList.remove("open");
+            btn.setAttribute("aria-expanded", "false");
+            btn.focus();
+          }
+        });
+      })();
+    </script>
     <script src="./nav.js"></script>
     <script type="module" src="./explorer.js"></script>
   </body>
