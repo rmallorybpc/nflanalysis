@@ -257,7 +257,13 @@
             <select id="teamInput" aria-label="Team selector"></select>
           </label>
           <label>Season
-            <input id="seasonInput" type="number" value="2026" min="2010" max="2100" />
+            <select id="seasonInput" aria-label="Season selector">
+              <option value="2022">2022</option>
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026" selected>2026</option>
+            </select>
           </label>
           <button id="reloadBtn" type="button" class="tmg-btn">Reload Team</button>
           <div class="share-control">
