@@ -143,7 +143,10 @@ function applyFilters(events) {
     }
 
     if (state.misBandFilter) {
-      const metric = Number(event.mis_z ?? event.impact_estimate ?? 0);
+      const rawMetric = Number(event.mis_z ?? event.impact_estimate ?? 0);
+      const metric = event.mis_z != null
+        ? rawMetric
+        : rawMetric * 100;
       const value = Number.isFinite(metric) ? metric : 0;
 
       if (state.misBandFilter === "high_pos" && !(value >= 1.0)) {
@@ -251,7 +254,7 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
     const direction = toTeam === teamId ? "inbound" : "outbound";
     const pointEstimate = toFiniteNumber(pickField(event, ["impact_estimate", "mis_value"], 0)) || 0;
     const misZ = toFiniteNumber(pickField(event, ["mis_z"], null));
-    const scaledImpact = (toFiniteNumber(pickField(event, ["impact_estimate"], 0)) || 0) * 10;
+    const scaledImpact = (toFiniteNumber(pickField(event, ["impact_estimate"], 0)) || 0) * 100;
     // Use mis_z if available, otherwise use scaled impact as proxy.
     const bandProxy = misZ !== null ? misZ : scaledImpact;
     const interval = intervalForEvent(event);
