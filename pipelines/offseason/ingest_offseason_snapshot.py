@@ -143,6 +143,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--players-output", type=Path, default=Path("data/processed/offseason/player_dimension.csv"))
     parser.add_argument("--outcomes-output", type=Path, default=Path("data/processed/offseason/team_week_outcomes.csv"))
     parser.add_argument("--review-output", type=Path, default=Path("data/processed/offseason/manual_review.csv"))
+    parser.add_argument(
+        "--blocklist",
+        default="data/raw/offseason/player_blocklist.csv",
+        help="Path to player blocklist CSV",
+    )
     parser.add_argument("--append", action="store_true", default=False)
     return parser.parse_args()
 
@@ -170,6 +175,26 @@ def read_csv_if_exists(path: Path) -> list[dict[str, str]]:
         return []
     with path.open(newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
+
+
+def _load_blocklist(blocklist_path: Path) -> set[tuple[str, str, str]]:
+    """
+    Returns a set of (lowercased_player_name, team_upper, season_str)
+    tuples to exclude from movement event generation.
+    An empty team value means block the player from ALL teams
+    for that season.
+    """
+    if not blocklist_path.exists():
+        return set()
+    blocked: set[tuple[str, str, str]] = set()
+    with open(blocklist_path, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            name = row.get("player_name", "").strip().lower()
+            team = row.get("team", "").strip().upper()
+            season = row.get("season", "").strip()
+            if name and season:
+                blocked.add((name, team, season))
+    return blocked
 
 
 def write_csv(path: Path, fields: list[str], rows: list[dict[str, str]], append: bool = False) -> None:
@@ -315,6 +340,7 @@ def build_movement_events(
     season: int,
     week: int,
     now_iso: str,
+    blocklist: set[tuple[str, str, str]],
 ) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
     out: list[dict[str, str]] = []
     review: list[dict[str, str]] = []
@@ -367,6 +393,23 @@ def build_movement_events(
             move_type = infer_players_metadata_move_type(row)
             if from_team and move_type != "trade":
                 move_type = "trade"
+
+            # Blocklist check
+            player_lower = str(row.get("player", "")).strip().lower()
+            to_team_upper = str(team).strip().upper()
+            season_str = str(season).strip()
+
+            blocked_this_player = (
+                (player_lower, to_team_upper, season_str) in blocklist
+                or (player_lower, "", season_str) in blocklist
+            )
+
+            if blocked_this_player:
+                print(
+                    f"[BLOCKLIST] Skipping {row.get('player')} "
+                    f"-> {to_team_upper} season={season_str}"
+                )
+                continue
 
             from_team_id = from_team if move_type == "trade" else ""
             out.append(
@@ -570,13 +613,23 @@ def main() -> None:
     args.win_totals = resolve_year_specific_path(args.win_totals, DEFAULT_WIN_TOTALS_PATH, args.snapshot_year)
 
     now_iso = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    blocklist = _load_blocklist(Path(args.blocklist))
+    if blocklist:
+        print(f"[BLOCKLIST] Loaded {len(blocklist)} blocked entries")
 
     tx_rows = read_csv(args.transactions)
     player_rows = read_csv(args.players)
     win_total_rows = read_csv(args.win_totals)
 
     players_out, player_by_name = build_player_dimension(player_rows, args.season, now_iso)
-    movement_out, review_out = build_movement_events(tx_rows, player_by_name, args.season, args.week, now_iso)
+    movement_out, review_out = build_movement_events(
+        tx_rows,
+        player_by_name,
+        args.season,
+        args.week,
+        now_iso,
+        blocklist,
+    )
     outcomes_out = build_outcomes_from_win_totals(win_total_rows, args.season, args.week, now_iso)
 
     skipped_existing_players = 0

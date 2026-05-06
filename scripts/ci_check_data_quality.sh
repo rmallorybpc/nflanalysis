@@ -442,4 +442,51 @@ if movement_rows and "ingested_at" in cols and "move_id" in cols and "nfl_season
 print("validated semantic movement checks")
 PY
 
+python3 - <<'PY'
+import csv
+
+blocklist_path = "data/raw/offseason/player_blocklist.csv"
+events_path = "data/processed/movement_events.csv"
+
+if not __import__('os').path.exists(blocklist_path):
+  print("No blocklist file found - skipping blocklist validation")
+else:
+  with open(blocklist_path, newline="", encoding="utf-8") as f:
+    blocked = [
+      (
+        r["player_name"].strip().lower(),
+        r["team"].strip().upper(),
+        r["season"].strip(),
+      )
+      for r in csv.DictReader(f)
+      if r.get("player_name") and r.get("season")
+    ]
+
+  with open(events_path, newline="", encoding="utf-8") as f:
+    events = list(csv.DictReader(f))
+
+  violations = []
+  for b_name, b_team, b_season in blocked:
+    for e in events:
+      e_name = (e.get("player_name", "") + " " + e.get("player_id", "")).lower()
+      e_team = e.get("to_team_id", "").strip().upper()
+      e_season = e.get("nfl_season", "").strip()
+      name_match = b_name in e_name
+      team_match = b_team == "" or e_team == b_team
+      season_match = e_season == b_season
+      if name_match and team_match and season_match:
+        violations.append(f"{b_name} team={b_team} season={b_season}")
+
+  if violations:
+    for v in violations:
+      print(f"BLOCKLIST VIOLATION: {v}")
+    raise SystemExit(
+      f"Blocklist validation failed: {len(violations)} "
+      f"blocked player-team-season combinations found in "
+      f"movement_events.csv. Edit the blocklist file or "
+      f"re-run ingestion."
+    )
+  print(f"Blocklist validation passed ({len(blocked)} entries checked).")
+PY
+
 echo "Data quality contract checks passed."

@@ -900,6 +900,52 @@ def maybe_write(path: Path, fields: list[str], rows: list[dict[str, str]], force
     return True
 
 
+def _apply_blocklist_to_metadata(
+    output_path: Path,
+    blocklist_path: Path,
+    season: int,
+) -> int:
+    """
+    Remove rows from players_metadata where the player+team+season
+    combination matches a blocklist entry. Returns count removed.
+    """
+    if not blocklist_path.exists():
+        return 0
+
+    with open(blocklist_path, newline="", encoding="utf-8") as f:
+        blocked = [
+            (r["player_name"].strip().lower(), r["team"].strip().upper())
+            for r in csv.DictReader(f)
+            if r.get("season", "").strip() == str(season)
+        ]
+
+    if not blocked:
+        return 0
+
+    with open(output_path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+
+    headers = list(rows[0].keys()) if rows else []
+    clean = []
+    removed = 0
+    for row in rows:
+        name = row.get("player", "").strip().lower()
+        team = row.get("team", "").strip().upper()
+        if any(name == b_name and (b_team == "" or team == b_team) for b_name, b_team in blocked):
+            print(f"[BLOCKLIST] Removed from metadata: {row.get('player')} team={team} season={season}")
+            removed += 1
+        else:
+            clean.append(row)
+
+    if removed > 0:
+        with open(output_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=headers, quoting=csv.QUOTE_ALL)
+            writer.writeheader()
+            writer.writerows(clean)
+
+    return removed
+
+
 def main() -> None:
     args = parse_args()
 
@@ -937,7 +983,15 @@ def main() -> None:
         print("[INFO] dry-run mode enabled; no files written")
         return
 
-    maybe_write(players_path, PLAYERS_FIELDS, players, args.force)
+    wrote_players = maybe_write(players_path, PLAYERS_FIELDS, players, args.force)
+    if wrote_players:
+        removed = _apply_blocklist_to_metadata(
+            output_path=Path(f"data/raw/offseason/players_metadata_{args.season}.csv"),
+            blocklist_path=Path("data/raw/offseason/player_blocklist.csv"),
+            season=args.season,
+        )
+        if removed:
+            print(f"[BLOCKLIST] Removed {removed} rows from players_metadata_{args.season}.csv")
     maybe_write(spending_path, TEAM_SPENDING_FIELDS, spending, args.force)
     maybe_write(wins_path, WIN_TOTALS_FIELDS, wins, args.force)
 

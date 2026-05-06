@@ -1,0 +1,170 @@
+name: Blocklist Update — Re-ingest and Redeploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/raw/offseason/player_blocklist.csv'
+
+concurrency:
+  group: blocklist-update
+  cancel-in-progress: true
+
+env:
+  PYTHONDONTWRITEBYTECODE: 1
+  PYTHONUNBUFFERED: 1
+
+jobs:
+  reingest-and-redeploy:
+    name: Re-ingest, Retrain, Redeploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas numpy scikit-learn --break-system-packages
+
+      - name: Show blocklist changes
+        run: |
+          echo "=== Current blocklist ==="
+          cat data/raw/offseason/player_blocklist.csv
+
+      - name: Remove existing 2025 movement events
+        run: |
+          python3 - <<'PY'
+          import csv
+          path = "data/processed/movement_events.csv"
+          with open(path, newline="", encoding="utf-8") as f:
+              rows = list(csv.DictReader(f))
+          headers = list(rows[0].keys()) if rows else []
+          # Remove seasons that have blocklist entries
+          import csv as csv2
+          blocked_seasons = set()
+          with open("data/raw/offseason/player_blocklist.csv") as bf:
+              for r in csv2.DictReader(bf):
+                  blocked_seasons.add(r.get("season","").strip())
+          clean = [r for r in rows
+                   if r.get("nfl_season","").strip()
+                   not in blocked_seasons]
+          print(f"Before: {len(rows)} rows")
+          print(f"Removing seasons: {blocked_seasons}")
+          print(f"After: {len(clean)} rows")
+          with open(path, "w", newline="", encoding="utf-8") as f:
+              writer = csv2.DictWriter(
+                  f, fieldnames=headers, quoting=csv2.QUOTE_ALL
+              )
+              writer.writeheader()
+              writer.writerows(clean)
+          PY
+
+      - name: Re-ingest affected seasons
+        run: |
+          python3 - <<'PY'
+          import csv, subprocess, sys
+          with open("data/raw/offseason/player_blocklist.csv") as f:
+              seasons = sorted(set(
+                  r["season"].strip()
+                  for r in csv.DictReader(f)
+                  if r.get("season","").strip()
+              ))
+          for season in seasons:
+              print(f"=== Re-ingesting season {season} ===")
+              result = subprocess.run([
+                  sys.executable,
+                  "pipelines/offseason/ingest_offseason_snapshot.py",
+                  "--transactions",
+                  f"data/raw/offseason/players_metadata_{season}.csv",
+                  "--players",
+                  f"data/raw/offseason/players_metadata_{season}.csv",
+                  "--win-totals",
+                  f"data/raw/offseason/win_totals_{season}.csv",
+                  "--movement-output",
+                  "data/processed/movement_events.csv",
+                  "--players-output",
+                  "data/processed/player_dimension.csv",
+                  "--outcomes-output",
+                  "data/processed/team_week_outcomes.csv",
+                  "--review-output",
+                  "data/processed/offseason_manual_review.csv",
+                  "--season", season,
+                  "--week", "1",
+                  "--append",
+                  "--blocklist",
+                  "data/raw/offseason/player_blocklist.csv"
+              ], check=False)
+              if result.returncode != 0:
+                  print(f"ERROR: Ingestion failed for season {season}")
+                  sys.exit(1)
+          PY
+
+      - name: Rebuild features
+        run: |
+          python3 pipelines/offseason/build_offseason_team_features.py \
+            --movement data/processed/movement_events.csv \
+            --players data/processed/player_dimension.csv \
+            --outcomes data/processed/team_week_outcomes.csv \
+            --team-spending data/raw/offseason/team_spending_otc_2026.csv \
+            --win-totals data/raw/offseason/win_totals_2026.csv \
+            --output data/processed/team_week_features.csv
+
+      - name: Retrain models
+        run: |
+          python3 models/baseline/train_baseline_model.py \
+            --features data/processed/team_week_features.csv \
+            --outcomes data/processed/team_week_outcomes.csv \
+            --output data/processed/model_outputs.csv \
+            --coefficients-output models/artifacts/baseline_coefficients.csv \
+            --model-version baseline-ridge-v0.2.0-offseason
+
+          python3 models/hierarchical/train_hierarchical_model.py \
+            --features data/processed/team_week_features.csv \
+            --outcomes data/processed/team_week_outcomes.csv \
+            --movement data/processed/movement_events.csv \
+            --players data/processed/player_dimension.csv \
+            --output data/processed/model_outputs_hierarchical.csv \
+            --effects-output models/artifacts/hierarchical_effects.csv \
+            --model-version hierarchical-eb-v0.4.0-offseason
+
+      - name: Rebuild backfill bundle
+        run: python3 pipelines/offseason/backfill_multi_season.py
+
+      - name: Run CI checks
+        run: |
+          bash scripts/ci_check_data_quality.sh
+          bash scripts/ci_check_model_regression_contract.sh
+
+      - name: Commit regenerated artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add \
+            data/processed/movement_events.csv \
+            data/processed/player_dimension.csv \
+            data/processed/team_week_features.csv \
+            data/processed/team_week_outcomes.csv \
+            data/processed/model_outputs.csv \
+            data/processed/model_outputs_hierarchical.csv \
+            models/artifacts/baseline_coefficients.csv \
+            models/artifacts/hierarchical_effects.csv
+          git diff --staged --quiet || git commit -m \
+            "data(auto): re-ingest after blocklist update [skip ci]"
+          git push
+
+      - name: Trigger Render redeploy
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$RENDER_DEPLOY_HOOK" ]; then
+            curl -X POST "$RENDER_DEPLOY_HOOK"
+            echo "Render redeploy triggered."
+          else
+            echo "RENDER_DEPLOY_HOOK secret not set — skipping auto-redeploy."
+            echo "Manually redeploy on Render to pick up the changes."
+          fi
