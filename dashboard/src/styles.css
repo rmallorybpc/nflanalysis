@@ -587,6 +587,18 @@ h1 {
   margin: 0 0 0 16px;
 }
 
+.welcome-glossary dd p {
+  margin: 0;
+}
+
+.glossary-plain {
+  color: #333;
+  font-weight: 600;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  font-size: 0.98rem;
+}
+
 .welcome-footer-section {
   border-top: 1px solid var(--color-border, #334155);
   padding-top: 24px;
