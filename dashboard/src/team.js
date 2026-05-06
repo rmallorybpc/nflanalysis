@@ -12,6 +12,10 @@ const state = {
   season: 2026,
 };
 
+function seasonLabel(year) {
+  return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
+}
+
 const SHARE_DEFAULT_LABEL = "🔗 Share This View";
 const SHARE_SUCCESS_LABEL = "✓ Link Copied";
 

@@ -12,6 +12,10 @@ const state = {
   teamId: "BUF",
 };
 
+function seasonLabel(year) {
+  return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
+}
+
 function buildOverviewUrl(season) {
   const params = new URLSearchParams({ season: String(season) });
   return `${API_BASE}/v1/dashboard/overview?${params.toString()}`;

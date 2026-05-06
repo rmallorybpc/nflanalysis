@@ -29,6 +29,10 @@ const state = {
   sortOrder: "abs_desc",
 };
 
+function seasonLabel(year) {
+  return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
+}
+
 let allEvents = [];
 let failedTeamCount = 0;
 
@@ -702,7 +706,7 @@ function ensureControlOptions() {
     SEASON_OPTIONS.forEach((season) => {
       const option = document.createElement("option");
       option.value = String(season);
-      option.textContent = String(season);
+      option.textContent = seasonLabel(season);
       seasonSelect.appendChild(option);
     });
   }
