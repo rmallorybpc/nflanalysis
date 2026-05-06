@@ -25,9 +25,9 @@
             <a href="./explorer.html" id="explorerLink">Explorer</a>
           </nav>
         </div>
-        <h1>Movement Impact Overview</h1>
+        <h1>NFL Free Agency Impact Dashboard</h1>
         <p class="subhead">
-          League-wide signal for player movement impact, calibrated with uncertainty intervals and confidence flags.
+          See how every team's free agent signings and trades are estimated to affect their season win probability — ranked across all 32 teams.
         </p>
         <div class="hero-controls" aria-label="Overview filters">
           <label>Season
@@ -53,8 +53,8 @@
       </header>
 
       <section class="helper panel" aria-label="How to use overview page">
-        <h2>How To Use</h2>
-        <p>Choose a season and team, then click Refresh. Click any row in League Ranking to jump directly to that team for the selected season.</p>
+        <h2>Getting Started</h2>
+        <p>Pick a season from the dropdown and click Refresh to load the league rankings. Click any team row to see a detailed breakdown of their player moves for that season.</p>
       </section>
 
       <section class="cards" aria-label="overview cards">
@@ -66,16 +66,16 @@
       <section class="panel-grid">
         <article class="panel" aria-labelledby="rankingTitle">
           <div class="panel-header">
-            <h2 id="rankingTitle">League Ranking</h2>
-            <p>Ordered by win_pct movement impact</p>
+            <h2 id="rankingTitle">Team Rankings — Win% Impact</h2>
+            <p>Teams ranked by how much their free agent and trade activity is estimated to change their chances of winning games this season.</p>
           </div>
           <div id="rankingChart" class="bar-list"></div>
         </article>
 
         <article class="panel" aria-labelledby="distributionTitle">
           <div class="panel-header">
-            <h2 id="distributionTitle">Outcome Distribution</h2>
-            <p>MIS<sup>z</sup> band counts by outcome</p>
+            <h2 id="distributionTitle">How Moves Are Distributed</h2>
+            <p>Breakdown of how many teams had positive, neutral, or negative impact from their player movement this season.</p>
           </div>
           <div id="distributionChart" class="stack-list"></div>
         </article>
@@ -84,8 +84,8 @@
       <section class="panel-grid">
         <article class="panel" aria-labelledby="scopeTitle">
           <div class="panel-header">
-            <h2 id="scopeTitle">MVP Scope Coverage</h2>
-            <p>Season range, move types, outcomes, and geography dimensions currently tracked.</p>
+            <h2 id="scopeTitle">What This Season Covers</h2>
+            <p>The seasons, types of moves (trades and free agency), and team geography dimensions included in this analysis.</p>
           </div>
           <div id="scopeList" class="scope-list"></div>
           <div id="seasonCoverageChart" class="bar-list"></div>
@@ -93,8 +93,8 @@
 
         <article class="panel" aria-labelledby="geographyTitle">
           <div class="panel-header">
-            <h2 id="geographyTitle">Geography Impact Profile</h2>
-            <p>Average absolute movement impact by same-division, cross-division, and cross-conference moves.</p>
+            <h2 id="geographyTitle">Impact by Move Geography</h2>
+            <p>Whether a player moved within the same division, to a different division, or across conferences — and how that affects the impact estimate on average.</p>
           </div>
           <div id="geographyChart" class="geo-list"></div>
         </article>

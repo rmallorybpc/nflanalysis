@@ -110,13 +110,13 @@
             <a href="./explorer.html" id="explorerLink">Explorer</a>
           </nav>
         </div>
-        <h1>Counterfactual Move Lab</h1>
-        <p>Test add/remove moves and inspect model deltas with uncertainty ranges.</p>
+        <h1>What-If Simulator</h1>
+        <p>See how adding or removing a specific player move would change a team's estimated win probability, point differential, and offensive efficiency.</p>
       </header>
 
       <section class="helper panel" aria-label="How to use scenario sandbox">
-        <h2>How To Use</h2>
-        <p>Select team, season, and move settings, then run the scenario. Update values and rerun to compare deltas and uncertainty bands for each outcome.</p>
+        <h2>Getting Started</h2>
+        <p>Select a team and season, choose a player move to add or remove, then click Run Scenario. The results show the estimated difference in win probability and other outcomes compared to what actually happened.</p>
       </section>
 
       <section class="controls panel">
@@ -148,7 +148,7 @@
           <label>To Team
             <select id="toTeam" aria-label="Move to team selector"></select>
           </label>
-          <label>Move Type
+          <label>Type of Move
             <select id="moveType">
               <option value="trade">trade</option>
               <option value="free_agency">free_agency</option>
@@ -166,24 +166,24 @@
       </section>
 
       <section class="panel">
-        <h2>Delta Summary</h2>
+        <h2>Estimated Impact of This Move</h2>
         <div id="deltaSummary" class="delta-grid"></div>
       </section>
 
       <section class="grid">
         <article class="panel">
-          <h2>Baseline Estimates</h2>
+          <h2>What the Model Predicted Without This Move</h2>
           <div id="baseline" class="estimate-list"></div>
         </article>
         <article class="panel">
-          <h2>Scenario Estimates</h2>
+          <h2>What the Model Predicts With This Move</h2>
           <div id="scenario" class="estimate-list"></div>
         </article>
       </section>
 
       <section id="comparisonChartPanel" class="panel comparison-chart-panel" style="display: none;">
         <div class="comparison-chart-header">
-          <h2 class="comparison-chart-title">Baseline vs Scenario</h2>
+          <h2 class="comparison-chart-title">Side-by-Side Comparison</h2>
           <div class="comparison-chart-legend" aria-label="Chart legend">
             <span class="comparison-chart-legend-item">
               <span class="comparison-chart-swatch" style="background: var(--neu);"></span>

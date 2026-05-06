@@ -239,8 +239,8 @@
             <a href="./explorer.html" id="explorerLink" aria-current="page">Explorer</a>
           </nav>
         </div>
-        <h1>Player Movement Explorer</h1>
-        <p id="meta">Browse and filter all player movement events across seasons.</p>
+        <h1>Browse All Player Moves</h1>
+        <p id="meta">Search and filter every trade and free agency signing across all five seasons. Sort by win impact, contract value efficiency, or date.</p>
         <div id="controlsRow" class="hero-controls" aria-label="Player movement explorer controls">
           <label>Season
             <select id="seasonInput" aria-label="Season selector">
@@ -257,7 +257,7 @@
           <label>Position Group
             <select id="positionFilter" aria-label="Position group filter"></select>
           </label>
-          <label>Move Type
+          <label>Type of Move
             <select id="moveTypeFilter" aria-label="Move type filter">
               <option value="">All</option>
               <option value="trade">Trade</option>
@@ -271,24 +271,24 @@
               <option value="outbound">Outbound</option>
             </select>
           </label>
-          <label>Impact Band
+          <label>Win Impact Level
             <select id="misBandFilter" aria-label="Impact band filter">
               <option value="">All</option>
-              <option value="high_pos">High Positive</option>
-              <option value="mod_pos">Moderate Positive</option>
-              <option value="neutral">Neutral</option>
-              <option value="mod_neg">Moderate Negative</option>
-              <option value="high_neg">High Negative</option>
+              <option value="high_pos">Strong Positive Impact</option>
+              <option value="mod_pos">Moderate Positive Impact</option>
+              <option value="neutral">Neutral / Unclear Impact</option>
+              <option value="mod_neg">Moderate Negative Impact</option>
+              <option value="high_neg">Strong Negative Impact</option>
             </select>
           </label>
           <label>Sort
             <select id="sortInput" aria-label="Sort order">
-              <option value="abs_desc" selected>Impact High→Low</option>
-              <option value="abs_asc">Impact Low→High</option>
-              <option value="date_desc">Date Newest</option>
-              <option value="date_asc">Date Oldest</option>
-              <option value="efficiency_desc">Impact per Dollar (best first)</option>
-              <option value="efficiency_asc">Impact per Dollar (worst first)</option>
+              <option value="abs_desc" selected>Biggest Win Impact First</option>
+              <option value="abs_asc">Smallest Win Impact First</option>
+              <option value="date_desc">Most Recent Moves First</option>
+              <option value="date_asc">Oldest Moves First</option>
+              <option value="efficiency_desc">Best Value per Dollar First</option>
+              <option value="efficiency_asc">Worst Value per Dollar First</option>
             </select>
           </label>
         </div>
