@@ -1212,3 +1212,10 @@ canvas {
   border-top: var(--tmg-border);
   margin-top: var(--tmg-gap);
 }
+
+/* Keep the welcome hero subtitle consistently centered across shared text styles. */
+.welcome-hero #hero-subtitle {
+  text-align: center !important;
+  margin-left: auto;
+  margin-right: auto;
+}
