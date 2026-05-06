@@ -165,19 +165,20 @@ function setCard(el, title, value, meta) {
 function renderCards(payload) {
   const cards = payload.cards;
   const confidenceLabel = (flag) => (flag ? "Low confidence" : "High confidence");
+  const miszTooltip = "Movement Impact Score (standardized) — a score comparing this move to all other moves. Above 1.0 is a strong positive signal. Below -1.0 is a strong negative signal.";
 
   setCard(
     document.getElementById("topPositiveCard"),
     `Top Positive (${cards.top_positive_team.team_id})`,
     fmt(cards.top_positive_team.mis_value),
-    `MISz ${fmt(cards.top_positive_team.mis_z)} | 90% [${fmt(cards.top_positive_team.interval_90.low)}, ${fmt(cards.top_positive_team.interval_90.high)}] | ${confidenceLabel(cards.top_positive_team.low_confidence_flag)}`
+    `<span data-tooltip="${miszTooltip}">MISz</span> ${fmt(cards.top_positive_team.mis_z)} | 90% [${fmt(cards.top_positive_team.interval_90.low)}, ${fmt(cards.top_positive_team.interval_90.high)}] | ${confidenceLabel(cards.top_positive_team.low_confidence_flag)}`
   );
 
   setCard(
     document.getElementById("topNegativeCard"),
     `Top Negative (${cards.top_negative_team.team_id})`,
     fmt(cards.top_negative_team.mis_value),
-    `MISz ${fmt(cards.top_negative_team.mis_z)} | 90% [${fmt(cards.top_negative_team.interval_90.low)}, ${fmt(cards.top_negative_team.interval_90.high)}] | ${confidenceLabel(cards.top_negative_team.low_confidence_flag)}`
+    `<span data-tooltip="${miszTooltip}">MISz</span> ${fmt(cards.top_negative_team.mis_z)} | 90% [${fmt(cards.top_negative_team.interval_90.low)}, ${fmt(cards.top_negative_team.interval_90.high)}] | ${confidenceLabel(cards.top_negative_team.low_confidence_flag)}`
   );
 
   setCard(
@@ -249,7 +250,12 @@ function renderDistribution(payload) {
     .sort()
     .forEach((outcome) => {
       const node = template.content.firstElementChild.cloneNode(true);
-      node.querySelector(".stack-label").textContent = outcome;
+      const labelEl = node.querySelector(".stack-label");
+      if (String(outcome).trim().toLowerCase() === "win_pct") {
+        labelEl.innerHTML = '<span data-tooltip="Win percentage impact — how much this team\'s player moves are estimated to change their chances of winning games. A value of +0.020 means approximately 2 more wins per 100 games.">win_pct</span>';
+      } else {
+        labelEl.textContent = outcome;
+      }
       const values = node.querySelector(".stack-values");
       grouped[outcome].forEach((point) => {
         const pill = document.createElement("span");

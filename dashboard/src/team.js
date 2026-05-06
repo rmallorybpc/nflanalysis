@@ -517,7 +517,7 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       intervalHtml = `
         <div class="movement-interval">
           <div class="movement-row">
-            <span class="movement-interval-label">${item.interval.label}</span>
+            <span class="movement-interval-label" data-tooltip="Uncertainty range — there is a 90% probability the true impact falls within these bounds. A wide range means the model has less certainty about this estimate.">${item.interval.label}</span>
           </div>
           ${renderIntervalSvg(item.pointEstimate, item.interval, scale.min, scale.max)}
           <div class="movement-interval-text">[${fmt(item.interval.low)}, ${fmt(item.interval.high)}]</div>
@@ -526,14 +526,14 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
     }
 
     const lowConfidenceHtml = item.lowConfidence
-      ? '<div class="movement-low-confidence">LOW CONFIDENCE</div>'
+      ? '<div class="movement-low-confidence" data-tooltip="The model has limited data to estimate this move\'s impact reliably. Treat this value as directional, not precise.">LOW CONFIDENCE</div>'
       : "";
 
     const contractAav = toFiniteNumber(pickField(item.original, ["contract_aav"], null));
     const contractYears = pickField(item.original, ["contract_years"], "");
     const contractHtml = contractAav && contractAav > 0
       ? `<div class="movement-contract">
-           <span class="movement-contract-label">AAV</span>
+           <span class="movement-contract-label" data-tooltip="Average Annual Value — the average yearly salary for this contract.">AAV</span>
            <span class="movement-contract-value">$${(contractAav / 1_000_000).toFixed(1)}M</span>${contractYears ? ` <span class="movement-contract-years">/ ${contractYears} yr${contractYears === "1" ? "" : "s"}</span>` : ""}
          </div>`
       : "";
@@ -553,7 +553,7 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       <div class="movement-route">${teamBoldFrom} &rarr; ${teamBoldTo}</div>
       <div class="movement-when">${whenText}</div>
       <div class="movement-mis-row">
-        <span class="movement-mis-label">MIS (win%)</span>
+        <span class="movement-mis-label" data-tooltip="Movement Impact Score — the estimated change in win probability from this player move. Positive means the team improved, negative means they lost ground.">MIS (win%)</span>
         <span class="movement-mis-value ${misBandClass(item.misZ)}">${fmtSigned(item.pointEstimate)}</span>
       </div>
       ${intervalHtml}

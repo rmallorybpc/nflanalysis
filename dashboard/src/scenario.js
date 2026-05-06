@@ -56,6 +56,14 @@ const METRIC_CONFIG = [
   },
 ];
 
+const OUTCOME_TOOLTIPS = {
+  win_pct: "Win percentage — the fraction of games a team is expected to win. +0.050 means 5 additional wins per 100 games, or roughly one extra win per 20-game stretch.",
+  point_diff_per_game: "Point differential per game — how many more (or fewer) points per game a team is expected to score versus allow. A positive number means the team is expected to outscore opponents.",
+  offensive_epa_per_play: "Offensive EPA per play — Expected Points Added per offensive play. A measure of offensive efficiency used widely in modern NFL analytics. Positive means above-average efficiency.",
+};
+
+const DELTA_TOOLTIP = "The estimated difference this move makes — how much better or worse the team's outcomes are predicted to be with this move compared to without it.";
+
 let playersCache = null;
 let hasTeamParamInQuery = false;
 let hasInitializedMoveTeams = false;
@@ -380,7 +388,12 @@ function renderEstimates(containerId, rows) {
 
   rows.forEach((row) => {
     const node = template.content.firstElementChild.cloneNode(true);
-    node.querySelector(".estimate-outcome").textContent = row.outcome_name;
+    const outcomeEl = node.querySelector(".estimate-outcome");
+    outcomeEl.textContent = row.outcome_name;
+    const tooltip = getOutcomeTooltip(row.outcome_name);
+    if (tooltip) {
+      outcomeEl.setAttribute("data-tooltip", tooltip);
+    }
     node.querySelector(".estimate-mis").textContent = `${fmt(row.mis_value)} (z ${fmt(row.mis_z)})`;
     node.querySelector(".estimate-int").textContent = `Median ${fmt(row.median)} | 50% [${fmt(row.interval_50.low)}, ${fmt(row.interval_50.high)}] | 90% [${fmt(row.interval_90.low)}, ${fmt(row.interval_90.high)}] | ${row.low_confidence_flag ? "Low confidence" : "High confidence"}`;
     container.appendChild(node);
@@ -399,11 +412,19 @@ function renderDeltas(rows) {
 
   rows.forEach((row) => {
     const node = template.content.firstElementChild.cloneNode(true);
-    node.querySelector(".delta-outcome").textContent = row.outcome_name;
+    const outcomeEl = node.querySelector(".delta-outcome");
+    outcomeEl.textContent = row.outcome_name;
+    const outcomeTooltip = getOutcomeTooltip(row.outcome_name);
+    if (outcomeTooltip) {
+      outcomeEl.setAttribute("data-tooltip", outcomeTooltip);
+    }
     const valueEl = node.querySelector(".delta-value");
     valueEl.textContent = fmt(row.mis_delta);
     valueEl.classList.add(row.direction);
-    node.querySelector(".delta-range").textContent = `90% delta [${fmt(row.interval_90_delta.low)}, ${fmt(row.interval_90_delta.high)}]`;
+    valueEl.setAttribute("data-tooltip", DELTA_TOOLTIP);
+    const rangeEl = node.querySelector(".delta-range");
+    rangeEl.textContent = `90% delta [${fmt(row.interval_90_delta.low)}, ${fmt(row.interval_90_delta.high)}]`;
+    rangeEl.setAttribute("data-tooltip", DELTA_TOOLTIP);
     container.appendChild(node);
   });
 }
@@ -415,6 +436,20 @@ function normalizeOutcomeName(name) {
     .replace(/[%/]/g, "")
     .replace(/[_\-]+/g, " ")
     .replace(/\s+/g, " ");
+}
+
+function getOutcomeTooltip(outcomeName) {
+  const normalized = normalizeOutcomeName(outcomeName);
+  if (normalized.includes("win pct") || normalized === "win pct") {
+    return OUTCOME_TOOLTIPS.win_pct;
+  }
+  if (normalized.includes("point diff per game") || normalized.includes("point differential")) {
+    return OUTCOME_TOOLTIPS.point_diff_per_game;
+  }
+  if (normalized.includes("offensive epa per play") || normalized.includes("epa per play")) {
+    return OUTCOME_TOOLTIPS.offensive_epa_per_play;
+  }
+  return "";
 }
 
 function getMetricRow(rows, aliases) {
