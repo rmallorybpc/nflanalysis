@@ -79,57 +79,70 @@
 
       <section class="welcome-section">
         <h2>How to Use the Dashboard</h2>
-        <div class="welcome-cards">
+        <div class="welcome-cards" id="welcome-howto-cards">
 
           <article class="welcome-card">
             <div class="welcome-card-icon">📊</div>
             <h3>League Overview</h3>
             <p>
-              Start here. See all 32 teams ranked by the estimated win
-              impact of their player moves for a selected season.
-              Click any team to drill down.
+              See all 32 teams ranked by estimated win impact in 2026 and jump to a highlighted overview metric.
             </p>
-            <a href="./index.html?season=2026">Open Overview →</a>
+            <button
+              type="button"
+              class="welcome-example-btn"
+              data-example="overview"
+              aria-label="Open overview example for Buffalo 2026"
+            >
+              Open example
+            </button>
           </article>
 
           <article class="welcome-card">
             <div class="welcome-card-icon">🏈</div>
             <h3>Team Detail</h3>
             <p>
-              Select any team and season to see every player move —
-              who came in, who left, what it cost, and what the model
-              estimates it is worth in win probability.
+              Jump to a Jacksonville 2022 walkthrough and highlight the first movement card used in analysis.
             </p>
-            <a href="./team.html?season=2026&team_id=BUF">
-              View a Team →
-            </a>
+            <button
+              type="button"
+              class="welcome-example-btn"
+              data-example="team"
+              aria-label="Open team example for Jacksonville 2022"
+            >
+              Open example
+            </button>
           </article>
 
           <article class="welcome-card">
             <div class="welcome-card-icon">🔬</div>
             <h3>What-If Simulator</h3>
             <p>
-              Ask counterfactual questions. What if the Eagles had not
-              signed that linebacker? What if the Chiefs had traded for
-              a wide receiver? Run the scenario and see the estimated
-              outcome difference.
+              Open a prefiltered scenario page and highlight the side-by-side comparison chart section.
             </p>
-            <a href="./scenario.html?season=2026&team_id=BUF">
-              Try a Scenario →
-            </a>
+            <button
+              type="button"
+              class="welcome-example-btn"
+              data-example="scenario"
+              aria-label="Open scenario example for season 2026"
+            >
+              Open example
+            </button>
           </article>
 
           <article class="welcome-card">
             <div class="welcome-card-icon">🔍</div>
             <h3>Browse All Moves</h3>
             <p>
-              Filter and sort every trade and free agent signing across
-              five seasons. Sort by win impact, contract value efficiency,
-              or date. Find the best and worst value signings since 2022.
+              Open the movement explorer with a spend-versus-impact focus and highlight the key timeline area.
             </p>
-            <a href="./explorer.html?season=2026">
-              Open Explorer →
-            </a>
+            <button
+              type="button"
+              class="welcome-example-btn"
+              data-example="explorer"
+              aria-label="Open explorer example for season 2026"
+            >
+              Open example
+            </button>
           </article>
 
         </div>
@@ -141,6 +154,14 @@
           <dt>MIS — Movement Impact Score</dt>
           <dd>
             <p class="glossary-plain">How much this move is estimated to change a team’s chance of winning, expressed in percentage points.</p>
+            <button
+              type="button"
+              class="glossary-tooltip-trigger"
+              data-tooltip="How much this move is estimated to change a team’s chance of winning, expressed in percentage points."
+              aria-label="Show plain-English MIS definition"
+            >
+              What this means
+            </button>
             <p>
               The estimated change in win probability from a single player
               move. A value of +0.020 means the move is estimated to add
@@ -151,6 +172,14 @@
           <dt>MISz — Standardized Score</dt>
           <dd>
             <p class="glossary-plain">A normalized MIS that lets you compare moves across seasons and teams.</p>
+            <button
+              type="button"
+              class="glossary-tooltip-trigger"
+              data-tooltip="A normalized MIS that lets you compare moves across seasons and teams."
+              aria-label="Show plain-English MISz definition"
+            >
+              What this means
+            </button>
             <p>
               MIS scaled to compare across all moves in the dataset.
               Above +1.0 is a strong positive signal. Below -1.0 is a
@@ -191,5 +220,7 @@
         </p>
       </section>
     </main>
+    <script src="./nav.js"></script>
+    <script src="./welcome.js"></script>
   </body>
 </html>

@@ -207,8 +207,11 @@ function renderRanking(payload) {
 
   const maxAbs = Math.max(...rows.map((row) => Math.abs(row.mis_value)), 1);
 
-  rows.forEach((row) => {
+  rows.forEach((row, index) => {
     const node = template.content.firstElementChild.cloneNode(true);
+    if (index === 0) {
+      node.id = "movement-card-1";
+    }
     node.classList.add("clickable");
     node.setAttribute("role", "button");
     node.tabIndex = 0;

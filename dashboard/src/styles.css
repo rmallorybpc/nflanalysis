@@ -570,6 +570,24 @@ h1 {
   text-decoration: underline;
 }
 
+.welcome-example-btn {
+  border: 1px solid rgba(125, 211, 252, 0.45);
+  background: rgba(15, 127, 124, 0.18);
+  color: #e2f6f8;
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.welcome-example-btn:hover,
+.welcome-example-btn:focus-visible {
+  background: rgba(15, 127, 124, 0.32);
+  outline: 2px solid rgba(125, 211, 252, 0.45);
+  outline-offset: 2px;
+}
+
 .welcome-glossary {
   display: grid;
   gap: 16px;
@@ -597,6 +615,79 @@ h1 {
   margin-top: 6px;
   margin-bottom: 6px;
   font-size: 0.98rem;
+}
+
+.glossary-tooltip-trigger {
+  border: 1px dashed rgba(148, 163, 184, 0.7);
+  background: transparent;
+  color: #d1d9e4;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+  margin-bottom: 0.45rem;
+}
+
+.glossary-tooltip-trigger:hover,
+.glossary-tooltip-trigger:focus-visible {
+  border-color: rgba(125, 211, 252, 0.9);
+  color: #f4f8fd;
+  outline: none;
+}
+
+.tooltip-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 38, 0.78);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 2000;
+}
+
+.tooltip-modal.open {
+  display: flex;
+}
+
+.tooltip-modal-card {
+  width: min(92vw, 380px);
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #111b2d;
+  padding: 0.95rem;
+  color: #e5edf5;
+}
+
+.tooltip-modal-card p {
+  margin: 0 0 0.8rem;
+  color: #e5edf5;
+  line-height: 1.5;
+}
+
+.tooltip-modal-close {
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 8px;
+  background: rgba(148, 163, 184, 0.12);
+  color: #f8fafc;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+}
+
+.example-highlight {
+  outline: 3px solid rgba(14, 165, 233, 0.8);
+  outline-offset: 4px;
+  animation: highlight-fade 3s ease;
+}
+
+@keyframes highlight-fade {
+  0% {
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.28);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+  }
 }
 
 .welcome-footer-section {
