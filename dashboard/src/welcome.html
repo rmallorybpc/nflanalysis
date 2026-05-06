@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NFL Movement Impact Overview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="noise-layer" aria-hidden="true"></div>
+    <main class="layout">
+      <header class="hero">
+        <div class="hero-top">
+          <p class="kicker">NFL Analysis</p>
+          <nav class="top-nav" aria-label="Dashboard pages">
+            <a href="./welcome.html" id="welcomeLink" aria-current="page">Welcome</a>
+            <a href="./index.html">Overview</a>
+            <a href="./team.html?team_id=BUF&season=2026">Team Detail</a>
+            <a href="./scenario.html?team_id=BUF&season=2026">Scenario Sandbox</a>
+            <a href="./explorer.html" id="explorerLink">Explorer</a>
+          </nav>
+        </div>
+
+        <section class="welcome-hero">
+          <h1 class="welcome-title">Front Office in a Browser</h1>
+          <p class="welcome-subtitle">
+            A live analytics dashboard showing how NFL player moves —
+            trades and free agent signings — are estimated to affect
+            each team's win probability across five seasons of data.
+          </p>
+          <a href="./index.html?season=2026" class="welcome-cta">
+            Explore the 2026 Season →
+          </a>
+        </section>
+      </header>
+
+      <section class="welcome-section">
+        <h2>What This Dashboard Shows</h2>
+        <p>
+          Every NFL trade and free agent signing changes a team's roster.
+          But by how much? This dashboard uses a statistical model to
+          estimate the win probability impact of each player move —
+          ranking all 32 teams by how much their offseason activity
+          is predicted to help or hurt them.
+        </p>
+        <p>
+          The model covers five seasons (2022–2026), 643 player moves,
+          and three outcome metrics: win percentage, point differential
+          per game, and offensive EPA per play.
+        </p>
+      </section>
+
+      <section class="welcome-section">
+        <h2>The Research Behind It</h2>
+        <p>
+          This project is grounded in behavioral economics research on
+          how disruption and roster change affect performance. The primary
+          inspiration is Hengchen Dai's research on the
+          <strong>reset effect</strong> in Major League Baseball, featured
+          in the Freakonomics Radio episode
+          <a href="https://freakonomics.com/podcast/are-you-ready-for-a-fresh-start-update/"
+             target="_blank" rel="noopener">Are You Ready for a Fresh Start?</a>
+        </p>
+        <p>
+          Dai found that when a struggling player is traded — triggering
+          a statistical reset — their performance improves significantly.
+          The implication for NFL analysis: player movement is not a
+          neutral event. A trade or signing carries a measurable signal
+          about expected performance change.
+        </p>
+      </section>
+
+      <section class="welcome-section">
+        <h2>How to Use the Dashboard</h2>
+        <div class="welcome-cards">
+
+          <article class="welcome-card">
+            <div class="welcome-card-icon">📊</div>
+            <h3>League Overview</h3>
+            <p>
+              Start here. See all 32 teams ranked by the estimated win
+              impact of their player moves for a selected season.
+              Click any team to drill down.
+            </p>
+            <a href="./index.html?season=2026">Open Overview →</a>
+          </article>
+
+          <article class="welcome-card">
+            <div class="welcome-card-icon">🏈</div>
+            <h3>Team Detail</h3>
+            <p>
+              Select any team and season to see every player move —
+              who came in, who left, what it cost, and what the model
+              estimates it is worth in win probability.
+            </p>
+            <a href="./team.html?season=2026&team_id=BUF">
+              View a Team →
+            </a>
+          </article>
+
+          <article class="welcome-card">
+            <div class="welcome-card-icon">🔬</div>
+            <h3>What-If Simulator</h3>
+            <p>
+              Ask counterfactual questions. What if the Eagles had not
+              signed that linebacker? What if the Chiefs had traded for
+              a wide receiver? Run the scenario and see the estimated
+              outcome difference.
+            </p>
+            <a href="./scenario.html?season=2026&team_id=BUF">
+              Try a Scenario →
+            </a>
+          </article>
+
+          <article class="welcome-card">
+            <div class="welcome-card-icon">🔍</div>
+            <h3>Browse All Moves</h3>
+            <p>
+              Filter and sort every trade and free agent signing across
+              five seasons. Sort by win impact, contract value efficiency,
+              or date. Find the best and worst value signings since 2022.
+            </p>
+            <a href="./explorer.html?season=2026">
+              Open Explorer →
+            </a>
+          </article>
+
+        </div>
+      </section>
+
+      <section class="welcome-section">
+        <h2>Key Terms</h2>
+        <dl class="welcome-glossary">
+          <dt>MIS — Movement Impact Score</dt>
+          <dd>
+            The estimated change in win probability from a single player
+            move. A value of +0.020 means the move is estimated to add
+            approximately 2 percentage points to the team's win rate —
+            roughly one additional win over a 50-game stretch.
+          </dd>
+          <dt>MISz — Standardized Score</dt>
+          <dd>
+            MIS scaled to compare across all moves in the dataset.
+            Above +1.0 is a strong positive signal. Below -1.0 is a
+            strong negative signal. Near zero is neutral or uncertain.
+          </dd>
+          <dt>AAV — Average Annual Value</dt>
+          <dd>
+            The average yearly salary for a player's contract.
+            Used to compute contract efficiency — how much win impact
+            a team got per dollar spent.
+          </dd>
+          <dt>EPA — Expected Points Added</dt>
+          <dd>
+            A measure of offensive efficiency used widely in modern NFL
+            analytics. Positive means the offense is adding value above
+            what an average NFL play would produce.
+          </dd>
+          <dt>Confidence flag</dt>
+          <dd>
+            When the model has limited data to estimate a move's impact
+            reliably, it flags the estimate as low confidence. Treat
+            flagged values as directional guidance, not precise predictions.
+          </dd>
+        </dl>
+      </section>
+
+      <section class="welcome-section welcome-footer-section">
+        <p class="welcome-footer-text">
+          Built on five seasons of NFL transaction data (2022–2026)
+          using a hierarchical empirical-Bayes model and a live REST API.
+          Data sources: nflverse trades, Over The Cap contracts,
+          and verified manual corrections.
+        </p>
+        <p class="welcome-footer-text">
+          <a href="https://github.com/rmallorybpc/nflanalysis"
+             target="_blank" rel="noopener">View the source on GitHub →</a>
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

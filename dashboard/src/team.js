@@ -35,6 +35,8 @@ function syncControls() {
   ensureTeamOptions();
   document.getElementById("teamInput").value = state.teamId;
   document.getElementById("seasonInput").value = String(state.season);
+  const welcomeLink = document.getElementById("welcomeLink");
+  welcomeLink.href = `./welcome.html?season=${state.season}&team_id=${state.teamId}`;
   const overviewLink = document.getElementById("overviewLink");
   overviewLink.href = `./index.html?season=${state.season}&team_id=${state.teamId}`;
   const scenarioLink = document.getElementById("scenarioLink");

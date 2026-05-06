@@ -55,6 +55,7 @@ function updateTeamLinks() {
     team_id: state.teamId,
     season: String(state.season),
   });
+  document.getElementById("welcomeLink").href = `./welcome.html?${params.toString()}`;
   const href = `./team.html?${params.toString()}`;
   document.getElementById("openTeamBtn").href = href;
   document.getElementById("teamPageLink").href = href;

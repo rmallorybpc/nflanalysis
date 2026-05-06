@@ -233,6 +233,7 @@ function updateNavLinks() {
     season: String(state.season),
   });
   const query = params.toString();
+  document.getElementById("welcomeLink").href = `./welcome.html?${query}`;
   document.getElementById("overviewLink").href = `./index.html?${query}`;
   document.getElementById("teamLink").href = `./team.html?${query}`;
   document.getElementById("explorerLink").href = `./explorer.html?${query}`;
