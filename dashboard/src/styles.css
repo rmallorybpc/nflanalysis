@@ -456,6 +456,7 @@ h1 {
   max-width: 560px;
   margin: 0 auto 24px;
   line-height: 1.6;
+  text-align: center;
 }
 
 .welcome-data-scope {
