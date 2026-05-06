@@ -414,11 +414,11 @@ function renderIntervalSvg(point, interval, min, max) {
 
   return `
     <svg class="movement-interval-svg" viewBox="0 0 160 16" aria-hidden="true" focusable="false">
-      <line x1="0" y1="8" x2="160" y2="8" stroke="#334155" stroke-width="2" />
-      <line x1="${leftX}" y1="8" x2="${rightX}" y2="8" stroke="#38bdf8" stroke-width="3" />
-      <line x1="${leftX}" y1="4" x2="${leftX}" y2="12" stroke="#7dd3fc" stroke-width="2" />
-      <line x1="${rightX}" y1="4" x2="${rightX}" y2="12" stroke="#7dd3fc" stroke-width="2" />
-      <circle cx="${pointX}" cy="8" r="3" fill="#f8fafc" />
+        <line x1="0" y1="8" x2="160" y2="8" stroke="#2d3436" stroke-opacity="0.35" stroke-width="2" />
+        <line x1="${leftX}" y1="8" x2="${rightX}" y2="8" stroke="#84a98c" stroke-width="3" />
+        <line x1="${leftX}" y1="4" x2="${leftX}" y2="12" stroke="#6b8f74" stroke-width="2" />
+        <line x1="${rightX}" y1="4" x2="${rightX}" y2="12" stroke="#6b8f74" stroke-width="2" />
+        <circle cx="${pointX}" cy="8" r="3" fill="#2d3436" />
     </svg>
   `;
 }
@@ -600,9 +600,9 @@ function renderTrend(payload) {
     node.querySelector(".trend-label").textContent = row.outcome_name;
     node.querySelector(".trend-fill").style.width = `${Math.max((Math.abs(row.mis_value) / maxAbs) * 100, 4)}%`;
     node.querySelector(".trend-fill").style.background =
-      row.mis_value >= 0
-        ? "linear-gradient(90deg, #0f7f7c, #57b7a9)"
-        : "linear-gradient(90deg, #cf6330, #ef9a66)";
+        row.mis_value >= 0
+          ? "linear-gradient(90deg, #2e8540, #84a98c)"
+          : "linear-gradient(90deg, #b00020, #d56b7f)";
     node.querySelector(".trend-value").textContent = `${fmt(row.mis_value)} | 90% [${fmt(row.interval_90.low)}, ${fmt(row.interval_90.high)}]`;
     container.appendChild(node);
   });

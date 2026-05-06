@@ -274,3 +274,70 @@ button {
     gap: 0.2rem;
   }
 }
+
+/* TMG v2 overrides */
+:root {
+  --bg: var(--tmg-bg);
+  --ink: var(--tmg-text);
+  --muted: rgba(45, 52, 54, 0.62);
+  --panel: var(--tmg-surface);
+  --line: rgba(45, 52, 54, 0.12);
+  --color-surface: rgba(132, 169, 140, 0.14);
+  --pos: var(--tmg-success);
+  --neg: var(--tmg-error);
+  --neu: var(--tmg-sage-hover);
+}
+
+body {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: radial-gradient(circle at 8% 2%, rgba(132, 169, 140, 0.24), transparent 28%),
+    radial-gradient(circle at 94% 10%, rgba(132, 169, 140, 0.2), transparent 26%),
+    var(--tmg-bg);
+}
+
+.hero,
+.panel,
+.delta-card {
+  background: var(--tmg-surface);
+  border: var(--tmg-border);
+  border-radius: var(--tmg-bento-radius);
+  color: var(--tmg-text);
+}
+
+.top-nav a {
+  color: var(--tmg-charcoal);
+  border: 1px solid rgba(45, 52, 54, 0.2);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.top-nav a:hover,
+.top-nav a[aria-current="page"] {
+  color: var(--tmg-sage-hover);
+  background: rgba(132, 169, 140, 0.12);
+}
+
+.kicker,
+.helper p,
+label,
+.status-message {
+  color: var(--muted);
+}
+
+input,
+select {
+  border: var(--tmg-border);
+  border-radius: var(--tmg-btn-radius);
+  color: var(--tmg-text);
+  background: var(--tmg-white);
+}
+
+button {
+  background: var(--tmg-charcoal);
+  border-radius: var(--tmg-btn-radius);
+  font-weight: 500;
+}
+
+button:hover {
+  background: #3d4446;
+}

@@ -575,12 +575,12 @@ function renderComparisonChart(baselineRows, scenarioRows) {
     "aria-label": "Grouped bar chart comparing baseline and scenario outcomes",
   });
 
-  const baselineColor = cssVar("--neu", "#2a6798");
-  const positiveColor = cssVar("--pos", "#0f8f5f");
-  const negativeColor = cssVar("--neg", "#c5532f");
-  const mutedColor = cssVar("--muted", "#536274");
+  const baselineColor = cssVar("--neu", "#6b8f74");
+  const positiveColor = cssVar("--pos", "#2e8540");
+  const negativeColor = cssVar("--neg", "#b00020");
+  const mutedColor = cssVar("--muted", "rgba(45, 52, 54, 0.62)");
   const lineColor = cssVar("--line", "rgba(17, 36, 58, 0.15)");
-  const inkColor = cssVar("--ink", "#1b2430");
+  const inkColor = cssVar("--ink", "#2d3436");
 
   const yTicks = 4;
   for (let i = 0; i <= yTicks; i += 1) {

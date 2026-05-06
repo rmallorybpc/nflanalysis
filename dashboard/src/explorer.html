@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NFL Player Movement Explorer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://rmallorybpc.github.io/tmg-brand-guide/dist/tmg.css" />
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./team.css" />
     <style>
@@ -16,18 +16,19 @@
       }
 
       .movement-card {
-        border-left: 4px solid #475569;
-        background: rgba(8, 12, 20, 0.4);
+        border-left: 4px solid rgba(45, 52, 54, 0.3);
+        background: var(--tmg-white);
         border-radius: 12px;
+        border: var(--tmg-border);
         padding: 0.85rem 0.95rem;
       }
 
       .movement-card.inbound {
-        border-left-color: #22c55e;
+        border-left-color: var(--tmg-success);
       }
 
       .movement-card.outbound {
-        border-left-color: #ef4444;
+        border-left-color: var(--tmg-error);
       }
 
       .movement-row {
@@ -39,24 +40,24 @@
 
       .movement-direction {
         font-size: 0.72rem;
-        font-weight: 800;
+        font-weight: 500;
         letter-spacing: 0.05em;
       }
 
       .movement-direction.inbound {
-        color: #22c55e;
+        color: var(--tmg-success);
       }
 
       .movement-direction.outbound {
-        color: #ef4444;
+        color: var(--tmg-error);
       }
 
       .movement-badge {
         font-size: 0.66rem;
-        font-weight: 700;
+        font-weight: 500;
         letter-spacing: 0.04em;
-        color: #94a3b8;
-        border: 1px solid rgba(148, 163, 184, 0.35);
+        color: rgba(45, 52, 54, 0.62);
+        border: 1px solid rgba(45, 52, 54, 0.2);
         border-radius: 999px;
         padding: 0.1rem 0.5rem;
       }
@@ -67,27 +68,29 @@
 
       .movement-player-name {
         font-size: 1.02rem;
-        font-weight: 800;
-        color: #f8fafc;
+        font-weight: 500;
+        color: var(--tmg-charcoal);
       }
 
       .movement-position {
         margin-left: 0.45rem;
-        color: #94a3b8;
+        color: rgba(45, 52, 54, 0.62);
         font-size: 0.74rem;
-        font-weight: 700;
+        font-weight: 500;
       }
 
       .movement-route,
       .movement-when,
-      .movement-interval-text {
+      .movement-interval-text,
+      .movement-contract-years {
         margin-top: 0.28rem;
-        color: #cbd5e1;
+        color: rgba(45, 52, 54, 0.62);
         font-size: 0.8rem;
       }
 
-      .movement-route strong {
-        color: #f8fafc;
+      .movement-route strong,
+      .movement-contract-value {
+        color: var(--tmg-charcoal);
       }
 
       .movement-mis-row {
@@ -98,35 +101,30 @@
       }
 
       .movement-mis-label,
-      .movement-interval-label {
-        color: #94a3b8;
+      .movement-interval-label,
+      .movement-contract-label {
+        color: rgba(45, 52, 54, 0.62);
         font-size: 0.76rem;
         letter-spacing: 0.02em;
       }
 
       .movement-mis-value {
-        font-weight: 800;
+        font-weight: 500;
         font-size: 0.92rem;
       }
 
-      .movement-mis-value.band-positive-strong {
-        color: #22c55e;
-      }
-
+      .movement-mis-value.band-positive-strong,
       .movement-mis-value.band-positive-light {
-        color: #86efac;
+        color: var(--tmg-success);
       }
 
       .movement-mis-value.band-neutral {
-        color: #cbd5e1;
+        color: var(--tmg-charcoal);
       }
 
-      .movement-mis-value.band-negative-light {
-        color: #fb923c;
-      }
-
+      .movement-mis-value.band-negative-light,
       .movement-mis-value.band-negative-strong {
-        color: #ef4444;
+        color: var(--tmg-error);
       }
 
       .movement-interval {
@@ -143,10 +141,10 @@
         display: inline-block;
         margin-top: 0.45rem;
         font-size: 0.65rem;
-        font-weight: 800;
+        font-weight: 500;
         letter-spacing: 0.05em;
-        color: #f59e0b;
-        border: 1px solid rgba(245, 158, 11, 0.45);
+        color: var(--tmg-warning);
+        border: 1px solid rgba(196, 127, 0, 0.45);
         border-radius: 999px;
         padding: 0.12rem 0.45rem;
       }
@@ -159,28 +157,12 @@
         font-size: 0.8rem;
       }
 
-      .movement-contract-label {
-        color: var(--color-muted, #94a3b8);
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-      }
-
-      .movement-contract-value {
-        color: var(--color-text, #f8fafc);
-        font-weight: 600;
-      }
-
-      .movement-contract-years {
-        color: var(--color-muted, #94a3b8);
-      }
-
       .movement-footer {
         margin-top: 0.52rem;
       }
 
       .movement-footer a {
-        color: #7dd3fc;
+        color: var(--tmg-sage-hover);
         font-size: 0.79rem;
         text-decoration: none;
       }
@@ -192,7 +174,7 @@
 
       .movement-empty {
         text-align: center;
-        color: #94a3b8;
+        color: rgba(45, 52, 54, 0.62);
         padding: 1.15rem 0.5rem;
       }
 
@@ -202,27 +184,27 @@
 
       .explorer-band-note {
         font-size: 0.75rem;
-        color: var(--color-muted, #94a3b8);
+        color: rgba(45, 52, 54, 0.62);
         margin: 4px 0 8px 0;
       }
 
       #loadProgress {
         margin: 0.4rem 0 0;
         min-height: 1.05rem;
-        color: #d7e8f8;
+        color: rgba(45, 52, 54, 0.62);
         font-size: 0.82rem;
       }
 
       #resultsCount {
         margin: 0.6rem 0 0;
-        color: #d7e8f8;
+        color: rgba(45, 52, 54, 0.62);
         font-size: 0.85rem;
       }
 
       #partialLoadNotice {
         margin: 0.35rem 0 0;
         min-height: 1.05rem;
-        color: #f59e0b;
+        color: var(--tmg-warning);
         font-size: 0.82rem;
       }
     </style>

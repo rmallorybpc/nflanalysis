@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NFL Scenario Sandbox</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://rmallorybpc.github.io/tmg-brand-guide/dist/tmg.css" />
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./scenario.css" />
     <style>
@@ -23,8 +23,9 @@
         margin: 0;
         padding: 0;
         list-style: none;
-        border: 1px solid #4f5561;
-        background: #0f1726;
+        border: var(--tmg-border);
+        background: var(--tmg-surface);
+        border-radius: 10px;
         max-height: 260px;
         overflow-y: auto;
       }
@@ -36,7 +37,7 @@
 
       .typeahead-option:hover,
       .typeahead-option.active {
-        background: #1c2f52;
+        background: rgba(132, 169, 140, 0.12);
       }
 
       .comparison-chart-panel {
@@ -60,7 +61,7 @@
         align-items: center;
         gap: 0.75rem;
         font-size: 0.8rem;
-        color: var(--muted);
+        color: rgba(45, 52, 54, 0.62);
       }
 
       .comparison-chart-legend-item {
@@ -84,14 +85,14 @@
         position: absolute;
         pointer-events: none;
         z-index: 5;
-        background: var(--ink);
-        color: #fff;
+        background: var(--tmg-charcoal);
+        color: var(--tmg-white);
         border-radius: 8px;
         padding: 0.4rem 0.5rem;
         font-size: 0.75rem;
         line-height: 1.25;
         white-space: nowrap;
-        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+        box-shadow: 0 6px 14px rgba(45, 52, 54, 0.24);
       }
 
       .comparison-chart-tooltip[hidden] {

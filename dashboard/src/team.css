@@ -313,3 +313,95 @@ h1 { margin: 0.25rem 0; }
   .trend-row { grid-template-columns: 82px 1fr 64px; }
   .hero-controls button { width: 100%; }
 }
+
+/* TMG v2 overrides */
+:root {
+  --bg: var(--tmg-bg);
+  --ink: var(--tmg-text);
+  --muted: rgba(45, 52, 54, 0.62);
+  --panel: var(--tmg-surface);
+  --line: rgba(45, 52, 54, 0.12);
+  --color-surface: rgba(132, 169, 140, 0.14);
+  --teal: var(--tmg-success);
+  --orange: var(--tmg-error);
+  --blue: var(--tmg-sage-hover);
+}
+
+body {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: radial-gradient(circle at 8% 2%, rgba(132, 169, 140, 0.24), transparent 28%),
+    radial-gradient(circle at 94% 10%, rgba(132, 169, 140, 0.2), transparent 26%),
+    var(--tmg-bg);
+}
+
+.hero,
+.panel,
+.card {
+  background: var(--tmg-surface);
+  border: var(--tmg-border);
+  border-radius: var(--tmg-bento-radius);
+  color: var(--tmg-text);
+}
+
+.top-nav a {
+  color: var(--tmg-charcoal);
+  border: 1px solid rgba(45, 52, 54, 0.2);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.top-nav a:hover,
+.top-nav a[aria-current="page"] {
+  color: var(--tmg-sage-hover);
+  background: rgba(132, 169, 140, 0.12);
+}
+
+.label,
+#meta,
+.helper p,
+.status-message,
+.hero-controls label {
+  color: var(--muted);
+}
+
+.hero-controls input,
+.hero-controls select {
+  border: var(--tmg-border);
+  border-radius: var(--tmg-btn-radius);
+  color: var(--tmg-text);
+  background: var(--tmg-white);
+  font-family: inherit;
+}
+
+.hero-controls button,
+.share-btn {
+  border: none;
+  border-radius: var(--tmg-btn-radius);
+  background: var(--tmg-charcoal);
+  color: var(--tmg-white);
+  font-weight: 500;
+}
+
+.hero-controls button:hover,
+.share-btn:hover,
+.share-btn:focus-visible {
+  background: #3d4446;
+  border-color: transparent;
+  color: var(--tmg-white);
+}
+
+.share-btn.copied {
+  background: var(--tmg-success);
+}
+
+.share-feedback {
+  color: var(--tmg-error);
+}
+
+.trend-track {
+  background: rgba(132, 169, 140, 0.2);
+}
+
+.trend-fill {
+  background: linear-gradient(90deg, var(--tmg-sage-hover), var(--tmg-sage));
+}

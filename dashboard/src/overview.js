@@ -220,8 +220,8 @@ function renderRanking(payload) {
     node.querySelector(".bar-fill").style.width = `${Math.max((Math.abs(row.mis_value) / maxAbs) * 100, 4)}%`;
     node.querySelector(".bar-fill").style.background =
       row.mis_value >= 0
-        ? "linear-gradient(90deg, #0f8a5f, #65c9a8)"
-        : "linear-gradient(90deg, #c13f2d, #e68d7d)";
+        ? "linear-gradient(90deg, #2e8540, #84a98c)"
+        : "linear-gradient(90deg, #b00020, #d56b7f)";
     node.querySelector(".bar-value").textContent = fmt(row.mis_value);
     node.addEventListener("click", () => navigateToTeam(row.team_id));
     node.addEventListener("keydown", (event) => {
@@ -314,7 +314,7 @@ function renderSeasonCoverage(payload) {
     const node = template.content.firstElementChild.cloneNode(true);
     node.querySelector(".bar-label").textContent = String(point.season);
     node.querySelector(".bar-fill").style.width = `${Math.max((point.team_count / maxTeams) * 100, 4)}%`;
-    node.querySelector(".bar-fill").style.background = "linear-gradient(90deg, #2458a4, #57b7a9)";
+    node.querySelector(".bar-fill").style.background = "linear-gradient(90deg, #6b8f74, #84a98c)";
     node.querySelector(".bar-value").textContent = `${point.team_count} teams | W${point.latest_week}`;
     container.appendChild(node);
   });
