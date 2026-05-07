@@ -165,6 +165,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", default="data/raw/offseason/", help="Directory for output CSV files")
     parser.add_argument("--dry-run", action="store_true", help="Fetch and validate only, do not write files")
     parser.add_argument("--force", action="store_true", help="Overwrite existing season files")
+    parser.add_argument(
+        "--spotrac",
+        action="store_true",
+        default=False,
+        help="Fetch FA signing data from Spotrac (no extra dependencies required)",
+    )
     return parser.parse_args()
 
 
@@ -503,6 +509,187 @@ def fetch_pfr_free_agency_rows(season: int, imported_at: str) -> list[dict[str, 
     return rows
 
 
+def fetch_spotrac_fa(season: int) -> list[dict[str, str]]:
+    """
+    Fetch all signed free agents from Spotrac for the given season.
+    Uses urllib.request + html.parser - no third-party libraries.
+    Returns list of dicts matching the players_metadata schema.
+    """
+    import urllib.request
+    from html.parser import HTMLParser
+
+    url = f"https://www.spotrac.com/nfl/free-agents/signed/_/year/{season}"
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (compatible; nflanalysis-research/1.0)",
+        },
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            html = resp.read().decode("utf-8", errors="ignore")
+    except Exception as exc:
+        print(f"[WARN] spotrac_fa: failed to fetch {url}: {exc}")
+        return []
+
+    class SpotracParser(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.rows: list[dict[str, object]] = []
+            self._in_tbody = False
+            self._in_tr = False
+            self._in_td = False
+            self._in_span_d_none = False
+            self._in_link = False
+            self._current_row: list[str] = []
+            self._current_td = ""
+            self._current_spans: list[str] = []
+            self._current_link = ""
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            attrs_dict = {k: (v or "") for k, v in attrs}
+            if tag == "tbody":
+                self._in_tbody = True
+            elif tag == "tr" and self._in_tbody:
+                self._in_tr = True
+                self._current_row = []
+                self._current_spans = []
+                self._current_link = ""
+            elif tag == "td" and self._in_tr:
+                self._in_td = True
+                self._current_td = ""
+            elif tag == "span" and self._in_td:
+                classes = attrs_dict.get("class", "")
+                if "d-none" in classes:
+                    self._in_span_d_none = True
+            elif tag == "a" and self._in_td:
+                classes = attrs_dict.get("class", "")
+                if "link" in classes:
+                    self._in_link = True
+
+        def handle_endtag(self, tag: str) -> None:
+            if tag == "tbody":
+                self._in_tbody = False
+            elif tag == "tr" and self._in_tr:
+                self._in_tr = False
+                if self._current_link:
+                    from_team = ""
+                    to_team = ""
+                    if len(self._current_spans) >= 2:
+                        from_team = self._current_spans[0]
+                        to_team = self._current_spans[1]
+                    elif len(self._current_spans) == 1:
+                        from_team = self._current_spans[0]
+                        to_team = self._current_spans[0]
+                    elif len(self._current_row) > 4:
+                        team_fallback = normalize_team(self._current_row[4])
+                        if team_fallback:
+                            from_team = team_fallback
+                            to_team = team_fallback
+
+                    if to_team:
+                        self.rows.append(
+                            {
+                                "from_team": from_team,
+                                "to_team": to_team,
+                                "player": self._current_link,
+                                "tds": list(self._current_row),
+                            }
+                        )
+            elif tag == "td" and self._in_td:
+                self._in_td = False
+                self._current_row.append(self._current_td.strip())
+                self._current_td = ""
+            elif tag == "span" and self._in_span_d_none:
+                self._in_span_d_none = False
+            elif tag == "a" and self._in_link:
+                self._in_link = False
+
+        def handle_data(self, data: str) -> None:
+            if self._in_span_d_none:
+                text = data.strip()
+                if text:
+                    self._current_spans.append(text)
+            elif self._in_link:
+                text = data.strip()
+                if text:
+                    self._current_link += text
+            elif self._in_td:
+                self._current_td += data
+
+    parser = SpotracParser()
+    parser.feed(html)
+
+    def parse_dollars(val: str) -> str:
+        """Convert '$26,000,000' to integer string, empty if unparseable."""
+        try:
+            return str(int(val.replace("$", "").replace(",", "").strip()))
+        except (ValueError, AttributeError):
+            return ""
+
+    imported_at = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    results: list[dict[str, str]] = []
+    for row in parser.rows:
+        tds = row.get("tds", [])
+        if not isinstance(tds, list):
+            continue
+
+        # td indices: [0]=from icon, [1]=arrow, [2]=to icon,
+        # [3]=name, [4]=position, [5]=years, [6]=total,
+        # [7]=aav, [8]=guaranteed, [9]=gtd@sign
+        position = tds[4] if len(tds) > 4 else ""
+        years = tds[5] if len(tds) > 5 else ""
+        total_value = parse_dollars(tds[6]) if len(tds) > 6 else ""
+        aav = parse_dollars(tds[7]) if len(tds) > 7 else ""
+
+        # Alternate Spotrac table format:
+        # [0]=player [1]=pos [2]=age [3]=experience [4]=team [5]=aav
+        if len(tds) <= 8:
+            position = tds[1] if len(tds) > 1 else position
+            years = tds[3] if len(tds) > 3 else years
+            total_value = ""
+            aav = parse_dollars(tds[5]) if len(tds) > 5 else aav
+
+        from_team = normalize_team(str(row.get("from_team", "")))
+        to_team = normalize_team(str(row.get("to_team", "")))
+        player = str(row.get("player", "")).strip()
+
+        if not player or not to_team:
+            continue
+
+        results.append(
+            {
+                "player": player,
+                "position": position,
+                "team": to_team,
+                "from_team": from_team,
+                "age": "",
+                "height": "",
+                "weight": "",
+                "experience": "",
+                "college": "",
+                "draft_year": "",
+                "draft_round": "",
+                "draft_pick": "",
+                "pfr_slug": "",
+                "contract_years": years,
+                "contract_total": total_value,
+                "contract_aav": aav,
+                "source_url": url,
+                "import_method": "spotrac_fa_scraper",
+                "imported_at": imported_at,
+            }
+        )
+
+    print(
+        f"[INFO] spotrac_fa: {url} "
+        f"fetched_rows={len(parser.rows)} "
+        f"kept_rows={len(results)}"
+    )
+    return results
+
+
 def load_roster_index(season: int) -> dict[str, dict[str, str]]:
     urls = [
         f"https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_{season}.csv",
@@ -536,30 +723,31 @@ def load_roster_index(season: int) -> dict[str, dict[str, str]]:
     return {}
 
 
-def build_players_metadata(season: int, imported_at: str) -> list[dict[str, str]]:
+def build_players_metadata(season: int, imported_at: str, use_spotrac: bool = False) -> list[dict[str, str]]:
     trades_url = "https://github.com/nflverse/nflverse-data/releases/download/trades/trades.csv"
 
     roster_idx = load_roster_index(season)
     contracts_by_name = fetch_contracts(season)
 
     seen: set[tuple[str, str]] = set()
-    out: list[dict[str, str]] = []
+    nflverse_rows: list[dict[str, str]] = []
 
-    for row in fetch_pfr_free_agency_rows(season, imported_at):
-        contract = contracts_by_name.get((row.get("player") or "").strip().lower(), {})
-        key = (row["player"].lower(), row["team"])
-        if key in seen:
-            continue
-        seen.add(key)
-        row["contract_aav"] = contract.get("aav", "")
-        row["contract_total"] = contract.get("total_value", "")
-        row["contract_years"] = contract.get("years", "")
-        out.append(row)
+    if not use_spotrac:
+        for row in fetch_pfr_free_agency_rows(season, imported_at):
+            contract = contracts_by_name.get((row.get("player") or "").strip().lower(), {})
+            key = (row["player"].lower(), row["team"])
+            if key in seen:
+                continue
+            seen.add(key)
+            row["contract_aav"] = contract.get("aav", "")
+            row["contract_total"] = contract.get("total_value", "")
+            row["contract_years"] = contract.get("years", "")
+            nflverse_rows.append(row)
 
     reader, used_url, headers, _size = csv_rows_from_url(trades_url, "transactions")
     if reader is None:
-        out.sort(key=lambda r: (r["team"], r["player"]))
-        return out
+        nflverse_rows.sort(key=lambda r: (r["team"], r["player"]))
+        return nflverse_rows
 
     fetched = 0
     kept_scope = 0
@@ -621,7 +809,7 @@ def build_players_metadata(season: int, imported_at: str) -> list[dict[str, str]
         if uses_trade_fallback:
             kept_scope += 1
 
-        out.append(
+        nflverse_rows.append(
             {
                 "player": player,
                 "position": position,
@@ -651,8 +839,28 @@ def build_players_metadata(season: int, imported_at: str) -> list[dict[str, str]
         f"rows_kept_scope={kept_scope} rows_kept_output={kept_output}"
     )
 
-    out.sort(key=lambda r: (r["team"], r["player"]))
-    return out
+    if use_spotrac:
+        spotrac_rows = fetch_spotrac_fa(season)
+        merged: list[dict[str, str]] = []
+        dedupe_seen: set[tuple[str, str]] = set()
+        for row in nflverse_rows + spotrac_rows:
+            key = (
+                (row.get("player", "")).strip().lower(),
+                (row.get("team", "")).strip().upper(),
+            )
+            if key in dedupe_seen:
+                continue
+            dedupe_seen.add(key)
+            merged.append(row)
+        print(
+            f"[INFO] merged: trades={len(nflverse_rows)} "
+            f"free_agency={len(spotrac_rows)} total={len(merged)}"
+        )
+        merged.sort(key=lambda r: (r["team"], r["player"]))
+        return merged
+
+    nflverse_rows.sort(key=lambda r: (r["team"], r["player"]))
+    return nflverse_rows
 
 
 def build_team_spending(season: int, imported_at: str) -> list[dict[str, str]]:
@@ -966,7 +1174,7 @@ def main() -> None:
             print(f"[INFO] preserving manual_correction rows from existing file: {len(manual_rows)}")
 
     print(f"[INFO] fetching season={args.season} output_dir={output_dir}")
-    players = build_players_metadata(args.season, imported_at)
+    players = build_players_metadata(args.season, imported_at, use_spotrac=args.spotrac)
     if manual_rows:
         players = merge_manual_corrections(players, manual_rows)
         print(f"[INFO] reapplied manual_correction rows after fetch: {len(manual_rows)}")

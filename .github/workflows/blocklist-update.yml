@@ -75,6 +75,18 @@ jobs:
                   if r.get("season","").strip()
               ))
           for season in seasons:
+              print(f"=== Refreshing source data for season {season} (Spotrac enabled) ===")
+              result = subprocess.run([
+                sys.executable,
+                "scripts/fetch_season_data.py",
+                "--season", season,
+                "--force",
+                "--spotrac",
+              ], check=False)
+              if result.returncode != 0:
+                print(f"ERROR: Fetch failed for season {season}")
+                sys.exit(1)
+
               print(f"=== Re-ingesting season {season} ===")
               result = subprocess.run([
                   sys.executable,
