@@ -124,6 +124,7 @@ EFFECT_FIELDS = [
 ]
 
 MIN_PRIMARY_MOVEMENT_ROWS = 10
+MIN_PRIMARY_TO_TEAM_COVERAGE = 24
 
 
 @dataclass
@@ -255,15 +256,33 @@ def run_season_pipeline(args: argparse.Namespace, season_paths: SeasonPaths) -> 
     )
 
     movement_rows = read_csv(season_paths.movement)
+    to_team_coverage = len(
+        {
+            (row.get("to_team_id") or "").strip()
+            for row in movement_rows
+            if (row.get("to_team_id") or "").strip()
+        }
+    )
+    fallback_reason: str | None = None
     if len(movement_rows) < MIN_PRIMARY_MOVEMENT_ROWS:
-        # Fallback: infer movement rows from players metadata for sparse transaction snapshots.
+        fallback_reason = (
+            f"sparse movement rows ({len(movement_rows)} < {MIN_PRIMARY_MOVEMENT_ROWS})"
+        )
+    elif to_team_coverage < MIN_PRIMARY_TO_TEAM_COVERAGE:
+        fallback_reason = (
+            "limited destination-team coverage "
+            f"({to_team_coverage} < {MIN_PRIMARY_TO_TEAM_COVERAGE})"
+        )
+
+    if fallback_reason is not None:
+        # Fallback: infer movement rows from players metadata for sparse or incomplete transaction snapshots.
         players_snapshot = Path(f"data/raw/offseason/players_metadata_{season_paths.season}.csv")
         if not players_snapshot.exists():
             players_snapshot = Path("data/raw/offseason/players_metadata.csv")
 
         print(
-            "[WARN] primary transaction ingest yielded sparse movement rows "
-            f"({len(movement_rows)}); "
+            "[WARN] primary transaction ingest yielded insufficient movement coverage "
+            f"({fallback_reason}); "
             f"retrying with inferred players metadata source: {players_snapshot}"
         )
         run_cmd(

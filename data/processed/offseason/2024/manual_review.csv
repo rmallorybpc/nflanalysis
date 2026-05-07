@@ -1,8 +1,1 @@
 "issue_type","transaction_date","team","player","transaction_type","notes"
-"missing_player_id","2024-03-29","CAR","Sam Franklin Jr.","signed","player not found in players_metadata.csv by exact name"
-"missing_player_id","2024-03-29","NO","Charlie Smyth","signed","player not found in players_metadata.csv by exact name"
-"missing_player_id","2024-03-29","KC","Louis Rees-Zammit","signed","player not found in players_metadata.csv by exact name"
-"missing_player_id","2024-03-28","CAR","Raheem Blackshear","signed","player not found in players_metadata.csv by exact name"
-"missing_player_id","2024-03-26","NYJ","Jalyn Holmes","signed","player not found in players_metadata.csv by exact name"
-"missing_player_id","2024-03-25","CLE","Rodney McLeod Jr.","signed","player not found in players_metadata.csv by exact name"
-"missing_player_id","2024-03-22","LV","Isaiah Pola-Mao","signed","player not found in players_metadata.csv by exact name"
