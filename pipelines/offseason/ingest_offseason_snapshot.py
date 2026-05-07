@@ -126,6 +126,15 @@ TEAM_CODE_RE = re.compile(r"\b([A-Z]{2,3})\b")
 NFL_PROFILE_RE = re.compile(r"https?://(?:www\.)?nfl\.com/players/([^/?#]+)/?", re.IGNORECASE)
 
 
+def _name_fallback_player_id(name: str, position: str) -> str:
+    normalized_name = re.sub(r"[^a-z0-9]+", "-", (name or "").strip().lower()).strip("-")
+    normalized_position = re.sub(r"[^a-z0-9]+", "", (position or "").strip().lower()) or "unk"
+    if not normalized_name:
+        return ""
+    # Deterministic fallback for records without PFR/NFL profile identifiers.
+    return f"name:{normalized_name}:{normalized_position}"
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Ingest one-time offseason snapshot")
     parser.add_argument("--transactions", type=Path, default=DEFAULT_TRANSACTIONS_PATH)
@@ -253,6 +262,12 @@ def derive_player_id(row: dict[str, str]) -> str:
     if m:
         # Prefix keeps NFL-derived IDs distinct from canonical PFR slugs.
         return f"nfl:{m.group(1).lower()}"
+
+    player_name = (row.get("player") or "").strip()
+    position = (row.get("position") or "").strip()
+    fallback_id = _name_fallback_player_id(player_name, position)
+    if fallback_id:
+        return fallback_id
 
     return ""
 
