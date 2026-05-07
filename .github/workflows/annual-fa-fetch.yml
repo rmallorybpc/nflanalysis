@@ -9,6 +9,9 @@ name: Annual Free Agency Data Fetch
   schedule:
     - cron: '0 14 20 3 *'
 
+permissions:
+  contents: write
+
 jobs:
   fetch:
     runs-on: ubuntu-latest
