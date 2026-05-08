@@ -360,7 +360,7 @@ def run_season_pipeline(args: argparse.Namespace, season_paths: SeasonPaths) -> 
             "--effects-output",
             str(season_paths.effects),
             "--model-version",
-            "hierarchical-eb-v0.4.0-offseason",
+            "hierarchical-eb-v0.5.0-offseason",
         ]
     )
 
@@ -464,7 +464,7 @@ def consolidate_publish(
             "--effects-output",
             str(effects_out),
             "--model-version",
-            "hierarchical-eb-v0.4.0-offseason",
+            "hierarchical-eb-v0.5.0-offseason",
         ]
     )
 
