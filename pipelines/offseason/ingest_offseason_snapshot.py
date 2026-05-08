@@ -82,6 +82,7 @@ MOVEMENT_FIELDS = [
     "season_phase",
     "phase_week",
     "nfl_week",
+    "season_anomaly",
     "ingested_at",
 ]
 
@@ -360,6 +361,7 @@ def build_movement_events(
     out: list[dict[str, str]] = []
     review: list[dict[str, str]] = []
     anchor_effective_date = resolve_anchor_effective_date(season, week)
+    season_anomaly = "covid_season" if season == 2020 else ""
     inferred_players_metadata_mode = bool(rows) and "transaction_type" not in rows[0]
 
     for idx, row in enumerate(rows, start=1):
@@ -445,6 +447,7 @@ def build_movement_events(
                     "season_phase": "regular",
                     "phase_week": str(week),
                     "nfl_week": str(week),
+                    "season_anomaly": season_anomaly,
                     "ingested_at": now_iso,
                 }
             )
@@ -508,6 +511,7 @@ def build_movement_events(
                 "season_phase": "regular",
                 "phase_week": str(week),
                 "nfl_week": str(week),
+                "season_anomaly": season_anomaly,
                 "ingested_at": now_iso,
             }
         )

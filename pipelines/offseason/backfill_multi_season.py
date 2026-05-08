@@ -46,6 +46,7 @@ MOVEMENT_FIELDS = [
     "season_phase",
     "phase_week",
     "nfl_week",
+    "season_anomaly",
     "ingested_at",
 ]
 
