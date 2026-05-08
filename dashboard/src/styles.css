@@ -1035,6 +1035,31 @@ canvas {
   margin: 0 1px;
 }
 
+.tmg-page-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tmg-page-links a {
+  text-decoration: none;
+  color: var(--tmg-charcoal);
+  border: 1px solid rgba(45, 52, 54, 0.2);
+  border-radius: var(--tmg-btn-radius);
+  padding: 6px 10px;
+  font-size: 13px;
+  line-height: 1;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.tmg-page-links a:hover,
+.tmg-page-links a[aria-current="page"] {
+  color: var(--tmg-sage-hover);
+  border-color: rgba(132, 169, 140, 0.5);
+  background: rgba(132, 169, 140, 0.12);
+}
+
 .tmg-dropdown-wrap {
   position: relative;
 }
@@ -1149,6 +1174,22 @@ canvas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--tmg-gap);
+}
+
+@media (max-width: 980px) {
+  .tmg-nav {
+    height: auto;
+    min-height: 56px;
+    padding: 10px 12px;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .tmg-page-links {
+    order: 3;
+    width: 100%;
+  }
 }
 
 .tmg-card {
