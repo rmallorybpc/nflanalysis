@@ -223,6 +223,10 @@ function renderRanking(payload) {
         ? "linear-gradient(90deg, #2e8540, #84a98c)"
         : "linear-gradient(90deg, #b00020, #d56b7f)";
     node.querySelector(".bar-value").textContent = fmt(row.mis_value);
+    if (row.team_id === state.teamId) {
+      node.classList.add("ranking-row-selected");
+      node.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
     node.addEventListener("click", () => navigateToTeam(row.team_id));
     node.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
@@ -444,6 +448,14 @@ function bindControls() {
     if (normalized) {
       state.teamId = normalized;
       updateTeamLinks();
+      document.querySelectorAll("#rankingChart .bar-row").forEach((el) => {
+        const label = el.querySelector(".bar-label")?.textContent?.trim();
+        const teamInLabel = label?.replace(/^\d+\.\s*/, "").trim();
+        el.classList.toggle("ranking-row-selected", teamInLabel === normalized);
+        if (teamInLabel === normalized) {
+          el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      });
     }
   });
 

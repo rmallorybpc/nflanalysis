@@ -271,6 +271,29 @@ h1 {
   outline: none;
 }
 
+.ranking-row-selected {
+  outline: 2px solid var(--color-primary, #0f7f7c);
+  outline-offset: -2px;
+  background: rgba(15, 127, 124, 0.08);
+  border-radius: 4px;
+  position: relative;
+}
+
+.ranking-row-selected .bar-label {
+  font-weight: 700;
+  color: var(--color-primary, #0f7f7c);
+}
+
+.ranking-row-selected::before {
+  content: '\25b6';
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.6rem;
+  color: var(--color-primary, #0f7f7c);
+}
+
 .bar-label,
 .bar-value,
 .stack-label {
