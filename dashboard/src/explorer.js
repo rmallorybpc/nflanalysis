@@ -17,7 +17,10 @@ const POSITION_GROUPS = [
   "other",
 ];
 
-const SEASON_OPTIONS = [2022, 2023, 2024, 2025, 2026];
+const SEASON_OPTIONS = [
+  2017, 2018, 2019, 2020, 2021,
+  2022, 2023, 2024, 2025, 2026,
+];
 
 const state = {
   season: 2026,
