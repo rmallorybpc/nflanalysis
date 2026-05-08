@@ -628,6 +628,18 @@ def fetch_spotrac_fa(season: int) -> list[dict[str, str]]:
         except (ValueError, AttributeError):
             return ""
 
+    def parse_years_to_int(val: str) -> int:
+        text = (val or "").strip().lower()
+        if not text:
+            return 0
+        m = re.search(r"(\d+)", text)
+        if not m:
+            return 0
+        try:
+            return int(m.group(1))
+        except ValueError:
+            return 0
+
     imported_at = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     results: list[dict[str, str]] = []
     for row in parser.rows:
@@ -651,8 +663,20 @@ def fetch_spotrac_fa(season: int) -> list[dict[str, str]]:
             total_value = ""
             aav = parse_dollars(tds[5]) if len(tds) > 5 else aav
 
+        if not aav and total_value:
+            years_count = parse_years_to_int(years)
+            if years_count > 0:
+                try:
+                    aav = str(int(round(int(total_value) / years_count)))
+                except ValueError:
+                    aav = ""
+        if not aav:
+            aav = "0"
+
         from_team = normalize_team(str(row.get("from_team", "")))
         to_team = normalize_team(str(row.get("to_team", "")))
+        if to_team and not from_team:
+            from_team = to_team
         player = str(row.get("player", "")).strip()
 
         if not player or not to_team:

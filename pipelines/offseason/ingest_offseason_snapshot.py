@@ -408,7 +408,7 @@ def build_movement_events(
 
             move_id = f"ofs_{season}_{week:02d}_{idx:05d}"
             move_type = infer_players_metadata_move_type(row)
-            if from_team and move_type != "trade":
+            if from_team and from_team != team and move_type != "trade":
                 move_type = "trade"
 
             # Blocklist check
