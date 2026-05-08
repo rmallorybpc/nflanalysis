@@ -123,20 +123,32 @@
   </head>
   <body>
     <nav class="tmg-nav" role="banner">
-      <a href="./welcome.html" id="welcomeLink">Welcome</a>
-      <a href="./index.html" id="overviewLink">Overview</a>
-      <a href="./team.html" id="teamPageLink">Team Detail</a>
-      <a href="./scenario.html" id="scenarioPageLink">Scenario Sandbox</a>
-      <a href="./explorer.html" id="explorerLink">Explorer</a>
+      <div class="tmg-logo" aria-label="The Mallory Group">
+        <span>TM</span>
+        <div class="tmg-logo-divider" aria-hidden="true"></div>
+        <span>G</span>
+      </div>
+      <div class="tmg-dropdown-wrap">
+        <button class="tmg-dropdown-btn" id="tmgDdBtn" aria-haspopup="true" aria-expanded="false" aria-controls="tmgDdMenu">
+          TMG Tool Suite
+          <svg class="tmg-chevron" viewBox="0 0 12 12" fill="none" width="12" height="12" aria-hidden="true">
+            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </button>
+        <div class="tmg-dropdown-menu" id="tmgDdMenu" role="menu">
+          <a id="welcomeLink" href="./welcome.html" role="menuitem">Welcome</a>
+          <a id="overviewLink" href="./index.html?season=2026&team_id=BUF" role="menuitem">Overview</a>
+          <a id="teamLink" href="./team.html?season=2026&team_id=BUF" role="menuitem">Team Detail</a>
+          <a href="./scenario.html" role="menuitem">Scenario Sandbox</a>
+          <a id="explorerLink" href="./explorer.html" role="menuitem">Explorer</a>
+          <a href="https://rmallorybpc.github.io/pdf-multi-agent-analysis/" target="_blank" rel="noreferrer" role="menuitem">PDF Multi-Agent Analysis</a>
+          <a href="https://rmallorybpc.github.io/housing-market-intel/" target="_blank" rel="noreferrer" role="menuitem">Housing Market Intel</a>
+          <a href="https://rmallorybpc.github.io/real-estate-report/" target="_blank" rel="noreferrer" role="menuitem">Real Estate Report</a>
+          <a href="https://rmallorybpc.github.io/nflanalysis/dashboard/src/" target="_blank" rel="noreferrer" role="menuitem">NFL Analysis</a>
+          <a href="https://rmallorybpc.github.io/recipes/" target="_blank" rel="noreferrer" role="menuitem">Recipe Book</a>
+        </div>
+      </div>
     </nav>
-
-    <div class="tmg-subnav tmg-container" aria-label="Dashboard pages">
-      <a href="./welcome.html" id="welcomeLink" class="tmg-body-sm">Welcome</a>
-      <a id="overviewLink" href="./index.html?season=2026&team_id=BUF" class="tmg-body-sm">Overview</a>
-      <a id="teamLink" href="./team.html?season=2026&team_id=BUF" class="tmg-body-sm">Team Detail</a>
-      <a href="./scenario.html" class="tmg-body-sm" aria-current="page">Scenario Sandbox</a>
-      <a href="./explorer.html" id="explorerLink" class="tmg-body-sm">Explorer</a>
-    </div>
 
     <main class="page tmg-page tmg-container">
       <header class="hero">
