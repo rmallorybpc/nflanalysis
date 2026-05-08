@@ -275,25 +275,27 @@ def main() -> None:
         mis = [o - c for o, c in zip(y_h_obs, y_h_cf)]
         mis_mu, mis_sigma = mean_std(mis)
 
-        fit_err = rmse(y, y_h_obs)
-        i50 = 0.674 * fit_err
-        i90 = 1.645 * fit_err
-        mis_abs_mean = sum(abs(v) for v in mis) / len(mis) if mis else 0.0
-        mis_std = (
-            (sum((v - mis_abs_mean) ** 2 for v in mis) / len(mis)) ** 0.5
-            if len(mis) > 1
-            else 0.0
-        )
-        interval_width = 2 * i90
-        # Flag as low confidence when predictive uncertainty exceeds
-        # a calibrated threshold tied to signal dispersion and scale.
-        low_conf = (mis_abs_mean == 0.0) or (interval_width > 3.0 * mis_std + 5.0 * mis_abs_mean)
+        # Build per-row fit errors and use their implied interval widths to set
+        # a relative certainty threshold within this outcome.
+        all_fit_errors = [abs(a - p) for a, p in zip(y, y_h_obs)]
+        all_widths = [2 * (1.645 * fe) for fe in all_fit_errors]
+        if all_widths:
+            idx_75 = min(int(len(all_widths) * 0.75), len(all_widths) - 1)
+            threshold_75 = sorted(all_widths)[idx_75]
+        else:
+            threshold_75 = 0.0
 
         for i, row in enumerate(rows):
             if mis_sigma > 0:
                 mis_z = (mis[i] - mis_mu) / mis_sigma
             else:
                 mis_z = 0.0
+
+            fe = all_fit_errors[i] if i < len(all_fit_errors) else 0.0
+            i50 = 0.674 * fe
+            i90 = 1.645 * fe
+            interval_width = 2 * i90
+            low_conf = interval_width > threshold_75
 
             model_output_rows.append(
                 {
