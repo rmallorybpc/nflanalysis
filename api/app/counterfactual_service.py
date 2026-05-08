@@ -667,6 +667,10 @@ class CounterfactualService:
                     "player_name": self.player_name.get(player_id, player_id),
                     "from_team_id": row.get("from_team_id", "").strip(),
                     "to_team_id": row.get("to_team_id", "").strip(),
+                    "move_scope": _move_scope(
+                        row.get("from_team_id", "").strip(),
+                        row.get("to_team_id", "").strip()
+                    ),
                     "impact_estimate": round(impact, 6),
                     "contract_aav": row.get("contract_aav", ""),
                     "contract_total": row.get("contract_total", ""),
