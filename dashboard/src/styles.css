@@ -392,6 +392,69 @@ h1 {
   color: var(--color-amber, #f59e0b);
 }
 
+.movement-geo-badge {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  margin-left: auto;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.movement-geo-panel {
+  background: var(--color-surface, #1e293b);
+  border: 1px solid var(--color-border, #334155);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  font-size: 0.78rem;
+}
+
+.movement-geo-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: var(--color-text, #f8fafc);
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.movement-geo-panel-close {
+  cursor: pointer;
+  color: var(--color-muted, #94a3b8);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.movement-geo-panel-close:hover {
+  color: var(--color-text, #f8fafc);
+}
+
+.movement-geo-panel-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 0;
+  color: var(--color-muted, #94a3b8);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.movement-geo-panel-row:last-of-type {
+  border-bottom: none;
+}
+
+.movement-geo-panel-note {
+  color: var(--color-muted, #94a3b8);
+  font-size: 0.7rem;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
 /* Tooltip system */
 [data-tooltip] {
   position: relative;

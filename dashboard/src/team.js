@@ -12,6 +12,8 @@ const state = {
   season: 2026,
 };
 
+let geoProfileCache = null;
+
 function seasonLabel(year) {
   return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
 }
@@ -33,6 +35,27 @@ function buildTeamDetailUrl(teamId, season) {
     season: String(season),
   });
   return `${API_BASE}/v1/dashboard/team-detail?${params.toString()}`;
+}
+
+async function loadGeoProfile(season) {
+  if (geoProfileCache && geoProfileCache.season === season) {
+    return geoProfileCache.data;
+  }
+  try {
+    const resp = await fetch(
+      `${API_BASE}/v1/dashboard/overview?season=${season}`
+    );
+    if (!resp.ok) {
+      return null;
+    }
+    const json = await resp.json();
+    const profile = (json.charts?.geography_impact_profile || [])
+      .filter((g) => g.outcome_name === "win_pct");
+    geoProfileCache = { season, data: profile };
+    return profile;
+  } catch {
+    return null;
+  }
 }
 
 function syncControls() {
@@ -398,6 +421,15 @@ function misBandClass(misZOrProxy) {
   return "band-negative-strong";
 }
 
+function geoLabel(scope) {
+  const labels = {
+    same_division: { text: "📍 Within Division", color: "var(--color-muted, #94a3b8)" },
+    cross_division: { text: "🔀 Diff. Division", color: "#f59e0b" },
+    cross_conference: { text: "🌐 Diff. Conference", color: "#8b5cf6" },
+  };
+  return labels[scope] || null;
+}
+
 function renderIntervalSvg(point, interval, min, max) {
   const width = 160;
   const toX = (value) => {
@@ -545,14 +577,32 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       : "";
 
     const positionHtml = item.position ? `<span class="movement-position">${item.position}</span>` : "";
+    const moveScope = String(pickField(item.original, ["move_scope"], "")).trim().toLowerCase();
+    const geo = geoLabel(moveScope);
+    const geoBadgeHtml = geo
+      ? `<span
+           class="movement-geo-badge"
+           style="color:${geo.color}"
+           aria-label="Move geography: ${geo.text}"
+           data-tooltip="Whether this player moved within their division, to a different division, or across conferences. The geography of a move can affect whether the reset effect applies."
+         >${geo.text}</span>`
+      : "";
+    const moveId = String(pickField(item.original, ["move_id"], "")).trim();
+    const geoPanelId = moveId ? `geo-panel-${moveId}` : "";
+    const geoPanelHtml = geo && geoPanelId
+      ? `<div class="movement-geo-panel" id="${geoPanelId}" style="display:none"></div>`
+      : "";
 
     const card = document.createElement("article");
     card.className = `movement-card ${directionClass}`;
+    card.dataset.moveId = moveId;
     card.innerHTML = `
       <div class="movement-row">
         <span class="movement-direction ${directionClass}">${directionLabel}</span>
         <span class="movement-badge">${moveTypeLabel || "MOVE"}</span>
+        ${geoBadgeHtml}
       </div>
+      ${geoPanelHtml}
       <div class="movement-player">
         <span class="movement-player-name">${item.playerName}</span>${positionHtml}
       </div>
@@ -571,6 +621,68 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
   });
 
   container.appendChild(cardsRoot);
+
+  container.querySelectorAll(".movement-geo-badge").forEach((badge) => {
+    badge.style.cursor = "pointer";
+    badge.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const card = badge.closest(".movement-card");
+      const moveId = card?.dataset.moveId;
+      if (!moveId) {
+        return;
+      }
+
+      const panel = document.getElementById(`geo-panel-${moveId}`);
+      if (!panel) {
+        return;
+      }
+
+      if (panel.style.display !== "none") {
+        panel.style.display = "none";
+        return;
+      }
+
+      const profile = await loadGeoProfile(state.season);
+      if (!profile || profile.length === 0) {
+        panel.innerHTML = '<p class="movement-geo-panel-note">Geography data unavailable.</p>';
+        panel.style.display = "block";
+        return;
+      }
+
+      const scopeNames = {
+        same_division: "Within Division",
+        cross_division: "Diff. Division",
+        cross_conference: "Diff. Conference",
+      };
+
+      const rows = ["same_division", "cross_division", "cross_conference"]
+        .map((scope) => {
+          const entry = profile.find((p) => p.move_scope === scope);
+          const count = entry?.move_count ?? 0;
+          const impact = entry?.avg_abs_impact ?? 0;
+          return `<div class="movement-geo-panel-row">
+          <span>${scopeNames[scope]}</span>
+          <span>${count} moves</span>
+          <span>avg ${fmtSigned(impact)} win%</span>
+        </div>`;
+        }).join("");
+
+      const total = profile.reduce((s, p) => s + (p.move_count || 0), 0);
+
+      panel.innerHTML = `
+      <div class="movement-geo-panel-header">
+        <span>League Geography — ${state.season} Season</span>
+        <span class="movement-geo-panel-close"
+          onclick="this.closest('.movement-geo-panel').style.display='none'">×</span>
+      </div>
+      ${rows}
+      <div class="movement-geo-panel-note">
+        Based on ${total} moves this season.
+        Higher avg impact = stronger win probability signal.
+      </div>`;
+      panel.style.display = "block";
+    });
+  });
 }
 
 function renderTrend(payload) {
