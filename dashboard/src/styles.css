@@ -84,6 +84,17 @@ h1 {
   max-width: none;
 }
 
+.hero-getting-started {
+  margin: 0.7rem 0 0;
+  color: rgba(45, 52, 54, 0.72);
+  font-size: 0.92rem;
+}
+
+.hero-getting-started strong {
+  color: var(--tmg-charcoal);
+  margin-right: 0.35rem;
+}
+
 .hero-controls {
   margin-top: 1rem;
   display: flex;

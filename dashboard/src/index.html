@@ -68,6 +68,10 @@
         <p class="subhead">
           See how every team's free agent signings and trades are estimated to affect their season win probability. Ranked across all 32 teams.
         </p>
+        <p class="hero-getting-started">
+          <strong>Getting Started</strong>
+          Pick a season from the dropdown and click Refresh to load the league rankings. Click any team row to see a detailed breakdown of their player moves for that season.
+        </p>
         <div class="hero-controls" aria-label="Overview filters">
           <label>Season
             <select id="seasonInput" aria-label="Season selector">
@@ -96,15 +100,26 @@
         <p id="statusMessage" class="status-message" role="status" aria-live="polite"></p>
       </header>
 
-      <section class="helper panel tmg-card-wide" aria-label="How to use overview page">
-        <h2>Getting Started</h2>
-        <p>Pick a season from the dropdown and click Refresh to load the league rankings. Click any team row to see a detailed breakdown of their player moves for that season.</p>
-      </section>
-
       <section class="cards" id="overview-metric" aria-label="overview cards">
         <article class="metric-card positive tmg-card" id="topPositiveCard"></article>
         <article class="metric-card negative tmg-card" id="topNegativeCard"></article>
         <article class="metric-card neutral tmg-card" id="leagueCard"></article>
+      </section>
+
+      <section id="spendingEfficiency" class="panel tmg-card" aria-labelledby="spendingTitle">
+        <div class="panel-header">
+          <h2 id="spendingTitle">FA Spending vs Win Change</h2>
+          <p class="section-desc">
+            Does spending more in free agency lead to more wins? Each dot is one team. The horizontal axis
+            shows total free agent contract value. The vertical axis shows the change in win percentage
+            versus the prior season.
+          </p>
+        </div>
+        <div id="spendingChart"></div>
+        <p class="chart-footnote">
+          Contract data: Spotrac. Outcomes: nflverse game results. Win change = current season win% minus
+          prior season win%.
+        </p>
       </section>
 
       <section class="panel-grid panel-grid-overview">
@@ -131,22 +146,6 @@
           </div>
           <div id="geographyChart" class="geo-list"></div>
         </article>
-      </section>
-
-      <section id="spendingEfficiency" class="panel tmg-card" aria-labelledby="spendingTitle">
-        <div class="panel-header">
-          <h2 id="spendingTitle">FA Spending vs Win Change</h2>
-          <p class="section-desc">
-            Does spending more in free agency lead to more wins? Each dot is one team. The horizontal axis
-            shows total free agent contract value. The vertical axis shows the change in win percentage
-            versus the prior season.
-          </p>
-        </div>
-        <div id="spendingChart"></div>
-        <p class="chart-footnote">
-          Contract data: Spotrac. Outcomes: nflverse game results. Win change = current season win% minus
-          prior season win%.
-        </p>
       </section>
 
       <section class="panel-grid panel-grid-single">
