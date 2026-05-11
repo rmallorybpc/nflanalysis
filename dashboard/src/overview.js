@@ -12,6 +12,13 @@ const state = {
   teamId: "BUF",
 };
 
+const spendingCache = {};
+const spendingRequestCache = {};
+const overviewPayloadCache = {};
+let teamOutcomesCache = null;
+let spendingResizeBound = false;
+let activeSpendingSeason = null;
+
 function seasonLabel(year) {
   return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
 }
@@ -128,6 +135,7 @@ function showOverviewSkeletons() {
   document.getElementById("scopeList").innerHTML = `<div class="skeleton-list">${skeletonRows(2, ["100%", "100%"], 16)}</div>`;
   document.getElementById("seasonCoverageChart").innerHTML = "";
   document.getElementById("geographyChart").innerHTML = `<div class="skeleton-list">${skeletonRows(3, ["100%", "70%", "45%"], 20)}</div>`;
+  document.getElementById("spendingChart").innerHTML = `<div class="skeleton" style="height:320px;width:100%;border-radius:8px;"></div>`;
 }
 
 function showOverviewErrorStates() {
@@ -136,6 +144,7 @@ function showOverviewErrorStates() {
   renderErrorState(document.getElementById("scopeList"));
   renderErrorState(document.getElementById("seasonCoverageChart"));
   renderErrorState(document.getElementById("geographyChart"));
+  renderErrorState(document.getElementById("spendingChart"));
 }
 
 function isOverviewPayload(payload) {
@@ -157,6 +166,450 @@ function resetRenderedData() {
   document.getElementById("scopeList").innerHTML = "";
   document.getElementById("seasonCoverageChart").innerHTML = "";
   document.getElementById("geographyChart").innerHTML = "";
+  document.getElementById("spendingChart").innerHTML = "";
+}
+
+function toFiniteNumber(value, fallback = 0) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+}
+
+function linearRegression(points) {
+  const n = points.length;
+  const sumX = points.reduce((s, p) => s + p.x, 0);
+  const sumY = points.reduce((s, p) => s + p.y, 0);
+  const sumXY = points.reduce((s, p) => s + p.x * p.y, 0);
+  const sumX2 = points.reduce((s, p) => s + p.x * p.x, 0);
+  const denominator = n * sumX2 - sumX * sumX;
+  if (!Number.isFinite(denominator) || Math.abs(denominator) < 1e-12) {
+    return { slope: 0, intercept: sumY / Math.max(n, 1) };
+  }
+  const slope = (n * sumXY - sumX * sumY) / denominator;
+  const intercept = (sumY - slope * sumX) / n;
+  return { slope, intercept };
+}
+
+function spendingContextNote(aavM, winDelta, moveCount) {
+  const highSpend = aavM > 100;
+  const bigGain = winDelta > 0.10;
+  const flatResult = Math.abs(winDelta) <= 0.05;
+  const declined = winDelta < -0.05;
+
+  if (highSpend && bigGain) {
+    return "High spend with strong win improvement — one of the better FA returns in this dataset.";
+  }
+  if (highSpend && flatResult) {
+    return "Large investment with little measurable win impact — wins may have come from other factors.";
+  }
+  if (highSpend && declined) {
+    return "High spend but win total declined — the Fox Sports cautionary tale pattern.";
+  }
+  if (!highSpend && bigGain) {
+    return "Efficient offseason — significant win improvement without top-tier spending.";
+  }
+  if (!highSpend && declined) {
+    return "Limited spending and win decline — roster did not improve through FA.";
+  }
+  if (moveCount === 0) {
+    return "No inbound free agency signings were logged for this season.";
+  }
+  return "Mixed result — spending and outcome roughly in line with league average.";
+}
+
+function pctSigned(value) {
+  const pct = toFiniteNumber(value, 0) * 100;
+  return `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
+}
+
+function winsSigned(value) {
+  const rounded = Math.round(toFiniteNumber(value, 0) * 10) / 10;
+  return `${rounded >= 0 ? "+" : ""}${rounded}`;
+}
+
+function formatRecord(outcomeRow) {
+  if (!outcomeRow) {
+    return "n/a";
+  }
+  return `${outcomeRow.wins}-${outcomeRow.losses}`;
+}
+
+function escapeTooltipText(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function parseCsvRows(csvText) {
+  const lines = String(csvText || "").trim().split(/\r?\n/);
+  if (lines.length <= 1) {
+    return [];
+  }
+
+  const headers = lines[0].split(",").map((header) => header.trim());
+  return lines.slice(1).map((line) => {
+    const values = line.split(",");
+    const row = {};
+    headers.forEach((header, index) => {
+      row[header] = (values[index] || "").trim();
+    });
+    return row;
+  });
+}
+
+async function loadTeamOutcomes() {
+  if (teamOutcomesCache) {
+    return teamOutcomesCache;
+  }
+
+  const candidates = [
+    "../../data/processed/team_week_outcomes.csv",
+    "/data/processed/team_week_outcomes.csv",
+    "/nflanalysis/data/processed/team_week_outcomes.csv",
+  ];
+
+  let csvText = "";
+  for (const path of candidates) {
+    try {
+      const resp = await fetch(path);
+      if (resp.ok) {
+        csvText = await resp.text();
+        break;
+      }
+    } catch (_err) {
+      // Try the next candidate.
+    }
+  }
+
+  if (!csvText) {
+    throw new Error("Unable to load team outcomes for spending chart.");
+  }
+
+  const rows = parseCsvRows(csvText);
+  const indexed = {};
+  rows.forEach((row) => {
+    const teamId = toTeamId(row.team_id);
+    const season = Number(row.nfl_season);
+    if (!teamId || !Number.isFinite(season)) {
+      return;
+    }
+    indexed[`${season}:${teamId}`] = {
+      team_id: teamId,
+      season,
+      wins: toFiniteNumber(row.wins),
+      losses: toFiniteNumber(row.losses),
+      ties: toFiniteNumber(row.ties),
+      win_pct: toFiniteNumber(row.win_pct),
+      games_played: toFiniteNumber(row.games_played),
+    };
+  });
+
+  teamOutcomesCache = indexed;
+  return indexed;
+}
+
+async function loadOverviewBySeason(season) {
+  if (overviewPayloadCache[season]) {
+    return overviewPayloadCache[season];
+  }
+  const payload = await loadOverviewData(season);
+  overviewPayloadCache[season] = payload;
+  return payload;
+}
+
+function showSpendingLoadingState(progress, total) {
+  const container = document.getElementById("spendingChart");
+  if (!container) {
+    return;
+  }
+  container.innerHTML = `
+    <div class="skeleton" style="height:320px;width:100%;border-radius:8px;"></div>
+    <div class="spending-progress">Loading spending data... (${progress} of ${total} teams)</div>
+  `;
+}
+
+async function loadSeasonSpendingByTeam(season, onProgress) {
+  if (spendingRequestCache[season]) {
+    return spendingRequestCache[season];
+  }
+
+  const promise = (async () => {
+    let settledCount = 0;
+    const total = TEAM_IDS.length;
+    onProgress?.(settledCount, total);
+
+    const requests = TEAM_IDS.map((teamId) => {
+      const params = new URLSearchParams({
+        team_id: teamId,
+        season: String(season),
+      });
+
+      return fetch(`${API_BASE}/v1/dashboard/team-detail?${params.toString()}`)
+        .then(async (resp) => {
+          if (!resp.ok) {
+            throw new Error(`status ${resp.status}`);
+          }
+
+          const payload = await resp.json();
+          const timeline = Array.isArray(payload?.timeline) ? payload.timeline : [];
+          const inboundFreeAgency = timeline.filter(
+            (event) => String(event.move_type || "").toLowerCase() === "free_agency"
+              && toTeamId(event.to_team_id) === teamId
+          );
+
+          const totalAavDollars = inboundFreeAgency.reduce(
+            (sum, event) => sum + toFiniteNumber(event.contract_aav),
+            0
+          );
+
+          return {
+            teamId,
+            totalAavM: totalAavDollars / 1_000_000,
+            moveCount: inboundFreeAgency.length,
+          };
+        })
+        .finally(() => {
+          settledCount += 1;
+          onProgress?.(settledCount, total);
+        });
+    });
+
+    const results = await Promise.allSettled(requests);
+    const spendByTeam = {};
+    let fulfilledCount = 0;
+
+    results.forEach((result) => {
+      if (result.status === "fulfilled") {
+        spendByTeam[result.value.teamId] = result.value;
+        fulfilledCount += 1;
+      }
+    });
+
+    if (fulfilledCount === 0) {
+      throw new Error("Unable to load team spending data.");
+    }
+
+    return spendByTeam;
+  })();
+
+  spendingRequestCache[season] = promise;
+  return promise;
+}
+
+function buildSpendingTooltip(point, season) {
+  const note = spendingContextNote(point.totalAavM, point.winPctDelta, point.moveCount);
+  const lines = [
+    `${point.teamId} ${seasonLabel(season)}`,
+    `FA Spend: $${point.totalAavM.toFixed(1)}M across ${point.moveCount} signings`,
+    `Win Change: ${winsSigned(point.winDeltaWins)} wins (${pctSigned(point.winPctDelta)})`,
+    `Current: ${formatRecord(point.currentOutcome)} (${(toFiniteNumber(point.currentOutcome?.win_pct) * 100).toFixed(1)}%)`,
+    `Prior: ${point.priorOutcome ? `${formatRecord(point.priorOutcome)} (${(toFiniteNumber(point.priorOutcome?.win_pct) * 100).toFixed(1)}%)` : "n/a"}`,
+    `MIS (model estimate): ${point.misValue.toFixed(3)}`,
+  ];
+
+  if (point.winDeltaWins > 0) {
+    lines.push(`Spending efficiency: $${(point.totalAavM / point.winDeltaWins).toFixed(1)}M per win gained`);
+  }
+  lines.push(`Context: ${note}`);
+
+  return lines.join(" | ");
+}
+
+function renderSpendingSvg(season, cached) {
+  const container = document.getElementById("spendingChart");
+  if (!container) {
+    return;
+  }
+
+  if (season <= 2017) {
+    renderEmptyState(container, "Win change data requires a prior season. Select 2018 or later.");
+    return;
+  }
+
+  const validPoints = cached.points.filter((point) => point.hasPrior);
+  if (validPoints.length < 10) {
+    renderEmptyState(container, "Insufficient data to render spending chart for this season.");
+    return;
+  }
+
+  const width = Math.max(340, Math.min(container.clientWidth || 700, 700));
+  const height = 400;
+  const margin = { top: 20, right: 20, bottom: 60, left: 60 };
+  const innerW = width - margin.left - margin.right;
+  const innerH = height - margin.top - margin.bottom;
+
+  const maxSpend = Math.max(...cached.points.map((point) => point.totalAavM), 0);
+  const xMax = maxSpend > 0 ? maxSpend * 1.1 : 10;
+  const maxAbsDelta = Math.max(...validPoints.map((point) => Math.abs(point.winPctDelta)), 0.05);
+  const yMax = maxAbsDelta;
+
+  const xScale = (value) => margin.left + (Math.max(0, value) / xMax) * innerW;
+  const yScale = (value) => margin.top + ((yMax - value) / (2 * yMax)) * innerH;
+
+  const xTicks = 6;
+  const yTicks = 6;
+
+  const trendPoints = validPoints.map((point) => ({ x: point.totalAavM, y: point.winPctDelta }));
+  const trend = trendPoints.length >= 2 ? linearRegression(trendPoints) : null;
+
+  const svgParts = [];
+  svgParts.push(`<svg viewBox="0 0 ${width} ${height}" width="100%" height="400" role="img" aria-label="FA spending vs win change scatter plot">`);
+  svgParts.push(`<line x1="${margin.left}" y1="${margin.top + innerH}" x2="${margin.left + innerW}" y2="${margin.top + innerH}" stroke="#94a3b8" stroke-width="1" />`);
+  svgParts.push(`<line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + innerH}" stroke="#94a3b8" stroke-width="1" />`);
+
+  const yZero = yScale(0);
+  svgParts.push(`<line x1="${margin.left}" y1="${yZero}" x2="${margin.left + innerW}" y2="${yZero}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 4" />`);
+
+  for (let i = 0; i <= xTicks; i += 1) {
+    const tickValue = (xMax / xTicks) * i;
+    const x = xScale(tickValue);
+    svgParts.push(`<line x1="${x}" y1="${margin.top + innerH}" x2="${x}" y2="${margin.top + innerH + 6}" stroke="#94a3b8" stroke-width="1" />`);
+    svgParts.push(`<text x="${x}" y="${margin.top + innerH + 20}" text-anchor="middle" fill="#64748b" font-size="10">$${Math.round(tickValue)}M</text>`);
+  }
+
+  for (let i = 0; i <= yTicks; i += 1) {
+    const tickValue = yMax - (2 * yMax * i) / yTicks;
+    const y = yScale(tickValue);
+    svgParts.push(`<line x1="${margin.left - 6}" y1="${y}" x2="${margin.left}" y2="${y}" stroke="#94a3b8" stroke-width="1" />`);
+    const pct = Math.round(tickValue * 100);
+    const label = `${pct >= 0 ? "+" : ""}${pct}%`;
+    svgParts.push(`<text x="${margin.left - 10}" y="${y + 3}" text-anchor="end" fill="#64748b" font-size="10">${label}</text>`);
+  }
+
+  svgParts.push(`<text x="${margin.left + innerW / 2}" y="${height - 16}" text-anchor="middle" fill="#64748b" font-size="11">Total FA Spending (AAV, $M)</text>`);
+  svgParts.push(`<text x="16" y="${margin.top + innerH / 2}" text-anchor="middle" fill="#64748b" font-size="11" transform="rotate(-90 16 ${margin.top + innerH / 2})">Win% Change vs Prior Season</text>`);
+
+  svgParts.push(`<text class="spending-quadrant-label" x="${margin.left + innerW - 6}" y="${margin.top + 14}" text-anchor="end" fill="#16a34a">High Spend / Big Gain</text>`);
+  svgParts.push(`<text class="spending-quadrant-label" x="${margin.left + 6}" y="${margin.top + 14}" text-anchor="start" fill="#16a34a">Low Spend / Big Gain</text>`);
+  svgParts.push(`<text class="spending-quadrant-label" x="${margin.left + innerW - 6}" y="${margin.top + innerH - 8}" text-anchor="end" fill="#dc2626">High Spend / Declined</text>`);
+  svgParts.push(`<text class="spending-quadrant-label" x="${margin.left + 6}" y="${margin.top + innerH - 8}" text-anchor="start" fill="#dc2626">Low Spend / Declined</text>`);
+
+  if (trend) {
+    const x1 = 0;
+    const x2 = xMax;
+    const y1 = trend.slope * x1 + trend.intercept;
+    const y2 = trend.slope * x2 + trend.intercept;
+    const sx1 = xScale(x1);
+    const sx2 = xScale(x2);
+    const sy1 = yScale(Math.max(-yMax, Math.min(yMax, y1)));
+    const sy2 = yScale(Math.max(-yMax, Math.min(yMax, y2)));
+    svgParts.push(`<line x1="${sx1}" y1="${sy1}" x2="${sx2}" y2="${sy2}" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 4" />`);
+    svgParts.push(`<text x="${sx2 - 2}" y="${sy2 - 4}" text-anchor="end" fill="#64748b" font-size="10">trend</text>`);
+  }
+
+  cached.points.forEach((point) => {
+    const x = xScale(point.totalAavM);
+    const y = yScale(point.hasPrior ? point.winPctDelta : 0);
+    const radius = 8 + Math.min(4, point.moveCount / 6);
+    let fill = "#9ca3af";
+    if (point.hasPrior) {
+      if (point.winPctDelta > 0.05) {
+        fill = "#22c55e";
+      } else if (point.winPctDelta < -0.05) {
+        fill = "#ef4444";
+      } else {
+        fill = "#f59e0b";
+      }
+    }
+    svgParts.push(`<circle cx="${x}" cy="${y}" r="${radius}" fill="${fill}" stroke="#ffffff" stroke-width="1" />`);
+    svgParts.push(`<text x="${x}" y="${y + 3}" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">${point.teamId}</text>`);
+  });
+
+  svgParts.push(`</svg>`);
+
+  const overlayDots = cached.points.map((point) => {
+    const x = xScale(point.totalAavM);
+    const y = yScale(point.hasPrior ? point.winPctDelta : 0);
+    const tooltip = escapeTooltipText(buildSpendingTooltip(point, season));
+    return `<span class="spending-tooltip-dot" data-tooltip="${tooltip}" style="left:${x}px;top:${y}px;min-width:260px;--tooltip-width:260px;" tabindex="0" aria-label="${point.teamId} spending details"></span>`;
+  }).join("");
+
+  container.innerHTML = `
+    <div class="spending-chart-wrap">
+      ${svgParts.join("")}
+      <div class="spending-overlay" aria-hidden="false">${overlayDots}</div>
+    </div>
+    ${cached.hasMissingPrior ? '<div class="spending-note">Prior season data unavailable for some teams.</div>' : ""}
+  `;
+}
+
+async function renderSpendingChart(season, currentPayload = null) {
+  activeSpendingSeason = season;
+  if (!spendingResizeBound) {
+    spendingResizeBound = true;
+    window.addEventListener("resize", () => {
+      if (activeSpendingSeason && spendingCache[activeSpendingSeason]) {
+        renderSpendingSvg(activeSpendingSeason, spendingCache[activeSpendingSeason]);
+      }
+    });
+  }
+
+  if (spendingCache[season]) {
+    renderSpendingSvg(season, spendingCache[season]);
+    return;
+  }
+
+  if (season <= 2017) {
+    renderEmptyState(document.getElementById("spendingChart"), "Win change data requires a prior season. Select 2018 or later.");
+    return;
+  }
+
+  showSpendingLoadingState(0, TEAM_IDS.length);
+
+  const [spendingByTeam, outcomesIndex, currentOverview] = await Promise.all([
+    loadSeasonSpendingByTeam(season, showSpendingLoadingState),
+    loadTeamOutcomes(),
+    currentPayload ? Promise.resolve(currentPayload) : loadOverviewBySeason(season),
+  ]);
+
+  // Keep a prior-season overview fetch in the flow for parity with existing overview sourcing.
+  if (season > 2017) {
+    loadOverviewBySeason(season - 1).catch(() => null);
+  }
+
+  const misByTeam = {};
+  const rankingRows = Array.isArray(currentOverview?.charts?.league_ranking)
+    ? currentOverview.charts.league_ranking
+    : [];
+  rankingRows.forEach((row) => {
+    const teamId = toTeamId(row.team_id);
+    if (!teamId) {
+      return;
+    }
+    misByTeam[teamId] = toFiniteNumber(row.mis_value);
+  });
+
+  const points = TEAM_IDS.map((teamId) => {
+    const spending = spendingByTeam[teamId] || { totalAavM: 0, moveCount: 0 };
+    const currentOutcome = outcomesIndex[`${season}:${teamId}`] || null;
+    const priorOutcome = outcomesIndex[`${season - 1}:${teamId}`] || null;
+    const hasPrior = Boolean(currentOutcome && priorOutcome);
+    const currentWinPct = toFiniteNumber(currentOutcome?.win_pct);
+    const priorWinPct = toFiniteNumber(priorOutcome?.win_pct);
+
+    return {
+      teamId,
+      totalAavM: toFiniteNumber(spending.totalAavM),
+      moveCount: toFiniteNumber(spending.moveCount),
+      hasPrior,
+      currentOutcome,
+      priorOutcome,
+      winPctDelta: hasPrior ? currentWinPct - priorWinPct : 0,
+      winDeltaWins: hasPrior ? toFiniteNumber(currentOutcome?.wins) - toFiniteNumber(priorOutcome?.wins) : 0,
+      misValue: toFiniteNumber(misByTeam[teamId]),
+    };
+  });
+
+  const cached = {
+    points,
+    hasMissingPrior: points.some((point) => !point.hasPrior),
+  };
+
+  spendingCache[season] = cached;
+  if (activeSpendingSeason === season) {
+    renderSpendingSvg(season, cached);
+  }
 }
 
 function setCard(el, title, value, meta) {
@@ -398,6 +851,10 @@ async function refreshOverview() {
     renderScope(payload);
     renderSeasonCoverage(payload);
     renderGeography(payload);
+    renderSpendingChart(state.season, payload).catch((err) => {
+      renderEmptyState(document.getElementById("spendingChart"), "Insufficient data to render spending chart for this season.");
+      console.error(err);
+    });
     setStatus("");
   } catch (err) {
     resetRenderedData();

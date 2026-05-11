@@ -499,7 +499,7 @@ h1 {
   padding: 6px 10px;
   border-radius: 4px;
   white-space: normal;
-  width: 220px;
+  width: var(--tooltip-width, 220px);
   text-align: left;
   pointer-events: none;
   opacity: 0;
@@ -507,6 +507,70 @@ h1 {
   z-index: 100;
   border: 1px solid var(--color-border, #334155);
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+#spendingEfficiency {
+  margin-top: 32px;
+}
+
+#spendingChart {
+  width: 100%;
+  max-width: 700px;
+  height: 400px;
+  position: relative;
+  margin: 0 auto;
+}
+
+.chart-footnote {
+  font-size: 0.7rem;
+  color: var(--color-muted, #94a3b8);
+  margin-top: 6px;
+  text-align: center;
+}
+
+.spending-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 400px;
+}
+
+.spending-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.spending-tooltip-dot {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: auto;
+  border: none;
+  background: transparent;
+  cursor: help;
+  outline: none;
+}
+
+.spending-progress {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: var(--color-muted, #94a3b8);
+  text-align: center;
+}
+
+.spending-note {
+  margin-top: 6px;
+  font-size: 0.76rem;
+  color: var(--color-muted, #94a3b8);
+  text-align: center;
+}
+
+.spending-quadrant-label {
+  font-size: 0.65rem;
+  fill: var(--color-muted, #94a3b8);
+  font-style: italic;
 }
 
 [data-tooltip]:hover::after,
