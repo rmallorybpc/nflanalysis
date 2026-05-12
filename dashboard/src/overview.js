@@ -134,8 +134,13 @@ function showOverviewSkeletons() {
   document.getElementById("distributionChart").innerHTML = `<div class="skeleton-list">${skeletonRows(3, ["100%", "70%", "45%"], 20)}</div>`;
   document.getElementById("scopeList").innerHTML = `<div class="skeleton-list">${skeletonRows(2, ["100%", "100%"], 16)}</div>`;
   document.getElementById("seasonCoverageChart").innerHTML = "";
-  document.getElementById("geographyChart").innerHTML = `<div class="skeleton-list">${skeletonRows(3, ["100%", "70%", "45%"], 20)}</div>`;
-  document.getElementById("spendingChart").innerHTML = `<div class="skeleton" style="height:320px;width:100%;border-radius:8px;"></div>`;
+  document.getElementById("geographyChart").innerHTML = `<div class="skeleton-list">${skeletonRows(4, ["100%", "92%", "86%", "78%"], 18, "chart-skeleton-row")}</div>`;
+  document.getElementById("spendingChart").innerHTML = `
+    <div class="chart-skeleton-block">
+      <div class="skeleton chart-skeleton-frame"></div>
+      <div class="skeleton-list">${skeletonRows(2, ["55%", "38%"], 10)}</div>
+    </div>
+  `;
 }
 
 function showOverviewErrorStates() {
@@ -324,7 +329,10 @@ function showSpendingLoadingState(progress, total) {
     return;
   }
   container.innerHTML = `
-    <div class="skeleton" style="height:320px;width:100%;border-radius:8px;"></div>
+    <div class="chart-skeleton-block">
+      <div class="skeleton chart-skeleton-frame"></div>
+      <div class="skeleton-list">${skeletonRows(2, ["55%", "38%"], 10)}</div>
+    </div>
     <div class="spending-progress">Loading spending data... (${progress} of ${total} teams)</div>
   `;
 }

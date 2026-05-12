@@ -436,6 +436,21 @@ h1 {
   max-width: 100%;
 }
 
+.chart-skeleton-block {
+  display: grid;
+  gap: 8px;
+}
+
+.chart-skeleton-frame {
+  height: 320px;
+  width: 100%;
+  border-radius: 8px;
+}
+
+.chart-skeleton-row {
+  border-radius: 6px;
+}
+
 .empty-state {
   text-align: center;
   padding: 24px 0;
