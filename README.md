@@ -1,18 +1,18 @@
 # NFL Analysis
 
 ## Overview
-Front office in a browser. NFL Analysis is a live decision-support system that quantifies how trades and free-agency moves shift team outcomes, combining a production dashboard at [https://rmallorybpc.github.io/nflanalysis/dashboard/src/](https://rmallorybpc.github.io/nflanalysis/dashboard/src/), a REST API for dashboard-grade slices, and a five-season dataset (2022-2026) used for modeling, ranking, and counterfactual analysis across all 32 teams.
+Front office in a browser. NFL Analysis is a live decision-support system that quantifies how trades and free-agency moves shift team outcomes, combining a production dashboard at [https://rmallorybpc.github.io/nflanalysis/dashboard/src/](https://rmallorybpc.github.io/nflanalysis/dashboard/src/), a REST API for dashboard-grade slices, and a dataset spanning 2017–2026 used for modeling, ranking, and counterfactual analysis across all 32 teams.
 
 ## Live Dashboard
-- [Overview](https://rmallorybpc.github.io/nflanalysis/dashboard/src/): league-wide movement impact ranking for all 32 teams across five seasons.
+- [Overview](https://rmallorybpc.github.io/nflanalysis/dashboard/src/): league-wide movement impact ranking for all 32 teams across Data range: 2017–2026.
 - [Team Detail](https://rmallorybpc.github.io/nflanalysis/dashboard/src/team.html): inbound/outbound movement cards, MIS trend, position group delta, and scenario launch for any team.
 - [Scenario Sandbox](https://rmallorybpc.github.io/nflanalysis/dashboard/src/scenario.html): counterfactual what-if analysis - add or remove a player move and inspect the modeled outcome delta.
 
 ## Data
-- Five seasons: 2022, 2023, 2024, 2025, 2026
-- 542 movement events (trades and free agency signings)
+- Data range: 2017–2026.
+- X movement events (trades and free agency signings). Note: exact count should be updated programmatically or in a future commit.
 - 32 teams, three outcome metrics: win%, point differential per game, offensive EPA per play
-- Sources: nflverse trades data, 2026 offseason transactions
+- Data sources: NFL play-by-play, team transactions, public salary databases.
 
 ## Pipeline
 Run the full system with:
