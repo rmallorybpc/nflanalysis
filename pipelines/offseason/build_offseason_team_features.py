@@ -27,6 +27,9 @@ CANONICAL_FIELDS = [
     "special_teams_value_delta",
     "other_value_delta",
     "avg_contract_value_per_move",
+    "same_division_inbound_count",
+    "cross_division_inbound_count",
+    "cross_conference_inbound_count",
     "position_value_delta",
     "schedule_strength_index",
     "feature_version",
@@ -190,6 +193,7 @@ def build_features(
                 fallback_schedule_by_key[(team, season, week)] = value
 
     inbound: dict[tuple[str, str, str], int] = defaultdict(int)
+    inbound_events_by_key: dict[tuple[str, str, str], list[dict[str, str]]] = defaultdict(list)
     outbound: dict[tuple[str, str, str], int] = defaultdict(int)
     inbound_contract_sum: dict[tuple[str, str, str], float] = defaultdict(float)
     group_delta: dict[tuple[str, str, str], dict[str, float]] = defaultdict(lambda: defaultdict(float))
@@ -214,6 +218,7 @@ def build_features(
         if to_team:
             key = (to_team, season, week)
             inbound[key] += 1
+            inbound_events_by_key[key].append(row)
             try:
                 inbound_contract_sum[key] += float((row.get("contract_aav") or "").strip() or 0.0)
             except ValueError:
@@ -239,6 +244,7 @@ def build_features(
         out_count = outbound.get(key, 0)
         avg_contract_value = (inbound_contract_sum.get(key, 0.0) / in_count) if in_count > 0 else 0.0
         churn = (in_count + out_count) / roster_size if roster_size > 0 else 0.0
+        inbound_events = inbound_events_by_key.get(key, [])
 
         spend_factor = spending_z.get(team, 0.0)
         if has_win_total_signal:
@@ -258,6 +264,11 @@ def build_features(
         # Preserve contract: position_value_delta equals sum of group deltas.
         position_total = sum(group_vals.values())
 
+        geography_counts = {}
+        for scope in ("same_division", "cross_division", "cross_conference"):
+            count = sum(1 for e in inbound_events if (e.get("move_scope") or "").strip() == scope)
+            geography_counts[f"{scope}_inbound_count"] = count
+
         out.append(
             {
                 "team_id": team,
@@ -274,6 +285,9 @@ def build_features(
                 "special_teams_value_delta": f"{group_vals['special_teams_value_delta']:.4f}",
                 "other_value_delta": f"{group_vals['other_value_delta']:.4f}",
                 "avg_contract_value_per_move": f"{avg_contract_value:.2f}",
+                "same_division_inbound_count": str(geography_counts["same_division_inbound_count"]),
+                "cross_division_inbound_count": str(geography_counts["cross_division_inbound_count"]),
+                "cross_conference_inbound_count": str(geography_counts["cross_conference_inbound_count"]),
                 "position_value_delta": f"{position_total:.4f}",
                 "schedule_strength_index": "0.0000",
                 "feature_version": feature_version,

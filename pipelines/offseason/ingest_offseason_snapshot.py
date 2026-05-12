@@ -65,6 +65,49 @@ POSITION_GROUP_MAP = {
     "LS": "special_teams",
 }
 
+TEAM_DIVISION = {
+    # AFC East
+    "BUF": ("AFC", "AFC East"),
+    "MIA": ("AFC", "AFC East"),
+    "NE": ("AFC", "AFC East"),
+    "NYJ": ("AFC", "AFC East"),
+    # AFC North
+    "BAL": ("AFC", "AFC North"),
+    "CIN": ("AFC", "AFC North"),
+    "CLE": ("AFC", "AFC North"),
+    "PIT": ("AFC", "AFC North"),
+    # AFC South
+    "HOU": ("AFC", "AFC South"),
+    "IND": ("AFC", "AFC South"),
+    "JAX": ("AFC", "AFC South"),
+    "TEN": ("AFC", "AFC South"),
+    # AFC West
+    "DEN": ("AFC", "AFC West"),
+    "KC": ("AFC", "AFC West"),
+    "LV": ("AFC", "AFC West"),
+    "LAC": ("AFC", "AFC West"),
+    # NFC East
+    "DAL": ("NFC", "NFC East"),
+    "NYG": ("NFC", "NFC East"),
+    "PHI": ("NFC", "NFC East"),
+    "WAS": ("NFC", "NFC East"),
+    # NFC North
+    "CHI": ("NFC", "NFC North"),
+    "DET": ("NFC", "NFC North"),
+    "GB": ("NFC", "NFC North"),
+    "MIN": ("NFC", "NFC North"),
+    # NFC South
+    "ATL": ("NFC", "NFC South"),
+    "CAR": ("NFC", "NFC South"),
+    "NO": ("NFC", "NFC South"),
+    "TB": ("NFC", "NFC South"),
+    # NFC West
+    "ARI": ("NFC", "NFC West"),
+    "LAR": ("NFC", "NFC West"),
+    "SEA": ("NFC", "NFC West"),
+    "SF": ("NFC", "NFC West"),
+}
+
 MOVEMENT_FIELDS = [
     "move_id",
     "event_date",
@@ -73,6 +116,7 @@ MOVEMENT_FIELDS = [
     "player_id",
     "from_team_id",
     "to_team_id",
+    "move_scope",
     "contract_aav",
     "contract_total",
     "contract_years",
@@ -251,6 +295,24 @@ def to_float(value: str, field_name: str) -> float:
         return float(value)
     except ValueError as exc:
         raise ValueError(f"{field_name} must be numeric, got {value}") from exc
+
+
+def compute_move_scope(from_team: str, to_team: str) -> str:
+    from_team_id = (from_team or "").strip().upper()
+    to_team_id = (to_team or "").strip().upper()
+    if not from_team_id or not to_team_id:
+        return "unknown"
+
+    from_info = TEAM_DIVISION.get(from_team_id)
+    to_info = TEAM_DIVISION.get(to_team_id)
+    if not from_info or not to_info:
+        return "unknown"
+
+    if from_info[1] == to_info[1]:
+        return "same_division"
+    if from_info[0] == to_info[0]:
+        return "cross_division"
+    return "cross_conference"
 
 
 def derive_player_id(row: dict[str, str]) -> str:
@@ -438,6 +500,7 @@ def build_movement_events(
                     "player_id": player_id,
                     "from_team_id": from_team_id,
                     "to_team_id": team,
+                    "move_scope": compute_move_scope(from_team_id, team),
                     "contract_aav": (row.get("contract_aav") or "").strip(),
                     "contract_total": (row.get("contract_total") or "").strip(),
                     "contract_years": (row.get("contract_years") or "").strip(),
@@ -502,6 +565,7 @@ def build_movement_events(
                 "player_id": player_id,
                 "from_team_id": from_team,
                 "to_team_id": to_team,
+                "move_scope": compute_move_scope(from_team, to_team),
                 "contract_aav": (row.get("contract_aav") or "").strip(),
                 "contract_total": (row.get("contract_total") or "").strip(),
                 "contract_years": (row.get("contract_years") or "").strip(),

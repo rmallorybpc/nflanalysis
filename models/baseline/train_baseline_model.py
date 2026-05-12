@@ -21,6 +21,9 @@ FEATURE_COLUMNS = [
     "special_teams_value_delta",
     "other_value_delta",
     "avg_contract_value_per_move",
+    "same_division_inbound_count",
+    "cross_division_inbound_count",
+    "cross_conference_inbound_count",
     "position_value_delta",
     "schedule_strength_index",
 ]
@@ -37,6 +40,9 @@ COUNTERFACTUAL_ZERO_FEATURES = [
     "special_teams_value_delta",
     "other_value_delta",
     "avg_contract_value_per_move",
+    "same_division_inbound_count",
+    "cross_division_inbound_count",
+    "cross_conference_inbound_count",
     "position_value_delta",
 ]
 

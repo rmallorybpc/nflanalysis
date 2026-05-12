@@ -56,6 +56,12 @@ POSITION_GROUP_FEATURE: dict[str, str] = {
     "other": "other_value_delta",
 }
 
+GEOGRAPHY_FEATURE: dict[str, str] = {
+    "same_division": "same_division_inbound_count",
+    "cross_division": "cross_division_inbound_count",
+    "cross_conference": "cross_conference_inbound_count",
+}
+
 
 def _to_float(value: str, field_name: str) -> float:
     try:
@@ -102,6 +108,17 @@ def _infer_scope_from_destination(to_team: str) -> str:
     if not to_team or to_team not in TEAM_GEO:
         return "unknown"
     return "cross_division"
+
+
+def _resolve_move_scope(from_team: str, to_team: str, explicit_scope: str = "") -> str:
+    scope = (explicit_scope or "").strip()
+    if scope in GEOGRAPHY_FEATURE:
+        return scope
+    if from_team and to_team:
+        return _move_scope(from_team, to_team)
+    if to_team:
+        return _infer_scope_from_destination(to_team)
+    return "unknown"
 
 
 @dataclass
@@ -334,11 +351,11 @@ class CounterfactualService:
             to_team = row.get("to_team_id", "").strip()
 
             if from_team and to_team:
-                scope = _move_scope(from_team, to_team)
+                scope = _resolve_move_scope(from_team, to_team, row.get("move_scope", ""))
             elif to_team:
-                scope = _infer_scope_from_destination(to_team)
+                scope = _resolve_move_scope(from_team, to_team, row.get("move_scope", ""))
             else:
-                scope = "unknown"
+                scope = _resolve_move_scope(from_team, to_team, row.get("move_scope", ""))
 
             if scope not in allowed_scopes:
                 continue
@@ -368,6 +385,10 @@ class CounterfactualService:
                             (outcome, feature_name), 0.0
                         )
                         raw_effect = coef * 1.0
+
+                geo_feature_name = GEOGRAPHY_FEATURE.get(scope)
+                if geo_feature_name:
+                    raw_effect += self.baseline_coefs.get((outcome, geo_feature_name), 0.0)
 
                 effect = abs(raw_effect)
                 buckets[(scope, outcome)].append(effect)
@@ -421,6 +442,7 @@ class CounterfactualService:
             action = str(move.get("action", "")).strip().lower()
             from_team = str(move.get("from_team_id", "")).strip()
             to_team = str(move.get("to_team_id", "")).strip()
+            move_scope = _resolve_move_scope(from_team, to_team, str(move.get("move_scope", "")))
 
             direction = 0.0
             if action == "add" and to_team == team_id:
@@ -459,6 +481,11 @@ class CounterfactualService:
                         (outcome_name, feature_name), 0.0
                     )
                     adjustment += direction * coef * 1.0
+
+                geo_feature_name = GEOGRAPHY_FEATURE.get(move_scope)
+                if geo_feature_name:
+                    geo_coef = self.baseline_coefs.get((outcome_name, geo_feature_name), 0.0)
+                    adjustment += direction * geo_coef
 
         return adjustment
 
@@ -654,6 +681,15 @@ class CounterfactualService:
                     coef = self.baseline_coefs.get(("win_pct", feature_name), 0.0)
                     raw_impact = coef * 1.0
 
+            scope = _resolve_move_scope(
+                row.get("from_team_id", "").strip(),
+                row.get("to_team_id", "").strip(),
+                row.get("move_scope", ""),
+            )
+            geo_feature_name = GEOGRAPHY_FEATURE.get(scope)
+            if geo_feature_name:
+                raw_impact += self.baseline_coefs.get(("win_pct", geo_feature_name), 0.0)
+
             impact = sign * raw_impact
 
             relevant_moves.append(
@@ -667,9 +703,10 @@ class CounterfactualService:
                     "player_name": self.player_name.get(player_id, player_id),
                     "from_team_id": row.get("from_team_id", "").strip(),
                     "to_team_id": row.get("to_team_id", "").strip(),
-                    "move_scope": _move_scope(
+                    "move_scope": _resolve_move_scope(
                         row.get("from_team_id", "").strip(),
-                        row.get("to_team_id", "").strip()
+                        row.get("to_team_id", "").strip(),
+                        row.get("move_scope", ""),
                     ),
                     "impact_estimate": round(impact, 6),
                     "contract_aav": row.get("contract_aav", ""),
