@@ -65,8 +65,8 @@
     <main class="layout tmg-page tmg-container">
       <header class="hero">
         <h1>NFL Free Agency Impact Dashboard</h1>
-        <p class="subhead">
-          See how every team's free agent signings and trades are estimated to affect their season win probability. Ranked across all 32 teams.
+        <p class="subhead" id="hero-subtitle">
+          Estimates how trades and free-agent signings affect team win probability — seasons 2017–2026.
         </p>
         <p class="hero-getting-started">
           <strong>Getting Started</strong>
@@ -91,11 +91,10 @@
             <select id="teamInput" aria-label="Team drilldown selector"></select>
           </label>
           <button id="refreshBtn" type="button" class="tmg-btn">Refresh</button>
-          <a id="openTeamBtn" class="cta-link tmg-btn-ghost" href="./team.html?team_id=BUF&season=2026">Open Team Detail</a>
+          <a id="open-team-detail" class="cta-link tmg-btn-ghost" href="./team.html?team_id=BUF&season=2026" aria-label="Open Team Detail for selected team and season">Open Team Detail</a>
         </div>
         <div class="hero-meta">
-          <span id="seasonLabel">Season: --</span>
-          <span id="generatedLabel">Generated: --</span>
+          <span id="page-metadata">Data range: 2017–2026 · Generated: YYYY-MM-DD</span>
         </div>
         <p id="statusMessage" class="status-message" role="status" aria-live="polite"></p>
       </header>

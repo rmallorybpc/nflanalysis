@@ -68,10 +68,26 @@ function updateTeamLinks() {
   });
   document.getElementById("welcomeLink").href = `./welcome.html?${params.toString()}`;
   const href = `./team.html?${params.toString()}`;
-  document.getElementById("openTeamBtn").href = href;
+  document.getElementById("open-team-detail").href = href;
   document.getElementById("teamPageLink").href = href;
   document.getElementById("scenarioPageLink").href = `./scenario.html?${params.toString()}`;
   document.getElementById("explorerLink").href = `./explorer.html?${params.toString()}`;
+}
+
+function toIsoDateString(value) {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toISOString().slice(0, 10);
+  }
+  return date.toISOString().slice(0, 10);
+}
+
+function prepopulatePageMetadata() {
+  const metadataEl = document.getElementById("page-metadata");
+  if (!metadataEl) {
+    return;
+  }
+  metadataEl.textContent = `Data range: 2017–2026 · Generated: ${toIsoDateString()}`;
 }
 
 function rewriteNavLinksFromParams() {
@@ -807,8 +823,11 @@ function renderGeography(payload) {
 }
 
 function applyMeta(payload) {
-  document.getElementById("seasonLabel").textContent = `Season: ${payload.season}`;
-  document.getElementById("generatedLabel").textContent = `Generated: ${payload.generated_at}`;
+  const metadataEl = document.getElementById("page-metadata");
+  if (!metadataEl) {
+    return;
+  }
+  metadataEl.textContent = `Data range: 2017–2026 · Generated: ${toIsoDateString(payload.generated_at)}`;
 }
 
 async function loadOverviewData(season) {
@@ -867,8 +886,7 @@ async function refreshOverview() {
   } catch (err) {
     resetRenderedData();
     showOverviewErrorStates();
-    document.getElementById("seasonLabel").textContent = `Season: ${state.season}`;
-    document.getElementById("generatedLabel").textContent = "Generated: --";
+    prepopulatePageMetadata();
     const message = err instanceof Error
       ? err.message
       : "Data collection failed. Please check source data coverage and pipeline outputs.";
@@ -937,6 +955,7 @@ function bindControls() {
 }
 
 function main() {
+  prepopulatePageMetadata();
   rewriteNavLinksFromParams();
   const { hasSeason, hasTeamId } = parseQueryState();
   syncControls();
