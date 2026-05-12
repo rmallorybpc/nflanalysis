@@ -7,6 +7,9 @@ const TEAM_IDS = [
   "NYJ", "PHI", "PIT", "SEA", "SF", "TB", "TEN", "WAS",
 ];
 
+const TEAM_REQUEST_BATCH_SIZE = 8;
+const TEAM_REQUEST_BATCH_DELAY_MS = 250;
+
 const POSITION_GROUPS = [
   "offense_skill",
   "offense_line",
@@ -670,7 +673,7 @@ async function loadAllTeams(season) {
   let settledCount = 0;
   progressEl.textContent = `Loading... (${settledCount} of ${TEAM_IDS.length} teams)`;
 
-  const requests = TEAM_IDS.map((teamId) => {
+  const buildTeamRequest = (teamId) => {
     const params = new URLSearchParams({
       team_id: teamId,
       season: String(season),
@@ -696,9 +699,21 @@ async function loadAllTeams(season) {
         settledCount += 1;
         progressEl.textContent = `Loading... (${settledCount} of ${TEAM_IDS.length} teams)`;
       });
-  });
+  };
 
-  const results = await Promise.allSettled(requests);
+  const delay = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+  const results = [];
+  for (let i = 0; i < TEAM_IDS.length; i += TEAM_REQUEST_BATCH_SIZE) {
+    const batchTeamIds = TEAM_IDS.slice(i, i + TEAM_REQUEST_BATCH_SIZE);
+    const batchResults = await Promise.allSettled(batchTeamIds.map((teamId) => buildTeamRequest(teamId)));
+    results.push(...batchResults);
+
+    const hasMoreBatches = i + TEAM_REQUEST_BATCH_SIZE < TEAM_IDS.length;
+    if (hasMoreBatches) {
+      await delay(TEAM_REQUEST_BATCH_DELAY_MS);
+    }
+  }
+
   const rejected = results.filter((result) => result.status === "rejected");
   failedTeamCount = rejected.length;
 
