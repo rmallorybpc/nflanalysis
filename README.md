@@ -8,8 +8,18 @@ Front office in a browser. NFL Analysis is a live decision-support system that q
 - [Team Detail](https://rmallorybpc.github.io/nflanalysis/dashboard/src/team.html): inbound/outbound movement cards, MIS trend, position group delta, and scenario launch for any team.
 - [Scenario Sandbox](https://rmallorybpc.github.io/nflanalysis/dashboard/src/scenario.html): counterfactual what-if analysis - add or remove a player move and inspect the modeled outcome delta.
 
+### Live Page Notes (May 2026)
+- Overview page now emphasizes execution flow: pick season, refresh, then drill into team detail.
+- Overview section order is now: Team Rankings, Outcome Distribution, Impact by Move Geography, FA Spending vs Win Change, and Season Coverage.
+- Overview metric cards include plain-language MIS helper copy: "How much this move is estimated to change a team's chance of winning, expressed in percentage points."
+- Overview heavy charts (Geography and Spending) render skeleton placeholders while data is loading.
+- Mobile tooltip interactions now use an accessible modal pattern (Escape close, focus trap, and focus return).
+- Welcome tour deep links can highlight destination sections on Overview, Team Detail, Scenario, and Explorer pages.
+- Team Detail includes an MIS Breakdown card with inbound impact, outbound impact, and residual portfolio effect.
+
 ## Data
 - Data range: 2017–2026.
+- Season coverage count: 10 NFL seasons (inclusive).
 - X movement events (trades and free agency signings). Note: exact count should be updated programmatically or in a future commit.
 - 32 teams, three outcome metrics: win%, point differential per game, offensive EPA per play
 - Data sources: NFL play-by-play, team transactions, public salary databases.
