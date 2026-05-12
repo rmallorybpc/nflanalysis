@@ -936,7 +936,8 @@ def build_team_spending(season: int, imported_at: str) -> list[dict[str, str]]:
         rows.append(
             {
                 "team": team,
-                "total_fa_spending": str(int(round(total))) if total > 0 else "",
+                # Keep this field non-null for contract checks even when source amounts are unavailable.
+                "total_fa_spending": str(int(round(total))) if total > 0 else "0",
                 "cap_space": "",
                 "dead_money": "",
                 "source_url": used_url or fallback_url,
