@@ -164,6 +164,30 @@ def build_features(
 
     spending_z = z_scores(spending)
     win_total_z = z_scores(win_totals)
+    has_win_total_signal = any(abs(v) > 1e-12 for v in win_total_z.values())
+
+    fallback_schedule_by_key: dict[tuple[str, str, str], float] = {}
+    if not has_win_total_signal:
+        season_team_win_pct: dict[str, dict[str, float]] = defaultdict(dict)
+        row_weeks: dict[tuple[str, str], str] = {}
+        for row in outcome_rows:
+            season = (row.get("nfl_season") or "").strip()
+            team = (row.get("team_id") or "").strip().upper()
+            week = (row.get("nfl_week") or "").strip()
+            if not season or not team:
+                continue
+            try:
+                season_team_win_pct[season][team] = to_float((row.get("win_pct") or "0").strip(), "win_pct")
+                if week:
+                    row_weeks[(team, season)] = week
+            except ValueError:
+                continue
+
+        for season, team_values in season_team_win_pct.items():
+            season_z = z_scores(team_values)
+            for team, value in season_z.items():
+                week = row_weeks.get((team, season), "1")
+                fallback_schedule_by_key[(team, season, week)] = value
 
     inbound: dict[tuple[str, str, str], int] = defaultdict(int)
     outbound: dict[tuple[str, str, str], int] = defaultdict(int)
@@ -217,7 +241,13 @@ def build_features(
         churn = (in_count + out_count) / roster_size if roster_size > 0 else 0.0
 
         spend_factor = spending_z.get(team, 0.0)
-        win_factor = win_total_z.get(team, 0.0)
+        if has_win_total_signal:
+            win_factor = win_total_z.get(team, 0.0)
+        else:
+            # Fallback when win totals are flat (all equal): derive signal from outcomes.
+            win_factor = fallback_schedule_by_key.get((team, season, week), 0.0)
+            if abs(win_factor) <= 1e-12:
+                win_factor = spending_z.get(team, 0.0)
 
         group_vals = {field: 0.0 for field in GROUP_FIELDS.values()}
         for group, field in GROUP_FIELDS.items():
