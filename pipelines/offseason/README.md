@@ -114,7 +114,9 @@ validate each season, then publish consolidated outputs:
 ```bash
 /usr/bin/python3 pipelines/offseason/backfill_multi_season.py \
   --start-season 2022 \
-  --end-season 2026
+  --end-season 2026 \
+  --baseline-model-version baseline-ridge-v0.4.0-offseason \
+  --hierarchical-model-version hierarchical-eb-v0.5.0-offseason
 ```
 
 What this does:
@@ -135,6 +137,21 @@ Optional flags:
 - `--allow-partial-publish`: publish successful seasons even if some requested seasons fail.
 - `--skip-publish-train`: skip consolidated model retraining (writes combined features/outcomes/movement/players only).
 - `--publish-dirname <name>`: publish consolidated files to `data/processed/offseason/<name>/` and `models/artifacts/offseason/<name>/`.
+- `--baseline-model-version <version>`: model version label to embed in baseline outputs.
+- `--hierarchical-model-version <version>`: model version label to embed in hierarchical outputs.
+
+Environment variable defaults:
+
+- `OFFSEASON_BASELINE_MODEL_VERSION`: default value for `--baseline-model-version`.
+- `OFFSEASON_HIERARCHICAL_MODEL_VERSION`: default value for `--hierarchical-model-version`.
+
+Example with unchanged command line:
+
+```bash
+export OFFSEASON_BASELINE_MODEL_VERSION="baseline-ridge-v2026.05.12+${GITHUB_SHA:0:7}-offseason"
+export OFFSEASON_HIERARCHICAL_MODEL_VERSION="hierarchical-eb-v2026.05.12+${GITHUB_SHA:0:7}-offseason"
+python3 pipelines/offseason/backfill_multi_season.py --start-season 2022 --end-season 2026
+```
 
 ## 7) Promote Bundle To API Runtime Checks
 

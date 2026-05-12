@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -127,6 +128,15 @@ EFFECT_FIELDS = [
 MIN_PRIMARY_MOVEMENT_ROWS = 10
 MIN_PRIMARY_TO_TEAM_COVERAGE = 24
 
+DEFAULT_BASELINE_MODEL_VERSION = os.environ.get(
+    "OFFSEASON_BASELINE_MODEL_VERSION",
+    "baseline-ridge-v0.4.0-offseason",
+)
+DEFAULT_HIERARCHICAL_MODEL_VERSION = os.environ.get(
+    "OFFSEASON_HIERARCHICAL_MODEL_VERSION",
+    "hierarchical-eb-v0.5.0-offseason",
+)
+
 
 @dataclass
 class SeasonPaths:
@@ -163,6 +173,24 @@ def parse_args() -> argparse.Namespace:
         "--publish-dirname",
         default="",
         help="Optional subdirectory under processed/artifacts root for publish outputs",
+    )
+    parser.add_argument(
+        "--baseline-model-version",
+        type=str,
+        default=DEFAULT_BASELINE_MODEL_VERSION,
+        help=(
+            "Model version label passed to baseline training "
+            "(env: OFFSEASON_BASELINE_MODEL_VERSION)"
+        ),
+    )
+    parser.add_argument(
+        "--hierarchical-model-version",
+        type=str,
+        default=DEFAULT_HIERARCHICAL_MODEL_VERSION,
+        help=(
+            "Model version label passed to hierarchical training "
+            "(env: OFFSEASON_HIERARCHICAL_MODEL_VERSION)"
+        ),
     )
     parser.add_argument("--allow-partial-publish", action="store_true")
     parser.add_argument("--skip-publish-train", action="store_true")
@@ -339,7 +367,7 @@ def run_season_pipeline(args: argparse.Namespace, season_paths: SeasonPaths) -> 
             "--coefficients-output",
             str(season_paths.baseline_coefs),
             "--model-version",
-            "baseline-ridge-v0.4.0-offseason",
+            args.baseline_model_version,
         ]
     )
 
@@ -360,7 +388,7 @@ def run_season_pipeline(args: argparse.Namespace, season_paths: SeasonPaths) -> 
             "--effects-output",
             str(season_paths.effects),
             "--model-version",
-            "hierarchical-eb-v0.5.0-offseason",
+            args.hierarchical_model_version,
         ]
     )
 
@@ -443,7 +471,7 @@ def consolidate_publish(
             "--coefficients-output",
             str(coefs_out),
             "--model-version",
-            "baseline-ridge-v0.4.0-offseason",
+            args.baseline_model_version,
         ]
     )
 
@@ -464,7 +492,7 @@ def consolidate_publish(
             "--effects-output",
             str(effects_out),
             "--model-version",
-            "hierarchical-eb-v0.5.0-offseason",
+            args.hierarchical_model_version,
         ]
     )
 
