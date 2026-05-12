@@ -578,6 +578,67 @@ h1 {
   line-height: 1.4;
 }
 
+#cardDecomp {
+  min-width: 180px;
+}
+
+.decomp-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.82rem;
+}
+
+.decomp-row:last-of-type {
+  border-bottom: none;
+}
+
+.decomp-label {
+  color: var(--color-muted, #94a3b8);
+  flex: 1;
+  font-size: 0.78rem;
+}
+
+.decomp-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 64px;
+  text-align: right;
+}
+
+.decomp-value.positive {
+  color: #22c55e;
+}
+
+.decomp-value.negative {
+  color: #ef4444;
+}
+
+.decomp-value.neutral {
+  color: var(--color-muted, #94a3b8);
+}
+
+.decomp-count {
+  color: var(--color-muted, #94a3b8);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.decomp-interaction .decomp-label {
+  cursor: help;
+  border-bottom: 1px dotted var(--color-muted, #94a3b8);
+}
+
+.decomp-note {
+  font-size: 0.7rem;
+  color: var(--color-muted, #94a3b8);
+  font-style: italic;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
 /* Tooltip system */
 [data-tooltip] {
   position: relative;

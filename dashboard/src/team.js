@@ -10,6 +10,7 @@ const TEAM_IDS = [
 const state = {
   teamId: "BUF",
   season: 2026,
+  payload: null,
 };
 
 let geoProfileCache = null;
@@ -353,6 +354,121 @@ function fmtSigned(num) {
   const decimals = Math.abs(value) > 0 && Math.abs(value) < 0.001 ? 6 : 3;
   const fixed = value.toFixed(decimals);
   return value >= 0 ? `+${fixed}` : fixed;
+}
+
+function computeMISDecomposition(payload, teamId) {
+  const timeline = Array.isArray(payload?.timeline) ? payload.timeline : [];
+  const currentMIS = parseFloat(payload?.cards?.current_mis?.mis_value) || 0;
+  const tid = String(teamId || "").trim().toUpperCase();
+
+  const inboundEvents = timeline.filter(
+    (e) => String(e?.to_team_id || "").trim().toUpperCase() === tid
+  );
+  const outboundEvents = timeline.filter(
+    (e) => String(e?.from_team_id || "").trim().toUpperCase() === tid
+  );
+
+  const inboundImpact = inboundEvents.reduce(
+    (sum, e) => sum + (parseFloat(e?.impact_estimate) || 0),
+    0
+  );
+  const outboundImpact = outboundEvents.reduce(
+    (sum, e) => sum + (parseFloat(e?.impact_estimate) || 0),
+    0
+  );
+  const interactionTerm = currentMIS - inboundImpact - outboundImpact;
+
+  return {
+    total: currentMIS,
+    inbound: inboundImpact,
+    outbound: outboundImpact,
+    interaction: interactionTerm,
+    inboundCount: inboundEvents.length,
+    outboundCount: outboundEvents.length,
+  };
+}
+
+function decompInterpretation(decomp) {
+  const driver = Math.abs(decomp.inbound) > Math.abs(decomp.outbound)
+    ? "additions"
+    : "departures";
+  const direction = decomp.total > 0.001
+    ? "positive"
+    : decomp.total < -0.001
+      ? "negative"
+      : "neutral";
+
+  if (direction === "positive" && driver === "additions") {
+    return "Win impact driven primarily by incoming players.";
+  }
+  if (direction === "positive" && driver === "departures") {
+    return "Win impact driven primarily by who left.";
+  }
+  if (direction === "negative" && driver === "additions") {
+    return "Negative impact despite additions - departures offset gains.";
+  }
+  if (direction === "negative" && driver === "departures") {
+    return "Negative impact driven primarily by player losses.";
+  }
+  return "Mixed impact - additions and departures roughly balanced.";
+}
+
+function renderDecomp(decomp) {
+  const card = document.getElementById("cardDecomp");
+  if (!card) {
+    return;
+  }
+
+  const fmtValue = (value) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) {
+      return "--";
+    }
+    return `${num >= 0 ? "+" : ""}${num.toFixed(4)}`;
+  };
+  const colorClass = (value) => (
+    value > 0.001 ? "positive" : value < -0.001 ? "negative" : "neutral"
+  );
+
+  const inboundRow = document.getElementById("decompInbound");
+  const outboundRow = document.getElementById("decompOutbound");
+  const interactionRow = document.getElementById("decompInteraction");
+  const note = document.getElementById("decompNote");
+
+  if (!inboundRow || !outboundRow || !interactionRow) {
+    return;
+  }
+
+  const inboundValue = inboundRow.querySelector(".decomp-value");
+  const outboundValue = outboundRow.querySelector(".decomp-value");
+  const interactionValue = interactionRow.querySelector(".decomp-value");
+  const inboundCount = inboundRow.querySelector(".decomp-count");
+  const outboundCount = outboundRow.querySelector(".decomp-count");
+
+  if (inboundValue) {
+    inboundValue.textContent = fmtValue(decomp.inbound);
+    inboundValue.className = `decomp-value ${colorClass(decomp.inbound)}`;
+  }
+  if (inboundCount) {
+    inboundCount.textContent = `(${decomp.inboundCount} moves)`;
+  }
+
+  if (outboundValue) {
+    outboundValue.textContent = fmtValue(decomp.outbound);
+    outboundValue.className = `decomp-value ${colorClass(decomp.outbound)}`;
+  }
+  if (outboundCount) {
+    outboundCount.textContent = `(${decomp.outboundCount} moves)`;
+  }
+
+  if (interactionValue) {
+    interactionValue.textContent = fmtValue(decomp.interaction);
+    interactionValue.className = `decomp-value ${colorClass(decomp.interaction)}`;
+  }
+
+  if (note) {
+    note.textContent = decompInterpretation(decomp);
+  }
 }
 
 function intervalForEvent(event) {
@@ -786,7 +902,10 @@ async function refreshTeamDetail() {
   setStatus(`Loading ${state.teamId} ${state.season}...`);
   try {
     const payload = await loadData(state.teamId, state.season);
+    state.payload = payload;
+    const decomp = computeMISDecomposition(state.payload, state.teamId);
     applyMeta(payload);
+    renderDecomp(decomp);
     renderCards(payload);
     renderTrend(payload);
     renderPosition(payload);

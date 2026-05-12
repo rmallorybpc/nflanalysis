@@ -285,6 +285,24 @@
 
       <section class="cards">
         <article class="card tmg-card" id="cardCurrent"></article>
+        <div id="cardDecomp" class="card tmg-card summary-card" aria-label="MIS Decomposition">
+          <div class="card-label">MIS BREAKDOWN</div>
+          <div id="decompInbound" class="decomp-row">
+            <span class="decomp-label">Inbound</span>
+            <span class="decomp-value">--</span>
+            <span class="decomp-count"></span>
+          </div>
+          <div id="decompOutbound" class="decomp-row">
+            <span class="decomp-label">Outbound</span>
+            <span class="decomp-value">--</span>
+            <span class="decomp-count"></span>
+          </div>
+          <div id="decompInteraction" class="decomp-row decomp-interaction">
+            <span class="decomp-label" data-tooltip="Residual effect not explained by individual moves - captures portfolio-level synergies or substitution effects between players.">Portfolio Effect</span>
+            <span class="decomp-value">--</span>
+          </div>
+          <div id="decompNote" class="decomp-note"></div>
+        </div>
         <article class="card tmg-card" id="cardMoves"></article>
         <article class="card tmg-card" id="cardPosition"></article>
       </section>
