@@ -284,11 +284,13 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertAlmostEqual(adjustment, 0.03, places=6)
 
     def test_scenario_adjustment_uses_baseline_when_hierarchical_missing(self) -> None:
-        player_id = "nfl:dane-jackson"
+        player_id = "test_baseline_layer"
+        self.service.player_group[player_id] = "defense_secondary"
         self.service.effect_map.pop(("win_pct", "player", player_id), None)
         self.service.effect_map.pop(("win_pct", "position_team", f"defense_secondary|{self.team_id}"), None)
         position_group = self.service.player_group.get(player_id, "other")
         feature_name = POSITION_GROUP_FEATURE.get(position_group, POSITION_GROUP_FEATURE["other"])
+        self.service.baseline_coefs[("win_pct", feature_name)] = -0.00285141
         expected_coef = self.service.baseline_coefs[("win_pct", feature_name)]
 
         add_adjustment = self.service._scenario_adjustment(
