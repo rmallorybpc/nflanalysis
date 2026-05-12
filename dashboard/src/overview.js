@@ -639,6 +639,8 @@ async function renderSpendingChart(season, currentPayload = null) {
 function setCard(el, title, value, meta) {
   el.innerHTML = `
     <h3>${title}</h3>
+    <div class="mis-label">MIS (win%)</div>
+    <p class="glossary-plain">How much this move is estimated to change a team’s chance of winning, expressed in percentage points.</p>
     <div class="value">${value}</div>
     <div class="meta">${meta}</div>
   `;
