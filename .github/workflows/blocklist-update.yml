@@ -128,12 +128,17 @@ jobs:
 
       - name: Retrain models
         run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          DATE_UTC="$(date -u +%Y.%m.%d)"
+          export OFFSEASON_BASELINE_MODEL_VERSION="baseline-ridge-v${DATE_UTC}+${SHORT_SHA}-offseason"
+          export OFFSEASON_HIERARCHICAL_MODEL_VERSION="hierarchical-eb-v${DATE_UTC}+${SHORT_SHA}-offseason"
+
           python3 models/baseline/train_baseline_model.py \
             --features data/processed/team_week_features.csv \
             --outcomes data/processed/team_week_outcomes.csv \
             --output data/processed/model_outputs.csv \
             --coefficients-output models/artifacts/baseline_coefficients.csv \
-            --model-version baseline-ridge-v0.2.0-offseason
+            --model-version "${OFFSEASON_BASELINE_MODEL_VERSION}"
 
           python3 models/hierarchical/train_hierarchical_model.py \
             --features data/processed/team_week_features.csv \
@@ -142,10 +147,15 @@ jobs:
             --players data/processed/player_dimension.csv \
             --output data/processed/model_outputs_hierarchical.csv \
             --effects-output models/artifacts/hierarchical_effects.csv \
-            --model-version hierarchical-eb-v0.4.0-offseason
+            --model-version "${OFFSEASON_HIERARCHICAL_MODEL_VERSION}"
 
       - name: Rebuild backfill bundle
-        run: python3 pipelines/offseason/backfill_multi_season.py
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          DATE_UTC="$(date -u +%Y.%m.%d)"
+          export OFFSEASON_BASELINE_MODEL_VERSION="baseline-ridge-v${DATE_UTC}+${SHORT_SHA}-offseason"
+          export OFFSEASON_HIERARCHICAL_MODEL_VERSION="hierarchical-eb-v${DATE_UTC}+${SHORT_SHA}-offseason"
+          python3 pipelines/offseason/backfill_multi_season.py
 
       - name: Run CI checks
         run: |

@@ -175,6 +175,11 @@ jobs:
         run: |
           set -euo pipefail
 
+          SHORT_SHA="${GITHUB_SHA::7}"
+          DATE_UTC="$(date -u +%Y.%m.%d)"
+          export OFFSEASON_BASELINE_MODEL_VERSION="baseline-ridge-v${DATE_UTC}+${SHORT_SHA}-offseason"
+          export OFFSEASON_HIERARCHICAL_MODEL_VERSION="hierarchical-eb-v${DATE_UTC}+${SHORT_SHA}-offseason"
+
           python pipelines/offseason/ingest_offseason_snapshot.py \
             --transactions data/raw/offseason/transactions_raw_2026.csv \
             --players data/raw/offseason/players_metadata_2026.csv \
@@ -206,7 +211,7 @@ jobs:
             --outcomes data/processed/offseason/team_week_outcomes.csv \
             --output data/processed/model_outputs.csv \
             --coefficients-output models/artifacts/offseason/baseline_coefficients.csv \
-            --model-version baseline-ridge-v0.2.0-offseason
+            --model-version "${OFFSEASON_BASELINE_MODEL_VERSION}"
 
           test -s data/processed/model_outputs.csv
           test -s models/artifacts/offseason/baseline_coefficients.csv
@@ -218,7 +223,7 @@ jobs:
             --players data/processed/offseason/player_dimension.csv \
             --output data/processed/model_outputs_hierarchical.csv \
             --effects-output models/artifacts/offseason/hierarchical_effects.csv \
-            --model-version hierarchical-eb-v0.2.0-offseason
+            --model-version "${OFFSEASON_HIERARCHICAL_MODEL_VERSION}"
 
           test -s data/processed/model_outputs_hierarchical.csv
           test -s models/artifacts/offseason/hierarchical_effects.csv
@@ -244,6 +249,11 @@ jobs:
         run: |
           set -euo pipefail
 
+          SHORT_SHA="${GITHUB_SHA::7}"
+          DATE_UTC="$(date -u +%Y.%m.%d)"
+          export OFFSEASON_BASELINE_MODEL_VERSION="baseline-ridge-v${DATE_UTC}+${SHORT_SHA}-offseason"
+          export OFFSEASON_HIERARCHICAL_MODEL_VERSION="hierarchical-eb-v${DATE_UTC}+${SHORT_SHA}-offseason"
+
           python pipelines/offseason/ingest_offseason_snapshot.py \
             --transactions data/raw/offseason/transactions_raw_2026.csv \
             --players data/raw/offseason/players_metadata_2026.csv \
@@ -268,7 +278,7 @@ jobs:
             --outcomes data/processed/offseason/team_week_outcomes.csv \
             --output data/processed/model_outputs.csv \
             --coefficients-output models/artifacts/offseason/baseline_coefficients.csv \
-            --model-version baseline-ridge-v0.2.0-offseason
+            --model-version "${OFFSEASON_BASELINE_MODEL_VERSION}"
 
           python models/hierarchical/train_hierarchical_model.py \
             --features data/processed/offseason/team_week_features.csv \
@@ -277,7 +287,7 @@ jobs:
             --players data/processed/offseason/player_dimension.csv \
             --output data/processed/model_outputs_hierarchical.csv \
             --effects-output models/artifacts/offseason/hierarchical_effects.csv \
-            --model-version hierarchical-eb-v0.2.0-offseason
+            --model-version "${OFFSEASON_HIERARCHICAL_MODEL_VERSION}"
 
       - name: Run model regression assertions
         run: |

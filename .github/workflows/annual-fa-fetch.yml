@@ -24,6 +24,11 @@ jobs:
       - name: Fetch and ingest
         run: |
           SEASON=${{ github.event.inputs.season || '2026' }}
+          SHORT_SHA="${GITHUB_SHA::7}"
+          DATE_UTC="$(date -u +%Y.%m.%d)"
+          export OFFSEASON_BASELINE_MODEL_VERSION="baseline-ridge-v${DATE_UTC}+${SHORT_SHA}-offseason"
+          export OFFSEASON_HIERARCHICAL_MODEL_VERSION="hierarchical-eb-v${DATE_UTC}+${SHORT_SHA}-offseason"
+
           python3 scripts/fetch_season_data.py \
             --season $SEASON --force --spotrac
           python3 pipelines/offseason/ingest_offseason_snapshot.py \
@@ -34,7 +39,7 @@ jobs:
             --blocklist data/raw/offseason/player_blocklist.csv
           python3 pipelines/offseason/build_offseason_team_features.py
           python3 models/hierarchical/train_hierarchical_model.py \
-            --model-version hierarchical-eb-v0.4.0-offseason
+            --model-version "${OFFSEASON_HIERARCHICAL_MODEL_VERSION}"
           python3 pipelines/offseason/backfill_multi_season.py
           bash scripts/ci_check_data_quality.sh
       - name: Commit and push
