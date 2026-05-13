@@ -822,6 +822,45 @@ function renderGeography(payload) {
     node.querySelector(".geo-impact").textContent = fmt(row.avg_abs_impact);
     container.appendChild(node);
   });
+
+  // Compute geography finding from win_pct rows only.
+  const winPctRows = rows.filter((row) => row.outcome_name === "win_pct" && Number(row.move_count) > 0);
+
+  if (winPctRows.length >= 2) {
+    const sorted = [...winPctRows].sort((a, b) => Number(b.avg_abs_impact) - Number(a.avg_abs_impact));
+    const strongest = sorted[0];
+    const weakest = sorted[sorted.length - 1];
+
+    const scopeLabel = {
+      same_division: "same-division",
+      cross_division: "cross-division",
+      cross_conference: "cross-conference",
+    };
+
+    const strongLabel = scopeLabel[strongest.move_scope] || strongest.move_scope;
+    const weakLabel = scopeLabel[weakest.move_scope] || weakest.move_scope;
+
+    const strongestImpact = Number(strongest.avg_abs_impact);
+    const weakestImpact = Number(weakest.avg_abs_impact);
+    const ratio = weakestImpact > 0
+      ? ((strongestImpact / weakestImpact - 1) * 100).toFixed(0)
+      : null;
+
+    let finding = "";
+    if (ratio !== null) {
+      const comparedMoveCount = sorted
+        .slice(0, 3)
+        .reduce((sum, row) => sum + Number(row.move_count || 0), 0);
+      finding = `In this dataset, ${strongLabel} inbound signings show the strongest average win impact — approximately ${ratio}% stronger than ${weakLabel} moves. This is an NFL-specific finding from ${comparedMoveCount} moves across ten seasons.`;
+    } else {
+      finding = "Geography data is available but move counts are too low for a reliable comparison this season.";
+    }
+
+    const findingEl = document.createElement("p");
+    findingEl.className = "geo-finding";
+    findingEl.textContent = finding;
+    container.appendChild(findingEl);
+  }
 }
 
 function applyMeta(payload) {

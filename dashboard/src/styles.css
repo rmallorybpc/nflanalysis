@@ -449,6 +449,17 @@ h1 {
   font-weight: 600;
 }
 
+.geo-finding {
+  font-size: 0.82rem;
+  color: var(--color-text, #f8fafc);
+  line-height: 1.6;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(15, 127, 124, 0.08);
+  border-left: 3px solid var(--color-primary, #0f7f7c);
+  border-radius: 0 4px 4px 0;
+}
+
 .pill {
   padding: 0.2rem 0.45rem;
   border-radius: 999px;
