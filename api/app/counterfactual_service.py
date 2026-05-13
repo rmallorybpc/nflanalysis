@@ -558,6 +558,8 @@ class CounterfactualService:
         geography_profile = self._build_geography_impact_profile([season])
         move_type_counts = {"trade": 0, "free_agency": 0}
         for row in _read_csv(self.config.movement_events):
+            if int(row.get("nfl_season", "0") or 0) != season:
+                continue
             move_type = row.get("move_type", "").strip()
             if move_type in move_type_counts:
                 move_type_counts[move_type] += 1

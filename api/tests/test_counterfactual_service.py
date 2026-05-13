@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import csv
 import unittest
 
 from api.app.counterfactual_service import CounterfactualService, POSITION_GROUP_FEATURE
@@ -140,6 +141,25 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertGreaterEqual(len(charts["outcome_distribution"]), 1)
         self.assertGreaterEqual(len(charts["season_coverage"]), 1)
         self.assertGreaterEqual(len(charts["geography_impact_profile"]), 1)
+
+    def test_overview_move_type_counts_are_season_filtered(self) -> None:
+        seasons = sorted({int(row["nfl_season"]) for row in self.service.model_rows})
+        self.assertTrue(seasons)
+
+        with self.service.config.movement_events.open(newline="", encoding="utf-8") as handle:
+            movement_rows = list(csv.DictReader(handle))
+
+        for season in {seasons[0], seasons[-1]}:
+            expected = {"trade": 0, "free_agency": 0}
+            for row in movement_rows:
+                if int(row.get("nfl_season", "0") or 0) != season:
+                    continue
+                move_type = row.get("move_type", "").strip()
+                if move_type in expected:
+                    expected[move_type] += 1
+
+            payload = self.service.build_overview_payload(season=season)
+            self.assertEqual(payload["scope"]["move_type_counts"], expected)
 
     def test_team_detail_payload_contains_required_sections(self) -> None:
         payload = self.service.build_team_detail_payload(team_id=self.team_id, season=self.season)
