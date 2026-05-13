@@ -1136,22 +1136,26 @@ h1 {
 
 /* Findings page */
 .findings-header {
+  max-width: 900px;
   text-align: center;
   padding: 40px 24px 32px;
-  border-bottom: 1px solid var(--color-border, #334155);
+  border: var(--tmg-border);
+  border-radius: var(--tmg-bento-radius);
+  background: var(--tmg-surface);
+  box-shadow: var(--tmg-shadow-sm);
   margin-bottom: 40px;
 }
 
 .findings-header h1 {
   font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--color-text, #f8fafc);
+  font-weight: 500;
+  color: var(--tmg-text);
   margin-bottom: 10px;
 }
 
 .findings-subtitle {
   font-size: 1rem;
-  color: var(--color-muted, #94a3b8);
+  color: rgba(45, 52, 54, 0.74);
   max-width: 600px;
   margin: 0 auto;
   line-height: 1.6;
@@ -1160,44 +1164,51 @@ h1 {
 .findings-section {
   max-width: 900px;
   margin: 0 auto 48px;
-  padding: 0 24px;
+  padding: 24px;
+  background: var(--tmg-surface);
+  border: var(--tmg-border);
+  border-radius: var(--tmg-bento-radius);
+  box-shadow: var(--tmg-shadow-sm);
 }
 
 .findings-section h2 {
   font-size: 1.15rem;
-  font-weight: 600;
-  color: var(--color-text, #f8fafc);
+  font-weight: 500;
+  color: var(--tmg-text);
   margin-bottom: 14px;
   line-height: 1.4;
 }
 
 .findings-context {
   font-size: 0.88rem;
-  color: var(--color-muted, #94a3b8);
+  color: rgba(45, 52, 54, 0.72);
   line-height: 1.7;
   margin-bottom: 12px;
 }
 
 .findings-answer {
   font-size: 0.92rem;
-  color: var(--color-text, #f8fafc);
+  color: var(--tmg-text);
   line-height: 1.7;
   margin-bottom: 20px;
   padding: 12px 16px;
-  background: var(--color-surface, #1e293b);
-  border-left: 3px solid var(--color-primary, #0f7f7c);
+  background: rgba(132, 169, 140, 0.08);
+  border-left: 3px solid var(--tmg-sage);
   border-radius: 0 4px 4px 0;
 }
 
 .findings-table-wrap {
   overflow-x: auto;
   margin-bottom: 10px;
+  border: 1px solid rgba(45, 52, 54, 0.14);
+  border-radius: 12px;
 }
 
 .findings-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.84rem;
+  background: var(--tmg-white);
 }
 
 .findings-table th {
@@ -1207,15 +1218,16 @@ h1 {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--color-muted, #94a3b8);
-  border-bottom: 1px solid var(--color-border, #334155);
+  color: rgba(45, 52, 54, 0.72);
+  background: rgba(132, 169, 140, 0.15);
+  border-bottom: 1px solid rgba(45, 52, 54, 0.14);
   white-space: nowrap;
 }
 
 .findings-table td {
   padding: 8px 12px;
-  color: var(--color-text, #f8fafc);
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--tmg-text);
+  border-bottom: 1px solid rgba(45, 52, 54, 0.1);
   white-space: nowrap;
 }
 
@@ -1224,11 +1236,11 @@ h1 {
 }
 
 .findings-table tr:hover td {
-  background: rgba(255,255,255,0.03);
+  background: rgba(132, 169, 140, 0.09);
 }
 
 .findings-best {
-  color: var(--color-primary, #0f7f7c);
+  color: var(--tmg-sage-hover);
   font-weight: 700;
 }
 
@@ -1236,24 +1248,24 @@ h1 {
 .findings-loss { color: #ef4444; font-weight: 600; }
 
 .findings-loading {
-  color: var(--color-muted, #94a3b8);
+  color: rgba(45, 52, 54, 0.62);
   font-style: italic;
   padding: 16px 12px;
 }
 
 .findings-error {
-  color: var(--color-muted, #94a3b8);
+  color: var(--tmg-error);
   font-style: italic;
 }
 
 .findings-note {
   font-size: 0.75rem;
-  color: var(--color-muted, #94a3b8);
+  color: rgba(45, 52, 54, 0.68);
   line-height: 1.5;
 }
 
 .findings-note a {
-  color: var(--color-primary, #0f7f7c);
+  color: var(--tmg-sage-hover);
   text-decoration: none;
 }
 
@@ -1265,18 +1277,21 @@ h1 {
   max-width: 900px;
   margin: 0 auto;
   padding: 24px 24px 40px;
-  border-top: 1px solid var(--color-border, #334155);
+  border: var(--tmg-border);
+  border-radius: var(--tmg-bento-radius);
+  background: var(--tmg-surface);
+  box-shadow: var(--tmg-shadow-sm);
 }
 
 .findings-footer p {
   font-size: 0.78rem;
-  color: var(--color-muted, #94a3b8);
+  color: rgba(45, 52, 54, 0.68);
   text-align: center;
   margin-bottom: 6px;
 }
 
 .findings-footer a {
-  color: var(--color-primary, #0f7f7c);
+  color: var(--tmg-sage-hover);
 }
 
 @keyframes stagger {
