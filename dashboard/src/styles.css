@@ -316,6 +316,96 @@ h1 {
   grid-template-columns: 1fr;
 }
 
+.team-scorecard-panel {
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.scorecard-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.scorecard-team {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text, #f8fafc);
+}
+
+.scorecard-season {
+  font-size: 0.8rem;
+  color: var(--color-muted, #94a3b8);
+}
+
+.scorecard-row {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--color-border, #334155);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.scorecard-cell {
+  flex: 1;
+  padding: 10px 14px;
+  border-right: 1px solid var(--color-border, #334155);
+}
+
+.scorecard-cell:last-child {
+  border-right: none;
+}
+
+.scorecard-label {
+  font-size: 0.7rem;
+  color: var(--color-muted, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.scorecard-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text, #f8fafc);
+}
+
+.scorecard-gain {
+  color: #22c55e;
+}
+
+.scorecard-loss {
+  color: #ef4444;
+}
+
+.scorecard-neutral {
+  color: var(--color-muted, #94a3b8);
+}
+
+.scorecard-above {
+  color: #f59e0b;
+}
+
+.scorecard-below {
+  color: #22c55e;
+}
+
+.scorecard-footer {
+  margin-top: 8px;
+}
+
+.scorecard-link {
+  font-size: 0.8rem;
+  color: var(--color-primary, #0f7f7c);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.scorecard-link:hover {
+  text-decoration: underline;
+}
+
 .panel {
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid var(--line);
@@ -781,6 +871,22 @@ h1 {
 @media (hover: none) {
   [data-tooltip]:active::after {
     opacity: 1;
+  }
+}
+
+/* Mobile: stack cells vertically */
+@media (max-width: 480px) {
+  .scorecard-row {
+    flex-direction: column;
+  }
+
+  .scorecard-cell {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border, #334155);
+  }
+
+  .scorecard-cell:last-child {
+    border-bottom: none;
   }
 }
 

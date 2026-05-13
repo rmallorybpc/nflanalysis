@@ -192,6 +192,8 @@ function resetRenderedData() {
   document.getElementById("seasonCoverageChart").innerHTML = "";
   document.getElementById("geographyChart").innerHTML = "";
   document.getElementById("spendingChart").innerHTML = "";
+  const scorecardSection = document.getElementById("teamScorecardSection");
+  if (scorecardSection) scorecardSection.style.display = "none";
 }
 
 function toFiniteNumber(value, fallback = 0) {
@@ -620,6 +622,7 @@ async function renderSpendingChart(season, currentPayload = null) {
 
   if (spendingCache[season]) {
     renderSpendingSvg(season, spendingCache[season]);
+    renderTeamScorecard();
     return;
   }
 
@@ -682,6 +685,7 @@ async function renderSpendingChart(season, currentPayload = null) {
   spendingCache[season] = cached;
   if (activeSpendingSeason === season) {
     renderSpendingSvg(season, cached);
+    renderTeamScorecard();
   }
 }
 
@@ -750,6 +754,114 @@ function renderGeographyCard(payload) {
       win probability impact in this season's data.
     </p>
   `;
+}
+
+function renderTeamScorecard() {
+  const section = document.getElementById("teamScorecardSection");
+  const content = document.getElementById("teamScorecardContent");
+  if (!section || !content) return;
+
+  const season = state.season;
+  const teamId = state.teamId;
+
+  // Require spending cache to be populated
+  const cached = spendingCache[season];
+  if (!cached || !cached.points) {
+    section.style.display = "none";
+    return;
+  }
+
+  const teamPoint = cached.points.find((p) => p.teamId === teamId);
+  if (!teamPoint) {
+    section.style.display = "none";
+    return;
+  }
+
+  // League average spend for context
+  const validSpends = cached.points
+    .filter((p) => p.totalAavM > 0)
+    .map((p) => p.totalAavM);
+  const leagueAvg = validSpends.length > 0
+    ? validSpends.reduce((s, v) => s + v, 0) / validSpends.length
+    : 0;
+
+  const vsAvgPct = leagueAvg > 0
+    ? ((teamPoint.totalAavM - leagueAvg) / leagueAvg * 100)
+    : null;
+
+  const vsAvgText = vsAvgPct === null
+    ? "-"
+    : vsAvgPct > 5
+      ? `<span class="scorecard-above">+${vsAvgPct.toFixed(0)}% above avg</span>`
+      : vsAvgPct < -5
+        ? `<span class="scorecard-below">${vsAvgPct.toFixed(0)}% below avg</span>`
+        : `<span class="scorecard-neutral">near league avg</span>`;
+
+  const spendText = teamPoint.totalAavM > 0
+    ? `$${teamPoint.totalAavM.toFixed(0)}M`
+    : "-";
+
+  const currentRecord = teamPoint.currentOutcome
+    ? `${teamPoint.currentOutcome.wins}-${teamPoint.currentOutcome.losses}`
+    : "-";
+
+  let winChangeText = "-";
+  let winChangeClass = "scorecard-neutral";
+  if (teamPoint.hasPrior) {
+    const delta = Math.round(
+      (teamPoint.currentOutcome?.wins || 0)
+      - (teamPoint.priorOutcome?.wins || 0)
+    );
+    if (delta > 0) {
+      winChangeText = `▲ +${delta} win${delta !== 1 ? "s" : ""}`;
+      winChangeClass = "scorecard-gain";
+    } else if (delta < 0) {
+      winChangeText = `▼ ${delta} win${Math.abs(delta) !== 1 ? "s" : ""}`;
+      winChangeClass = "scorecard-loss";
+    } else {
+      winChangeText = "- same as prior year";
+      winChangeClass = "scorecard-neutral";
+    }
+  }
+
+  // Team detail link
+  const params = new URLSearchParams({
+    team_id: teamId,
+    season: String(season),
+  });
+  const teamDetailUrl = `./team.html?${params.toString()}`;
+
+  content.innerHTML = `
+    <div class="scorecard-header">
+      <span class="scorecard-team">${teamId}</span>
+      <span class="scorecard-season">${seasonLabel(season)}</span>
+    </div>
+    <div class="scorecard-row">
+      <div class="scorecard-cell">
+        <div class="scorecard-label">FA Spend</div>
+        <div class="scorecard-value">${spendText}</div>
+      </div>
+      <div class="scorecard-cell">
+        <div class="scorecard-label">vs League Avg</div>
+        <div class="scorecard-value">${vsAvgText}</div>
+      </div>
+      <div class="scorecard-cell">
+        <div class="scorecard-label">Record</div>
+        <div class="scorecard-value">${currentRecord}</div>
+      </div>
+      <div class="scorecard-cell">
+        <div class="scorecard-label">vs Prior Year</div>
+        <div class="scorecard-value ${winChangeClass}">${winChangeText}</div>
+      </div>
+    </div>
+    <div class="scorecard-footer">
+      <a href="${teamDetailUrl}" class="scorecard-link">
+        View ${teamId} full player breakdown →
+      </a>
+    </div>
+  `;
+
+  section.style.display = "";
 }
 
 function renderCards(payload) {
@@ -1031,6 +1143,7 @@ async function refreshOverview() {
       renderEmptyState(document.getElementById("spendingChart"), "Insufficient data to render spending chart for this season.");
       console.error(err);
     });
+    renderTeamScorecard();
     setStatus("");
   } catch (err) {
     resetRenderedData();
@@ -1088,6 +1201,7 @@ function bindControls() {
           el.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
       });
+      renderTeamScorecard();
     }
   });
 
