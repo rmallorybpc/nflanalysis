@@ -14,6 +14,7 @@ const state = {
 };
 
 let geoProfileCache = null;
+let cardsExpanded = false;
 
 function seasonLabel(year) {
   return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
@@ -289,12 +290,21 @@ function isTeamDetailPayload(payload) {
 }
 
 function resetRenderedData() {
+  cardsExpanded = false;
   document.getElementById("cardCurrent").innerHTML = "";
   document.getElementById("cardMoves").innerHTML = "";
   document.getElementById("cardPosition").innerHTML = "";
   document.getElementById("timeline").innerHTML = "";
   document.getElementById("trend").innerHTML = "";
   document.getElementById("position").innerHTML = "";
+  const cardsBtn = document.getElementById("cardsExpandBtn");
+  if (cardsBtn) {
+    cardsBtn.style.display = "none";
+  }
+  const cardsNote = document.getElementById("cardsCollapseNote");
+  if (cardsNote) {
+    cardsNote.style.display = "";
+  }
 }
 
 function setCard(el, title, value, sub) {
@@ -574,8 +584,9 @@ function renderIntervalSvg(point, interval, min, max) {
 }
 
 function renderMovementCards(events, teamId, season, containerEl = null) {
-  const container = containerEl || document.getElementById("timeline");
-  container.innerHTML = "";
+  const timelineContainer = containerEl || document.getElementById("timeline");
+  timelineContainer.innerHTML = '<div id="movementCards" class="movement-cards"></div>';
+  const container = document.getElementById("movementCards");
 
   const normalizedEvents = (events || []).map((event) => {
     const toTeam = String(pickField(event, ["to_team_id", "to_team"], "")).trim().toUpperCase();
@@ -607,6 +618,10 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
 
   if (normalizedEvents.length === 0) {
     renderEmptyState(container, teamSeasonEmptyMessage());
+    const cardsBtn = document.getElementById("cardsExpandBtn");
+    if (cardsBtn) {
+      cardsBtn.style.display = "none";
+    }
     return;
   }
 
@@ -637,9 +652,6 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
     scalesByOutcome[key].min = Math.min(scalesByOutcome[key].min, item.interval.low, item.pointEstimate);
     scalesByOutcome[key].max = Math.max(scalesByOutcome[key].max, item.interval.high, item.pointEstimate);
   });
-
-  const cardsRoot = document.createElement("div");
-  cardsRoot.className = "movement-cards";
 
   normalizedEvents.forEach((item) => {
     const directionLabel = item.direction === "inbound" ? "▼ INBOUND" : "▲ OUTBOUND";
@@ -735,10 +747,10 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       ${lowConfidenceHtml}
       <div class="movement-footer"><a href="${whatIfHref}">Run What-If &rarr;</a></div>
     `;
-    cardsRoot.appendChild(card);
+    container.appendChild(card);
   });
 
-  container.appendChild(cardsRoot);
+  applyCardsCollapse(events, teamId);
 
   container.querySelectorAll(".movement-geo-badge").forEach((badge) => {
     badge.style.cursor = "pointer";
@@ -801,6 +813,92 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       panel.style.display = "block";
     });
   });
+}
+
+function selectDefaultCards(events, teamId) {
+  const normalizedTeamId = String(teamId || "").trim().toUpperCase();
+  const inbound = (events || []).filter((event) => {
+    const toTeam = String(event?.to_team_id || "").trim().toUpperCase();
+    const aav = parseFloat(event?.contract_aav) || 0;
+    const moveId = String(event?.move_id || "").trim();
+    return Boolean(moveId) && toTeam === normalizedTeamId && aav > 0;
+  });
+
+  if (inbound.length === 0) return null;
+
+  const sorted = [...inbound].sort(
+    (a, b) => (parseFloat(b.contract_aav) || 0)
+      - (parseFloat(a.contract_aav) || 0)
+  );
+
+  const top3 = sorted.slice(0, 3).map((event) => String(event.move_id));
+  const bottom3 = sorted.slice(-3).map((event) => String(event.move_id));
+
+  return {
+    selected: new Set([...top3, ...bottom3]),
+    topMoveIds: top3,
+    bottomMoveIds: bottom3,
+  };
+}
+
+function applyCardsCollapse(events, teamId) {
+  const container = document.getElementById("movementCards");
+  if (!container) return;
+
+  const cards = [...container.querySelectorAll(".movement-card")];
+  if (cards.length === 0) return;
+
+  const defaultSelection = selectDefaultCards(events, teamId);
+  const defaultSet = defaultSelection?.selected;
+
+  container.querySelectorAll(".cards-separator").forEach((separator) => separator.remove());
+
+  if (cardsExpanded || !defaultSet || defaultSet.size === 0) {
+    cards.forEach((card) => {
+      card.style.display = "";
+    });
+  } else {
+    cards.forEach((card) => {
+      const moveId = card.dataset.moveId;
+      card.style.display = defaultSet.has(moveId) ? "" : "none";
+    });
+
+    const topMoveIds = defaultSelection.topMoveIds.filter((moveId) => defaultSet.has(moveId));
+    const bottomMoveIds = defaultSelection.bottomMoveIds.filter((moveId) => defaultSet.has(moveId));
+    const hasDistinctGroups = topMoveIds.length > 0
+      && bottomMoveIds.length > 0
+      && topMoveIds.some((moveId) => !bottomMoveIds.includes(moveId));
+
+    if (hasDistinctGroups) {
+      const bottomFirstCard = bottomMoveIds
+        .map((moveId) => container.querySelector(`[data-move-id="${CSS.escape(moveId)}"]`))
+        .find(Boolean);
+      if (bottomFirstCard) {
+        const separator = document.createElement("div");
+        separator.className = "cards-separator";
+        separator.innerHTML = "<span>· · ·</span>";
+        bottomFirstCard.before(separator);
+      }
+    }
+  }
+
+  const note = document.getElementById("cardsCollapseNote");
+  if (note) {
+    note.style.display = cardsExpanded ? "none" : "";
+  }
+
+  const btn = document.getElementById("cardsExpandBtn");
+  if (!btn) return;
+
+  const totalCount = cards.length;
+  if (cardsExpanded) {
+    btn.textContent = "Show top and bottom signings only ↑";
+    btn.setAttribute("aria-expanded", "true");
+  } else {
+    btn.textContent = `Show all ${totalCount} players ↓`;
+    btn.setAttribute("aria-expanded", "false");
+  }
+  btn.style.display = totalCount > 6 ? "" : "none";
 }
 
 function renderTrend(payload) {
@@ -896,7 +994,12 @@ async function loadData(teamId, season) {
 }
 
 async function refreshTeamDetail() {
+  const previousTeamId = state.teamId;
+  const previousSeason = state.season;
   readControlState();
+  if (state.teamId !== previousTeamId || state.season !== previousSeason) {
+    cardsExpanded = false;
+  }
   syncControls();
   writeQueryState();
   showTeamSkeletons();
@@ -938,9 +1041,22 @@ function bindControls() {
     const normalized = toTeamId(event.target.value);
     if (normalized) {
       state.teamId = normalized;
+      cardsExpanded = false;
       syncControls();
     }
   });
+
+  document.getElementById("seasonInput").addEventListener("change", () => {
+    cardsExpanded = false;
+  });
+
+  const cardsBtn = document.getElementById("cardsExpandBtn");
+  if (cardsBtn) {
+    cardsBtn.addEventListener("click", () => {
+      cardsExpanded = !cardsExpanded;
+      applyCardsCollapse(state.payload?.timeline || [], state.teamId);
+    });
+  }
 
   ["seasonInput", "teamInput"].forEach((id) => {
     document.getElementById(id).addEventListener("keydown", (event) => {

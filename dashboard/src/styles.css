@@ -1901,6 +1901,49 @@ canvas {
   outline-offset: 2px;
 }
 
+.cards-expand-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px 12px;
+  background: transparent;
+  border: 1px solid var(--color-border, #334155);
+  border-radius: 4px;
+  color: var(--color-primary, #0f7f7c);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s;
+}
+
+.cards-expand-btn:hover {
+  background: rgba(15, 127, 124, 0.08);
+}
+
+.cards-expand-btn:focus-visible {
+  outline: 2px solid var(--color-primary, #0f7f7c);
+  outline-offset: 2px;
+}
+
+.cards-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0;
+  color: var(--color-muted, #94a3b8);
+  font-size: 1rem;
+  letter-spacing: 4px;
+  margin: 4px 0;
+}
+
+.cards-collapse-note {
+  font-size: 0.75rem;
+  color: var(--color-muted, #94a3b8);
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
 .tmg-table {
   width: 100%;
   border-collapse: collapse;

@@ -311,7 +311,21 @@
       <section class="grid">
         <article class="panel tmg-card">
           <h2>Player Moves This Season</h2>
-          <div id="timeline" class="timeline"></div>
+          <p id="cardsCollapseNote" class="cards-collapse-note">
+            Showing highest and lowest contract signings by value.
+          </p>
+          <div id="timeline" class="timeline">
+            <div id="movementCards" class="movement-cards"></div>
+          </div>
+          <button
+            id="cardsExpandBtn"
+            class="cards-expand-btn"
+            aria-expanded="false"
+            aria-controls="movementCards"
+            style="display:none"
+          >
+            Show all N players ↓
+          </button>
         </article>
         <article class="panel tmg-card">
           <h2>Win Impact Over Time</h2>
