@@ -119,6 +119,7 @@ function syncControls() {
     team_id: state.teamFilter,
   });
   document.getElementById("welcomeLink").href = `./welcome.html?${params.toString()}`;
+  document.getElementById("findingsLink").href = `./findings.html?${params.toString()}`;
   document.getElementById("overviewLink").href = `./index.html?${params.toString()}`;
   document.getElementById("teamLink").href = `./team.html?${params.toString()}`;
   document.getElementById("scenarioLink").href = `./scenario.html?${params.toString()}`;

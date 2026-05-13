@@ -11,6 +11,11 @@ function rewriteNavLinksFromParams() {
     const base = anchor.getAttribute("href").split("?")[0];
     anchor.setAttribute("href", `${base}${suffix}`);
   });
+
+  const findingsLink = document.getElementById("findingsLink");
+  if (findingsLink) {
+    findingsLink.setAttribute("href", `./findings.html${suffix}`);
+  }
 }
 
 function buildExampleUrl(exampleKey) {

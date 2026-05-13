@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NFL Movement Impact Overview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --tmg-cream: #fdfcf0;
+        --tmg-charcoal: #2d3436;
+        --tmg-sage: #84a98c;
+        --tmg-sage-hover: #6b8f74;
+        --tmg-white: #ffffff;
+        --tmg-bg: #fdfcf0;
+        --tmg-text: #2d3436;
+        --tmg-surface: #ffffff;
+        --tmg-border: 1px solid rgba(45, 52, 54, 0.12);
+        --tmg-bento-radius: 16px;
+        --tmg-btn-radius: 8px;
+        --tmg-gap: 24px;
+        --tmg-gap-sm: 12px;
+        --tmg-shadow-sm: 0 1px 3px rgba(45, 52, 54, 0.08);
+        --tmg-shadow-md: 0 2px 8px rgba(45, 52, 54, 0.1);
+        --tmg-success: #2e8540;
+        --tmg-warning: #c47f00;
+        --tmg-error: #b00020;
+      }
+    </style>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="noise-layer" aria-hidden="true"></div>
+    <nav class="tmg-nav" role="banner">
+      <div class="tmg-logo" aria-label="The Mallory Group">
+        <span>TM</span>
+        <div class="tmg-logo-divider" aria-hidden="true"></div>
+        <span>G</span>
+      </div>
+      <div class="tmg-page-links" aria-label="Dashboard pages">
+        <a id="welcomeLink" href="./welcome.html">Welcome</a>
+        <a href="./findings.html" id="findingsLink" aria-current="page">Key Findings</a>
+        <a id="overviewLink" href="./index.html">Overview</a>
+        <a id="teamPageLink" href="./team.html?team_id=BUF&season=2026">Team Detail</a>
+        <a id="scenarioPageLink" href="./scenario.html?team_id=BUF&season=2026">Scenario Sandbox</a>
+        <a id="explorerLink" href="./explorer.html">Explorer</a>
+      </div>
+      <div class="tmg-dropdown-wrap">
+        <button class="tmg-dropdown-btn" id="tmgDdBtn" aria-haspopup="true" aria-expanded="false" aria-controls="tmgDdMenu">
+          TMG Tool Suite
+          <svg class="tmg-chevron" viewBox="0 0 12 12" fill="none" width="12" height="12" aria-hidden="true">
+            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </button>
+        <div class="tmg-dropdown-menu" id="tmgDdMenu" role="menu">
+          <a href="https://rmallorybpc.github.io/pdf-multi-agent-analysis/" target="_blank" rel="noreferrer" role="menuitem">PDF Multi-Agent Analysis</a>
+          <a href="https://rmallorybpc.github.io/housing-market-intel/" target="_blank" rel="noreferrer" role="menuitem">Housing Market Intel</a>
+          <a href="https://rmallorybpc.github.io/real-estate-report/" target="_blank" rel="noreferrer" role="menuitem">Real Estate Report</a>
+          <a href="https://rmallorybpc.github.io/nflanalysis/dashboard/src/" target="_blank" rel="noreferrer" role="menuitem">NFL Analysis</a>
+          <a href="https://rmallorybpc.github.io/recipes/" target="_blank" rel="noreferrer" role="menuitem">Recipe Book</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="layout tmg-page tmg-container">
+      <header class="findings-header">
+        <h1>Key Findings</h1>
+        <p class="findings-subtitle">
+          Two questions drove this project. Here is what ten seasons
+          of NFL free agency data - 11,723 player moves from 2017
+          through 2026 - actually shows.
+        </p>
+      </header>
+
+      <section class="findings-section">
+        <h2>Does signing a free agent from a different division or conference produce stronger results than signing within your own division?</h2>
+
+        <p class="findings-context">
+          The research question comes from behavioral economics work
+          on whether player movement itself - independent of the
+          player's skill level - changes performance outcomes.
+          Applied to NFL free agency: does it matter whether a
+          team signs a player from across the conference, or does
+          geography have no effect on win probability?
+        </p>
+
+        <p class="findings-answer">
+          The data shows geography matters. Cross-conference free
+          agent signings produce the strongest average win
+          probability signal across all ten seasons - consistently
+          stronger than same-division or cross-division signings.
+          This holds across multiple seasons and position groups.
+        </p>
+
+        <div class="findings-table-wrap">
+          <table class="findings-table" id="geoTable">
+            <thead>
+              <tr>
+                <th>Season</th>
+                <th>Same Division</th>
+                <th>Cross Division</th>
+                <th>Cross Conference</th>
+                <th>Strongest Signal</th>
+              </tr>
+            </thead>
+            <tbody id="geoTableBody">
+              <tr><td colspan="5" class="findings-loading">
+                Loading geography data...
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="findings-note">
+          Values show average absolute win probability impact per
+          inbound signing of each geography type for that season.
+          Higher is stronger signal.
+          <a href="./index.html" id="findingsOverviewLink">
+            Explore geography by season ->
+          </a>
+        </p>
+      </section>
+
+      <section class="findings-section">
+        <h2>Do teams that spend more in free agency win more games than the year before?</h2>
+
+        <p class="findings-context">
+          The question every front office faces every March: is
+          spending big in free agency worth it? This analysis
+          compares total free agent contract value (AAV) per team
+          per season against their actual win change versus the
+          prior year.
+        </p>
+
+        <p class="findings-answer">
+          The short answer is no - not reliably. In most seasons
+          the team that spent the most did not produce the biggest
+          win gain. Roster construction decisions - which positions
+          are targeted and how efficiently - appear to matter more
+          than total dollars spent.
+        </p>
+
+        <div class="findings-table-wrap">
+          <table class="findings-table" id="spendTable">
+            <thead>
+              <tr>
+                <th>Season</th>
+                <th>League Avg Spend</th>
+                <th>Top Spender</th>
+                <th>Top Spender Win Change</th>
+                <th>Biggest Win Gain Team</th>
+                <th>Biggest Win Gain Change</th>
+                <th>Biggest Win Gain Spend</th>
+              </tr>
+            </thead>
+            <tbody id="spendTableBody">
+              <tr><td colspan="7" class="findings-loading">
+                Loading spending data...
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="findings-note">
+          Win change is current season wins minus prior season wins.
+          Spend is total inbound free agent contract AAV.
+          <a href="./index.html" id="findingsSpendLink">
+            Explore spending by team and season ->
+          </a>
+        </p>
+      </section>
+
+      <footer class="findings-footer">
+        <p>
+          Analysis based on ten NFL seasons (2017-2026),
+          11,723 movement events, Spotrac contract data, and
+          nflverse game results. Model version
+          hierarchical-eb-v0.6.0-offseason.
+        </p>
+        <p>
+          <a href="https://github.com/rmallorybpc/nflanalysis"
+             target="_blank" rel="noopener">
+            View the source on GitHub ->
+          </a>
+        </p>
+      </footer>
+    </main>
+
+    <script>
+      (function () {
+        const btn = document.getElementById("tmgDdBtn");
+        const menu = document.getElementById("tmgDdMenu");
+        if (!btn || !menu) return;
+
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const isOpen = menu.classList.toggle("open");
+          btn.classList.toggle("open", isOpen);
+          btn.setAttribute("aria-expanded", String(isOpen));
+        });
+
+        document.addEventListener("click", function () {
+          menu.classList.remove("open");
+          btn.classList.remove("open");
+          btn.setAttribute("aria-expanded", "false");
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            menu.classList.remove("open");
+            btn.classList.remove("open");
+            btn.setAttribute("aria-expanded", "false");
+            btn.focus();
+          }
+        });
+      })();
+    </script>
+    <script src="./nav.js"></script>
+    <script type="module" src="./findings.js"></script>
+  </body>
+</html>
