@@ -7,17 +7,14 @@ const TEAM_IDS = [
   "NYJ", "PHI", "PIT", "SEA", "SF", "TB", "TEN", "WAS",
 ];
 
-const spendingRequestCache = {};
 const overviewPayloadCache = {};
 const seasonSpendIndexCache = {};
-const teamDetailSpendCache = {};
 let teamOutcomesCache = null;
 let findingsLoadInFlight = false;
 
 const DEFAULT_FINDINGS_SEASONS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
 const FETCH_TIMEOUT_MS = 18000;
 const FETCH_RETRIES = 2;
-const MAX_TEAM_DETAIL_CONCURRENCY = 6;
 
 function seasonLabel(year) {
   return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
@@ -139,9 +136,6 @@ function setFindingsStatus(message, type = "info", options = {}) {
 }
 
 function resetFindingsCaches() {
-  Object.keys(spendingRequestCache).forEach((key) => {
-    delete spendingRequestCache[key];
-  });
   Object.keys(overviewPayloadCache).forEach((key) => {
     delete overviewPayloadCache[key];
   });
@@ -410,139 +404,6 @@ async function loadSeasonSpendIndex() {
   return indexed;
 }
 
-async function loadTeamDetailSpendByTeam(season, teamId) {
-  const normalizedTeamId = toTeamId(teamId);
-  if (!normalizedTeamId) {
-    return null;
-  }
-
-  const cacheKey = `${season}:${normalizedTeamId}`;
-  if (teamDetailSpendCache[cacheKey]) {
-    return teamDetailSpendCache[cacheKey];
-  }
-
-  const promise = (async () => {
-    const params = new URLSearchParams({
-      team_id: normalizedTeamId,
-      season: String(season),
-    });
-    const resp = await fetchWithRetry(`${API_BASE}/v1/dashboard/team-detail?${params.toString()}`);
-    if (!resp.ok) {
-      throw new Error(`status ${resp.status}`);
-    }
-
-    const payload = await resp.json();
-    const timeline = Array.isArray(payload?.timeline) ? payload.timeline : [];
-    const inboundFreeAgency = timeline.filter(
-      (event) => String(event.move_type || "").toLowerCase() === "free_agency"
-        && toTeamId(event.to_team_id) === normalizedTeamId
-    );
-
-    const totalAavRaw = inboundFreeAgency.reduce(
-      (sum, event) => sum + toFiniteNumber(event.contract_aav, 0),
-      0
-    );
-
-    // Team-detail contract_aav values are raw dollars; convert to millions once.
-    const totalAavM = aavDollarsToMillions(totalAavRaw);
-
-    return {
-      teamId: normalizedTeamId,
-      totalAavM,
-      moveCount: inboundFreeAgency.length,
-    };
-  })();
-
-  teamDetailSpendCache[cacheKey] = promise.catch((err) => {
-    delete teamDetailSpendCache[cacheKey];
-    throw err;
-  });
-
-  return teamDetailSpendCache[cacheKey];
-}
-
-async function loadSeasonSpendingByTeam(season, onProgress) {
-  if (spendingRequestCache[season]) {
-    return spendingRequestCache[season];
-  }
-
-  const promise = (async () => {
-    let settledCount = 0;
-    const total = TEAM_IDS.length;
-    onProgress?.(settledCount, total);
-
-    const spendByTeam = {};
-    let fulfilledCount = 0;
-
-    let nextIndex = 0;
-    const workerCount = Math.min(MAX_TEAM_DETAIL_CONCURRENCY, total);
-
-    async function runWorker() {
-      while (nextIndex < total) {
-        const teamId = TEAM_IDS[nextIndex];
-        nextIndex += 1;
-
-        try {
-          const params = new URLSearchParams({
-            team_id: teamId,
-            season: String(season),
-          });
-
-          const resp = await fetchWithRetry(`${API_BASE}/v1/dashboard/team-detail?${params.toString()}`);
-          if (!resp.ok) {
-            throw new Error(`status ${resp.status}`);
-          }
-
-          const payload = await resp.json();
-          const timeline = Array.isArray(payload?.timeline) ? payload.timeline : [];
-          const inboundFreeAgency = timeline.filter(
-            (event) => String(event.move_type || "").toLowerCase() === "free_agency"
-              && toTeamId(event.to_team_id) === teamId
-          );
-
-          const totalAavM = inboundFreeAgency.reduce(
-            (sum, event) => sum + aavDollarsToMillions(event.contract_aav),
-            0
-          );
-
-          spendByTeam[teamId] = {
-            teamId,
-            totalAavM,
-            moveCount: inboundFreeAgency.length,
-          };
-          fulfilledCount += 1;
-        } catch (_err) {
-          // Keep processing remaining teams to allow partial season output.
-        } finally {
-          settledCount += 1;
-          onProgress?.(settledCount, total);
-        }
-      }
-    }
-
-    await Promise.all(
-      Array.from({ length: workerCount }, () => runWorker())
-    );
-
-    if (fulfilledCount === 0) {
-      throw new Error("Unable to load team spending data.");
-    }
-
-    return {
-      spendByTeam,
-      fulfilledCount,
-      totalCount: total,
-    };
-  })();
-
-  spendingRequestCache[season] = promise
-    .catch((err) => {
-      delete spendingRequestCache[season];
-      throw err;
-    });
-  return spendingRequestCache[season];
-}
-
 async function loadGeoTable(seasons) {
   const tbody = document.getElementById("geoTableBody");
   if (!tbody) return;
@@ -716,21 +577,10 @@ async function loadSpendTable(seasons) {
         throw new Error("insufficient data");
       }
 
-      const teamsForDetail = [...new Set([topSpenderTeamId, biggestGainTeamId])];
-      const detailResults = await Promise.all(
-        teamsForDetail.map((teamId) => loadTeamDetailSpendByTeam(season, teamId).catch(() => null))
-      );
-
-      const detailByTeam = {};
-      detailResults.forEach((detail) => {
-        if (detail?.teamId) {
-          detailByTeam[detail.teamId] = detail;
-        }
+      const seasonSpendingByTeam = {};
+      seasonSpendingRows.forEach((row) => {
+        seasonSpendingByTeam[row.teamId] = row;
       });
-
-      if (!detailByTeam[topSpenderTeamId] || !detailByTeam[biggestGainTeamId]) {
-        partialSeasonCount += 1;
-      }
 
       const spends = seasonSpendingRows
         .map((t) => t.totalAavM)
@@ -739,7 +589,7 @@ async function loadSpendTable(seasons) {
         ? spends.reduce((s, v) => s + v, 0) / spends.length
         : 0;
 
-      const topSpender = detailByTeam[topSpenderTeamId] || {
+      const topSpender = seasonSpendingByTeam[topSpenderTeamId] || {
         teamId: topSpenderTeamId,
         totalAavM: topSpenderSeed.totalAavM,
       };
@@ -751,7 +601,7 @@ async function loadSpendTable(seasons) {
       const biggestGainOutcome = Object.prototype.hasOwnProperty.call(misByTeam, biggestGainTeamId)
         ? misByTeam[biggestGainTeamId]
         : null;
-      const biggestGainSpend = detailByTeam[biggestGainTeamId]?.totalAavM || 0;
+      const biggestGainSpend = seasonSpendingByTeam[biggestGainTeamId]?.totalAavM || 0;
 
       const fmtOutcome = (v) => (v == null ? "—"
         : `MIS ${v >= 0 ? "+" : ""}${v.toFixed(6)}`);
