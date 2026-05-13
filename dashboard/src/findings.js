@@ -35,15 +35,23 @@ function toFiniteNumber(value, fallback = 0) {
   return Number.isFinite(num) ? num : fallback;
 }
 
+function parseCsvCell(value) {
+  const raw = String(value || "").trim();
+  if (raw.length >= 2 && raw.startsWith('"') && raw.endsWith('"')) {
+    return raw.slice(1, -1).replace(/""/g, '"').trim();
+  }
+  return raw;
+}
+
 function parseCsvRows(csvText) {
   const lines = String(csvText || "").trim().split(/\r?\n/);
   if (lines.length <= 1) {
     return [];
   }
 
-  const headers = lines[0].split(",").map((header) => header.trim());
+  const headers = lines[0].split(",").map(parseCsvCell);
   return lines.slice(1).map((line) => {
-    const values = line.split(",");
+    const values = line.split(",").map(parseCsvCell);
     const row = {};
     headers.forEach((header, index) => {
       row[header] = (values[index] || "").trim();
@@ -98,6 +106,10 @@ async function loadTeamOutcomes() {
       games_played: toFiniteNumber(row.games_played),
     };
   });
+
+  if (Object.keys(indexed).length === 0) {
+    throw new Error("Team outcomes CSV parsed, but no valid rows were indexed.");
+  }
 
   teamOutcomesCache = indexed;
   return indexed;
