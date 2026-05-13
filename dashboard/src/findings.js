@@ -10,6 +10,7 @@ const TEAM_IDS = [
 const spendingRequestCache = {};
 const overviewPayloadCache = {};
 let teamOutcomesCache = null;
+let movementEventsSpendCache = null;
 let findingsLoadInFlight = false;
 
 const FINDINGS_SEASONS = [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
@@ -139,6 +140,7 @@ function resetFindingsCaches() {
     delete overviewPayloadCache[key];
   });
   teamOutcomesCache = null;
+  movementEventsSpendCache = null;
 }
 
 function statusTimestampLabel() {
@@ -204,6 +206,69 @@ async function loadTeamOutcomes() {
   return indexed;
 }
 
+async function loadMovementEventsSpending() {
+  if (movementEventsSpendCache) {
+    return movementEventsSpendCache;
+  }
+
+  const candidates = [
+    "../../data/processed/movement_events.csv",
+    "/data/processed/movement_events.csv",
+    "/nflanalysis/data/processed/movement_events.csv",
+  ];
+
+  let csvText = "";
+  for (const path of candidates) {
+    try {
+      const resp = await fetchWithRetry(path);
+      if (resp.ok) {
+        csvText = await resp.text();
+        break;
+      }
+    } catch (_err) {
+      // Try next local candidate path.
+    }
+  }
+
+  if (!csvText) {
+    throw new Error("Unable to load movement events for spending table.");
+  }
+
+  const rows = parseCsvRows(csvText);
+  const spendBySeason = {};
+
+  rows.forEach((row) => {
+    const moveType = String(row.move_type || "").toLowerCase();
+    if (moveType !== "free_agency") {
+      return;
+    }
+
+    const season = Number(row.nfl_season);
+    const teamId = toTeamId(row.to_team_id);
+    if (!Number.isFinite(season) || !teamId) {
+      return;
+    }
+
+    const contractAav = toFiniteNumber(row.contract_aav, 0);
+    if (!spendBySeason[season]) {
+      spendBySeason[season] = {};
+    }
+    if (!spendBySeason[season][teamId]) {
+      spendBySeason[season][teamId] = {
+        teamId,
+        totalAavM: 0,
+        moveCount: 0,
+      };
+    }
+
+    spendBySeason[season][teamId].totalAavM += contractAav / 1_000_000;
+    spendBySeason[season][teamId].moveCount += 1;
+  });
+
+  movementEventsSpendCache = spendBySeason;
+  return spendBySeason;
+}
+
 async function loadOverviewData(season) {
   const apiUrl = buildOverviewUrl(season);
   const live = await fetchWithRetry(apiUrl);
@@ -238,6 +303,28 @@ async function loadSeasonSpendingByTeam(season, onProgress) {
   }
 
   const promise = (async () => {
+    try {
+      const localSpendBySeason = await loadMovementEventsSpending();
+      const localSeason = localSpendBySeason[season] || {};
+      const spendByTeam = {};
+
+      TEAM_IDS.forEach((teamId) => {
+        spendByTeam[teamId] = localSeason[teamId] || {
+          teamId,
+          totalAavM: 0,
+          moveCount: 0,
+        };
+      });
+
+      return {
+        spendByTeam,
+        fulfilledCount: TEAM_IDS.length,
+        totalCount: TEAM_IDS.length,
+      };
+    } catch (_err) {
+      // Fall back to live API when local movement events are unavailable.
+    }
+
     let settledCount = 0;
     const total = TEAM_IDS.length;
     onProgress?.(settledCount, total);
