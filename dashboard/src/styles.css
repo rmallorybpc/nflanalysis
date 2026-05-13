@@ -1143,7 +1143,8 @@ h1 {
   border-radius: var(--tmg-bento-radius);
   background: var(--tmg-surface);
   box-shadow: var(--tmg-shadow-sm);
-  margin-bottom: 40px;
+  margin: 0 auto 20px;
+  transition: box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .findings-header h1 {
@@ -1163,12 +1164,20 @@ h1 {
 
 .findings-section {
   max-width: 900px;
-  margin: 0 auto 48px;
+  margin: 0 auto 16px;
   padding: 24px;
   background: var(--tmg-surface);
   border: var(--tmg-border);
   border-radius: var(--tmg-bento-radius);
   box-shadow: var(--tmg-shadow-sm);
+  transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.findings-section:hover,
+.findings-header:hover,
+.findings-footer:hover {
+  border-color: rgba(132, 169, 140, 0.38);
+  box-shadow: var(--tmg-shadow-md);
 }
 
 .findings-section h2 {
@@ -1213,7 +1222,7 @@ h1 {
 
 .findings-table th {
   text-align: left;
-  padding: 8px 12px;
+  padding: 7px 10px;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -1225,7 +1234,7 @@ h1 {
 }
 
 .findings-table td {
-  padding: 8px 12px;
+  padding: 7px 10px;
   color: var(--tmg-text);
   border-bottom: 1px solid rgba(45, 52, 54, 0.1);
   white-space: nowrap;
@@ -1241,11 +1250,11 @@ h1 {
 
 .findings-best {
   color: var(--tmg-sage-hover);
-  font-weight: 700;
+  font-weight: 500;
 }
 
-.findings-gain { color: #22c55e; font-weight: 600; }
-.findings-loss { color: #ef4444; font-weight: 600; }
+.findings-gain { color: var(--tmg-success); font-weight: 500; }
+.findings-loss { color: var(--tmg-error); font-weight: 500; }
 
 .findings-loading {
   color: rgba(45, 52, 54, 0.62);
@@ -1266,11 +1275,13 @@ h1 {
 
 .findings-note a {
   color: var(--tmg-sage-hover);
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
 }
 
 .findings-note a:hover {
-  text-decoration: underline;
+  color: var(--tmg-charcoal);
 }
 
 .findings-footer {
@@ -1292,6 +1303,13 @@ h1 {
 
 .findings-footer a {
   color: var(--tmg-sage-hover);
+}
+
+.findings-footer a:focus-visible,
+.findings-note a:focus-visible {
+  outline: 2px solid var(--tmg-sage);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 @keyframes stagger {
@@ -1334,6 +1352,25 @@ h1 {
   .geo-row {
     grid-template-columns: 1fr;
     gap: 0.2rem;
+  }
+
+  .findings-header {
+    padding: 30px 18px 24px;
+    margin-bottom: 14px;
+  }
+
+  .findings-section {
+    margin-bottom: 12px;
+    padding: 18px;
+  }
+
+  .findings-footer {
+    padding: 18px;
+  }
+
+  .findings-table th,
+  .findings-table td {
+    padding: 6px 8px;
   }
 }
 
