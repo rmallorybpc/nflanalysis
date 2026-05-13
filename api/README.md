@@ -54,6 +54,20 @@ source scripts/env_offseason_backfill_2022_2026.sh
 /usr/bin/python3 -m api.app.main --host 0.0.0.0 --port 8080
 ```
 
+Production profile shortcut (full historical Findings coverage):
+
+```bash
+source scripts/env_offseason_backfill_2017_2026.sh
+ALLOWED_ORIGIN="https://rmallorybpc.github.io" \
+  /usr/bin/python3 -m api.app.main --host 0.0.0.0 --port 8080
+```
+
+Notes for Key Findings page stability:
+
+- The Key Findings tables request multiple historical seasons; do not run the API with a single-season rollback profile unless this limited behavior is intentional.
+- If browser calls fail due to CORS, ensure `ALLOWED_ORIGIN` exactly matches the dashboard host origin.
+- If hosted startup latency is high, avoid aggressively low client request timeouts on findings page endpoints (`/v1/dashboard/overview`, `/v1/dashboard/team-detail`).
+
 Rollback profile shortcut (legacy dataset):
 
 ```bash

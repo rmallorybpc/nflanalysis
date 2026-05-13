@@ -12,9 +12,10 @@ const overviewPayloadCache = {};
 let teamOutcomesCache = null;
 let findingsLoadInFlight = false;
 
-const FINDINGS_SEASONS = [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
-const FETCH_TIMEOUT_MS = 12000;
-const FETCH_RETRIES = 1;
+const DEFAULT_FINDINGS_SEASONS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
+const FETCH_TIMEOUT_MS = 18000;
+const FETCH_RETRIES = 2;
+const MAX_TEAM_DETAIL_CONCURRENCY = 6;
 
 function seasonLabel(year) {
   return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
@@ -145,6 +146,101 @@ function resetFindingsCaches() {
   teamOutcomesCache = null;
 }
 
+function toSeasonNumber(value) {
+  const num = Number(value);
+  return Number.isInteger(num) ? num : null;
+}
+
+function buildSeasonRange(start, end) {
+  const startSeason = toSeasonNumber(start);
+  const endSeason = toSeasonNumber(end);
+  if (startSeason == null || endSeason == null || endSeason < startSeason) {
+    return [];
+  }
+  // Guard against malformed payloads to avoid runaway ranges.
+  if ((endSeason - startSeason) > 30) {
+    return [];
+  }
+  const seasons = [];
+  for (let season = startSeason; season <= endSeason; season += 1) {
+    seasons.push(season);
+  }
+  return seasons;
+}
+
+function classifyLoadError(err) {
+  const message = String(err?.message || err || "");
+  if (err?.name === "AbortError" || /aborted|timeout/i.test(message)) {
+    return "timeout";
+  }
+  if (/data not available for season=/i.test(message)) {
+    return "unsupported season";
+  }
+  if (/status\s+\d+/i.test(message)) {
+    const match = message.match(/status\s+(\d+)/i);
+    return match ? `http ${match[1]}` : "http error";
+  }
+  if (/failed to fetch|network|cors/i.test(message)) {
+    return "network/cors";
+  }
+  return "request failed";
+}
+
+function incrementReasonCount(reasonCounts, reason) {
+  const key = String(reason || "request failed");
+  reasonCounts[key] = (reasonCounts[key] || 0) + 1;
+}
+
+function formatReasonSummary(reasonCounts) {
+  const entries = Object.entries(reasonCounts || {})
+    .filter(([, count]) => Number(count) > 0)
+    .sort((a, b) => b[1] - a[1]);
+  if (entries.length === 0) {
+    return "";
+  }
+  return entries
+    .map(([reason, count]) => `${reason}: ${count}`)
+    .join(", ");
+}
+
+async function resolveFindingsSeasons(preferredSeason) {
+  const seedSeasons = [
+    toSeasonNumber(preferredSeason),
+    2026,
+    2025,
+    2024,
+  ].filter((v, idx, arr) => v != null && arr.indexOf(v) === idx);
+
+  let lastError = null;
+  for (const season of seedSeasons) {
+    try {
+      const payload = await loadOverviewBySeason(season);
+      const range = payload?.scope?.season_range || {};
+      const fromRange = buildSeasonRange(range.start, range.end);
+      if (fromRange.length > 0) {
+        return { seasons: fromRange, source: "api_scope" };
+      }
+
+      const fromCoverage = (payload?.charts?.season_coverage || [])
+        .map((row) => toSeasonNumber(row?.season))
+        .filter((v, idx, arr) => v != null && arr.indexOf(v) === idx)
+        .sort((a, b) => a - b);
+
+      if (fromCoverage.length > 0) {
+        return { seasons: fromCoverage, source: "api_coverage" };
+      }
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  return {
+    seasons: [...DEFAULT_FINDINGS_SEASONS],
+    source: "default",
+    error: lastError,
+  };
+}
+
 function statusTimestampLabel() {
   return new Date().toLocaleTimeString([], {
     hour: "2-digit",
@@ -246,14 +342,24 @@ async function loadSeasonSpendingByTeam(season, onProgress) {
     const total = TEAM_IDS.length;
     onProgress?.(settledCount, total);
 
-    const requests = TEAM_IDS.map((teamId) => {
-      const params = new URLSearchParams({
-        team_id: teamId,
-        season: String(season),
-      });
+    const spendByTeam = {};
+    let fulfilledCount = 0;
 
-      return fetchWithRetry(`${API_BASE}/v1/dashboard/team-detail?${params.toString()}`)
-        .then(async (resp) => {
+    let nextIndex = 0;
+    const workerCount = Math.min(MAX_TEAM_DETAIL_CONCURRENCY, total);
+
+    async function runWorker() {
+      while (nextIndex < total) {
+        const teamId = TEAM_IDS[nextIndex];
+        nextIndex += 1;
+
+        try {
+          const params = new URLSearchParams({
+            team_id: teamId,
+            season: String(season),
+          });
+
+          const resp = await fetchWithRetry(`${API_BASE}/v1/dashboard/team-detail?${params.toString()}`);
           if (!resp.ok) {
             throw new Error(`status ${resp.status}`);
           }
@@ -270,28 +376,24 @@ async function loadSeasonSpendingByTeam(season, onProgress) {
             0
           );
 
-          return {
+          spendByTeam[teamId] = {
             teamId,
             totalAavM,
             moveCount: inboundFreeAgency.length,
           };
-        })
-        .finally(() => {
+          fulfilledCount += 1;
+        } catch (_err) {
+          // Keep processing remaining teams to allow partial season output.
+        } finally {
           settledCount += 1;
           onProgress?.(settledCount, total);
-        });
-    });
-
-    const results = await Promise.allSettled(requests);
-    const spendByTeam = {};
-    let fulfilledCount = 0;
-
-    results.forEach((result) => {
-      if (result.status === "fulfilled") {
-        spendByTeam[result.value.teamId] = result.value;
-        fulfilledCount += 1;
+        }
       }
-    });
+    }
+
+    await Promise.all(
+      Array.from({ length: workerCount }, () => runWorker())
+    );
 
     if (fulfilledCount === 0) {
       throw new Error("Unable to load team spending data.");
@@ -312,7 +414,7 @@ async function loadSeasonSpendingByTeam(season, onProgress) {
   return spendingRequestCache[season];
 }
 
-async function loadGeoTable() {
+async function loadGeoTable(seasons) {
   const tbody = document.getElementById("geoTableBody");
   if (!tbody) return;
 
@@ -330,14 +432,20 @@ async function loadGeoTable() {
 
   const rows = [];
   let failedSeasons = 0;
+  const reasonCounts = {};
 
-  for (const season of FINDINGS_SEASONS) {
+  const seasonList = Array.isArray(seasons) && seasons.length > 0
+    ? seasons
+    : DEFAULT_FINDINGS_SEASONS;
+
+  for (const season of seasonList) {
     try {
       const payload = await loadOverviewBySeason(season);
       const geoRows = (payload?.charts?.geography_impact_profile || [])
         .filter((r) => r.outcome_name === "win_pct" && r.move_count > 0);
 
       if (geoRows.length < 2) {
+        incrementReasonCount(reasonCounts, "insufficient data");
         rows.push(`
           <tr>
             <td>${seasonLabel(season)}</td>
@@ -380,13 +488,15 @@ async function loadGeoTable() {
           </td>
         </tr>
       `);
-    } catch (_err) {
+    } catch (err) {
       failedSeasons += 1;
+      const reason = classifyLoadError(err);
+      incrementReasonCount(reasonCounts, reason);
       rows.push(`
         <tr>
           <td>${seasonLabel(season)}</td>
           <td colspan="4" class="findings-error">
-            Data unavailable
+            Data unavailable (${reason})
           </td>
         </tr>
       `);
@@ -397,12 +507,13 @@ async function loadGeoTable() {
     || "<tr><td colspan=\"5\">No data available.</td></tr>";
 
   return {
-    totalSeasons: FINDINGS_SEASONS.length,
+    totalSeasons: seasonList.length,
     failedSeasons,
+    reasonCounts,
   };
 }
 
-async function loadSpendTable() {
+async function loadSpendTable(seasons) {
   const tbody = document.getElementById("spendTableBody");
   if (!tbody) return;
 
@@ -417,8 +528,13 @@ async function loadSpendTable() {
   const rows = [];
   let failedSeasons = 0;
   let partialSeasonCount = 0;
+  const reasonCounts = {};
 
-  for (const season of FINDINGS_SEASONS) {
+  const seasonList = Array.isArray(seasons) && seasons.length > 0
+    ? seasons
+    : DEFAULT_FINDINGS_SEASONS;
+
+  for (const season of seasonList) {
     try {
       const { spendByTeam: spendingByTeam, fulfilledCount, totalCount } = await loadSeasonSpendingByTeam(
         season, () => {}
@@ -497,13 +613,15 @@ async function loadSpendTable() {
           <td>$${biggestGainSpend.toFixed(0)}M</td>
         </tr>
       `);
-    } catch (_err) {
+    } catch (err) {
       failedSeasons += 1;
+      const reason = classifyLoadError(err);
+      incrementReasonCount(reasonCounts, reason);
       rows.push(`
         <tr>
           <td>${seasonLabel(season)}</td>
           <td colspan="6" class="findings-error">
-            Data unavailable
+            Data unavailable (${reason})
           </td>
         </tr>
       `);
@@ -514,10 +632,11 @@ async function loadSpendTable() {
     || "<tr><td colspan=\"7\">No data available.</td></tr>";
 
   return {
-    totalSeasons: FINDINGS_SEASONS.length,
+    totalSeasons: seasonList.length,
     failedSeasons,
     partialSeasonCount,
     outcomesAvailable,
+    reasonCounts,
   };
 }
 
@@ -548,9 +667,16 @@ async function initFindings() {
   try {
     setFindingsStatus("Loading findings data...", "info", { loading: true, showRetry: false });
 
+    const seasonResolution = await resolveFindingsSeasons(Number(season));
+    const findingsSeasons = seasonResolution.seasons;
+
+    if (seasonResolution.source === "default") {
+      console.warn("Findings season resolution fell back to default seasons:", seasonResolution.error);
+    }
+
     const [geoSummary, spendSummary] = await Promise.all([
-      loadGeoTable(),
-      loadSpendTable(),
+      loadGeoTable(findingsSeasons),
+      loadSpendTable(findingsSeasons),
     ]);
 
     const hasFailures = (geoSummary?.failedSeasons || 0) > 0
@@ -558,11 +684,21 @@ async function initFindings() {
     const hasPartial = (spendSummary?.partialSeasonCount || 0) > 0
       || !spendSummary?.outcomesAvailable;
 
+    const combinedReasonCounts = {};
+    Object.entries(geoSummary?.reasonCounts || {}).forEach(([reason, count]) => {
+      combinedReasonCounts[reason] = (combinedReasonCounts[reason] || 0) + count;
+    });
+    Object.entries(spendSummary?.reasonCounts || {}).forEach(([reason, count]) => {
+      combinedReasonCounts[reason] = (combinedReasonCounts[reason] || 0) + count;
+    });
+
+    const reasonSummary = formatReasonSummary(combinedReasonCounts);
+
     const loadedAt = statusTimestampLabel();
 
     if (hasFailures) {
       setFindingsStatus(
-        `Some seasons could not be loaded. Tables show available rows only. Last updated at ${loadedAt}.`,
+        `Some seasons could not be loaded (${reasonSummary || "see table rows for details"}). Tables show available rows only. Last updated at ${loadedAt}.`,
         "warning",
         { showRetry: true }
       );
