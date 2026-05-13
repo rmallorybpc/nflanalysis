@@ -754,6 +754,18 @@ h1 {
   text-align: center;
 }
 
+.spending-finding {
+  font-size: 0.82rem;
+  color: var(--color-text, #f8fafc);
+  line-height: 1.6;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 3px solid #f59e0b;
+  border-radius: 0 4px 4px 0;
+  max-width: 700px;
+}
+
 .spending-quadrant-label {
   font-size: 0.65rem;
   fill: var(--color-muted, #94a3b8);

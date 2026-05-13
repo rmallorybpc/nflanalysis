@@ -560,6 +560,51 @@ function renderSpendingSvg(season, cached) {
     </div>
     ${cached.hasMissingPrior ? '<div class="spending-note">Prior season data unavailable for some teams.</div>' : ""}
   `;
+
+  // Compute plain-English spending finding
+  const trendInterpretation = (() => {
+    if (!trend) return null;
+
+    // Count teams in each quadrant
+    const highSpendThreshold = Math.max(
+      ...validPoints.map((p) => p.totalAavM), 0
+    ) * 0.5; // top half of spending range
+
+    const highSpendGain = validPoints.filter(
+      (p) => p.totalAavM > highSpendThreshold && p.winPctDelta > 0.05
+    ).length;
+    const highSpendDecline = validPoints.filter(
+      (p) => p.totalAavM > highSpendThreshold && p.winPctDelta < -0.05
+    ).length;
+
+    const slopeStrength = Math.abs(trend.slope);
+    const slopeDirection = trend.slope;
+
+    // slope units: win% per $M of FA spending
+    if (slopeStrength < 0.0005) {
+      return "The trend line is nearly flat - in this season's data, "
+        + "how much a team spent in free agency shows no reliable "
+        + "relationship with winning more games than the prior year. "
+        + `High-spending teams appear in both the gain and decline quadrants (${highSpendGain} improved, ${highSpendDecline} declined).`;
+    }
+    if (slopeDirection > 0) {
+      return "The trend line slopes upward - teams that spent more in "
+        + "free agency this season tended to win more games than the "
+        + "prior year. Note that correlation does not mean spending "
+        + "caused the wins; other factors may explain both.";
+    }
+    return "The trend line slopes downward - teams that spent more in "
+      + "free agency this season tended to win fewer games than the "
+      + "prior year. This pattern is consistent with teams spending "
+      + "heavily after poor seasons, when wins are harder to add.";
+  })();
+
+  if (trendInterpretation) {
+    const findingEl = document.createElement("p");
+    findingEl.className = "spending-finding";
+    findingEl.textContent = trendInterpretation;
+    container.appendChild(findingEl);
+  }
 }
 
 async function renderSpendingChart(season, currentPayload = null) {
