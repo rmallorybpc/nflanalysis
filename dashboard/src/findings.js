@@ -438,7 +438,7 @@ async function loadGeoTable() {
       );
       const strongest = sorted[0];
 
-      const fmtImpact = (v) => (v != null ? Number(v).toFixed(4) : "—");
+      const fmtImpact = (v) => (v != null ? Number(v).toFixed(6) : "—");
 
       const isBest = (scope) => (
         scope === strongest.move_scope
