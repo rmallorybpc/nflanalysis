@@ -130,6 +130,8 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertIn("outcomes", scope)
         self.assertIn("geography_dimensions", scope)
         self.assertIn("geography_data_quality", scope)
+        self.assertIn("validation_diagnostics", scope)
+        self.assertIn("geography_claim_policy", scope)
 
         data_quality = scope["geography_data_quality"]
         self.assertIn("total_events", data_quality)
@@ -137,6 +139,19 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertIn("unknown_scope_share", data_quality)
         self.assertIn("missing_from_team_events", data_quality)
         self.assertIn("destination_only_events", data_quality)
+
+        validation_diag = scope["validation_diagnostics"]
+        self.assertIn("available", validation_diag)
+        self.assertIn("placebo_win_pct_p_value", validation_diag)
+        self.assertIn("placebo_iterations", validation_diag)
+        self.assertIn("generated_at", validation_diag)
+
+        claim_policy = scope["geography_claim_policy"]
+        self.assertIn("can_make_strong_claim", claim_policy)
+        self.assertIn("reasons", claim_policy)
+        self.assertIn("min_robust_move_count", claim_policy)
+        self.assertIn("max_unknown_scope_share", claim_policy)
+        self.assertIn("max_placebo_p_value", claim_policy)
 
         cards = payload["cards"]
         self.assertIn("top_positive_team", cards)

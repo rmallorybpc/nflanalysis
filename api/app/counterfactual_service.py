@@ -13,6 +13,8 @@ OUTCOME_ORDER = ["win_pct", "point_diff_per_game", "offensive_epa_per_play"]
 ALLOWED_MOVE_SCOPES = ["same_division", "cross_division", "cross_conference"]
 ALLOWED_MOVE_TYPES = {"trade", "free_agency"}
 MIN_ROBUST_MOVE_COUNT = 10
+MAX_UNKNOWN_SCOPE_SHARE_FOR_STRONG_CLAIM = 0.2
+MAX_PLACEBO_P_VALUE_FOR_STRONG_CLAIM = 0.1
 
 TEAM_GEO = {
     "ARI": ("NFC", "West"),
@@ -132,6 +134,7 @@ class ServiceConfig:
     fallback_outputs: Path = Path("data/processed/model_outputs.csv")
     effects: Path = Path("models/artifacts/hierarchical_effects.csv")
     baseline_coefficients: Path = Path("models/artifacts/baseline_coefficients.csv")
+    validation_summary: Path = Path("models/artifacts/pretrend_placebo_summary.csv")
     players: Path = Path("data/processed/player_dimension.csv")
     movement_events: Path = Path("data/processed/movement_events.csv")
     team_week_features: Path = Path("data/processed/team_week_features.csv")
@@ -157,6 +160,7 @@ class ServiceConfig:
             default_features = bundle_path / "team_week_features.csv"
             default_effects = Path("models/artifacts/offseason") / bundle_path.name / "hierarchical_effects.csv"
             default_coefs = Path("models/artifacts/offseason") / bundle_path.name / "baseline_coefficients.csv"
+            default_validation = Path("models/artifacts/offseason") / bundle_path.name / "pretrend_placebo_summary.csv"
         else:
             default_model_outputs = cls.model_outputs
             default_fallback_outputs = cls.fallback_outputs
@@ -165,6 +169,7 @@ class ServiceConfig:
             default_features = cls.team_week_features
             default_effects = cls.effects
             default_coefs = cls.baseline_coefficients
+            default_validation = cls.validation_summary
 
         required_raw = os.getenv("OFFSEASON_REQUIRED_SEASONS", "").strip()
         if required_raw:
@@ -183,6 +188,7 @@ class ServiceConfig:
             fallback_outputs=env_path("FALLBACK_OUTPUTS_PATH", default_fallback_outputs),
             effects=env_path("HIERARCHICAL_EFFECTS_PATH", default_effects),
             baseline_coefficients=env_path("BASELINE_COEFFICIENTS_PATH", default_coefs),
+            validation_summary=env_path("PRETREND_PLACEBO_SUMMARY_PATH", default_validation),
             players=env_path("PLAYER_DIMENSION_PATH", default_players),
             movement_events=env_path("MOVEMENT_EVENTS_PATH", default_movement),
             team_week_features=env_path("TEAM_WEEK_FEATURES_PATH", default_features),
@@ -200,6 +206,7 @@ class CounterfactualService:
         self.effect_map = self._load_effects()
         self.player_group = self._load_player_groups()
         self.baseline_coefs = self._load_baseline_coefs()
+        self.validation_diag = self._load_validation_diagnostics()
         self.player_name: dict[str, str] = {}
         for row in self.player_dim:
             player_id = row["player_id"].strip()
@@ -249,6 +256,38 @@ class CounterfactualService:
             if outcome and feature:
                 out[(outcome, feature)] = coef
         return out
+
+    def _load_validation_diagnostics(self) -> dict[str, Any]:
+        path = self.config.validation_summary
+        if not path.exists():
+            return {
+                "available": False,
+                "placebo_win_pct_p_value": 1.0,
+                "placebo_iterations": 0,
+                "generated_at": "",
+            }
+
+        rows = _read_csv(path)
+        p_value: float | None = None
+        iterations = 0
+        generated_at = ""
+        for row in rows:
+            if not generated_at:
+                generated_at = (row.get("generated_at", "") or "").strip()
+            test_name = (row.get("test_name", "") or "").strip()
+            outcome_name = (row.get("outcome_name", "") or "").strip()
+            statistic_name = (row.get("statistic_name", "") or "").strip()
+            if test_name == "placebo" and outcome_name == "win_pct" and statistic_name == "one_sided_p_value":
+                p_value = _to_float((row.get("statistic_value", "") or "0").strip(), "statistic_value")
+                iterations = int(_to_float((row.get("n_units", "") or "0").strip(), "n_units"))
+                break
+
+        return {
+            "available": p_value is not None,
+            "placebo_win_pct_p_value": round(p_value, 6) if p_value is not None else 1.0,
+            "placebo_iterations": iterations,
+            "generated_at": generated_at,
+        }
 
     def build_players_payload(self) -> dict[str, Any]:
         """Return list of players for typeahead search."""
@@ -387,7 +426,12 @@ class CounterfactualService:
 
         return None
 
-    def _mode_strongest_scope_summary(self, points: list[dict[str, Any]]) -> dict[str, Any]:
+    def _mode_strongest_scope_summary(
+        self,
+        points: list[dict[str, Any]],
+        placebo_p_value: float,
+        placebo_available: bool,
+    ) -> dict[str, Any]:
         win_rows = [
             row for row in points
             if row["outcome_name"] == "win_pct" and int(row.get("move_count", 0)) > 0
@@ -399,6 +443,7 @@ class CounterfactualService:
                 "strongest_move_count": 0,
                 "runner_up_scope": "",
                 "runner_up_avg_abs_impact": 0.0,
+                "placebo_win_pct_p_value": placebo_p_value,
                 "robustness_flag": False,
                 "robustness_reason": "insufficient_scope_coverage",
             }
@@ -409,8 +454,18 @@ class CounterfactualService:
 
         top_count = int(top["move_count"])
         runner_up_count = int(runner_up["move_count"])
-        robust = top_count >= MIN_ROBUST_MOVE_COUNT and runner_up_count >= MIN_ROBUST_MOVE_COUNT
-        reason = "ok" if robust else "low_sample"
+        sample_ok = top_count >= MIN_ROBUST_MOVE_COUNT and runner_up_count >= MIN_ROBUST_MOVE_COUNT
+        placebo_ok = placebo_available and placebo_p_value <= MAX_PLACEBO_P_VALUE_FOR_STRONG_CLAIM
+        robust = sample_ok and placebo_ok
+
+        if not sample_ok:
+            reason = "low_sample"
+        elif not placebo_available:
+            reason = "missing_placebo"
+        elif not placebo_ok:
+            reason = "placebo_not_significant"
+        else:
+            reason = "ok"
 
         return {
             "strongest_scope": str(top["move_scope"]),
@@ -418,6 +473,7 @@ class CounterfactualService:
             "strongest_move_count": top_count,
             "runner_up_scope": str(runner_up["move_scope"]),
             "runner_up_avg_abs_impact": float(runner_up["avg_abs_impact"]),
+            "placebo_win_pct_p_value": placebo_p_value,
             "robustness_flag": robust,
             "robustness_reason": reason,
         }
@@ -432,6 +488,8 @@ class CounterfactualService:
         include_move_types: set[str],
         require_known_scope: bool,
         allow_destination_inference: bool,
+        placebo_p_value: float,
+        placebo_available: bool,
     ) -> dict[str, Any]:
         buckets: dict[tuple[str, str], list[float]] = {
             (scope, outcome): []
@@ -491,7 +549,44 @@ class CounterfactualService:
             "included_event_count": included_events,
             "excluded_event_count": excluded_events,
             "points": points,
-            "win_pct_summary": self._mode_strongest_scope_summary(points),
+            "win_pct_summary": self._mode_strongest_scope_summary(points, placebo_p_value, placebo_available),
+        }
+
+    def _build_geography_claim_policy(
+        self,
+        diagnostics: dict[str, int | float],
+        sensitivity_profiles: list[dict[str, Any]],
+        validation_diag: dict[str, Any],
+    ) -> dict[str, Any]:
+        reasons: list[str] = []
+
+        unknown_share = float(diagnostics.get("unknown_scope_share", 0.0) or 0.0)
+        unknown_ok = unknown_share <= MAX_UNKNOWN_SCOPE_SHARE_FOR_STRONG_CLAIM
+        if not unknown_ok:
+            reasons.append("high_unknown_scope_share")
+
+        by_mode = {str(profile.get("mode", "")): profile for profile in sensitivity_profiles}
+        known_summary = ((by_mode.get("known_scope_only") or {}).get("win_pct_summary") or {})
+        trades_summary = ((by_mode.get("trades_only") or {}).get("win_pct_summary") or {})
+        if not bool(known_summary.get("robustness_flag", False)):
+            reasons.append("known_scope_not_robust")
+        if not bool(trades_summary.get("robustness_flag", False)):
+            reasons.append("trades_not_robust")
+
+        placebo_available = bool(validation_diag.get("available", False))
+        placebo_p_value = float(validation_diag.get("placebo_win_pct_p_value", 1.0) or 1.0)
+        if not placebo_available:
+            reasons.append("missing_placebo")
+        elif placebo_p_value > MAX_PLACEBO_P_VALUE_FOR_STRONG_CLAIM:
+            reasons.append("placebo_not_significant")
+
+        can_make_strong_claim = len(reasons) == 0
+        return {
+            "can_make_strong_claim": can_make_strong_claim,
+            "reasons": ["ok"] if can_make_strong_claim else reasons,
+            "min_robust_move_count": MIN_ROBUST_MOVE_COUNT,
+            "max_unknown_scope_share": MAX_UNKNOWN_SCOPE_SHARE_FOR_STRONG_CLAIM,
+            "max_placebo_p_value": MAX_PLACEBO_P_VALUE_FOR_STRONG_CLAIM,
         }
 
     def _build_geography_diagnostics(
@@ -540,6 +635,8 @@ class CounterfactualService:
 
     def _build_geography_impact_profile(self, seasons: list[int]) -> list[dict[str, Any]]:
         movement_rows = _read_csv(self.config.movement_events)
+        placebo_p_value = float(self.validation_diag.get("placebo_win_pct_p_value", 1.0) or 1.0)
+        placebo_available = bool(self.validation_diag.get("available", False))
         mode_profile = self._build_geography_profile_mode(
             movement_rows,
             seasons,
@@ -548,11 +645,19 @@ class CounterfactualService:
             include_move_types=ALLOWED_MOVE_TYPES,
             require_known_scope=False,
             allow_destination_inference=True,
+            placebo_p_value=placebo_p_value,
+            placebo_available=placebo_available,
         )
         return mode_profile["points"]
 
-    def _build_geography_sensitivity_profiles(self, seasons: list[int]) -> tuple[list[dict[str, Any]], dict[str, int | float]]:
+    def _build_geography_sensitivity_profiles(
+        self,
+        seasons: list[int],
+        validation_diag: dict[str, Any],
+    ) -> tuple[list[dict[str, Any]], dict[str, int | float], dict[str, Any]]:
         movement_rows = _read_csv(self.config.movement_events)
+        placebo_p_value = float(validation_diag.get("placebo_win_pct_p_value", 1.0) or 1.0)
+        placebo_available = bool(validation_diag.get("available", False))
         profiles = [
             self._build_geography_profile_mode(
                 movement_rows,
@@ -562,6 +667,8 @@ class CounterfactualService:
                 include_move_types=ALLOWED_MOVE_TYPES,
                 require_known_scope=False,
                 allow_destination_inference=True,
+                placebo_p_value=placebo_p_value,
+                placebo_available=placebo_available,
             ),
             self._build_geography_profile_mode(
                 movement_rows,
@@ -571,6 +678,8 @@ class CounterfactualService:
                 include_move_types=ALLOWED_MOVE_TYPES,
                 require_known_scope=True,
                 allow_destination_inference=False,
+                placebo_p_value=placebo_p_value,
+                placebo_available=placebo_available,
             ),
             self._build_geography_profile_mode(
                 movement_rows,
@@ -580,10 +689,13 @@ class CounterfactualService:
                 include_move_types={"trade"},
                 require_known_scope=True,
                 allow_destination_inference=False,
+                placebo_p_value=placebo_p_value,
+                placebo_available=placebo_available,
             ),
         ]
         diagnostics = self._build_geography_diagnostics(movement_rows, seasons)
-        return profiles, diagnostics
+        policy = self._build_geography_claim_policy(diagnostics, profiles, validation_diag)
+        return profiles, diagnostics, policy
 
     def _team_base_rows(self, team_id: str, season: int, week: int | None) -> list[dict[str, str]]:
         self._validate_season_available(season)
@@ -741,7 +853,10 @@ class CounterfactualService:
         available_seasons = self._available_seasons()
         season_coverage = self._build_season_coverage(available_seasons)
         geography_profile = self._build_geography_impact_profile([season])
-        geography_sensitivity_profiles, geography_quality = self._build_geography_sensitivity_profiles([season])
+        geography_sensitivity_profiles, geography_quality, geography_claim_policy = self._build_geography_sensitivity_profiles(
+            [season],
+            self.validation_diag,
+        )
         season_events = [
             row
             for row in _read_csv(self.config.movement_events)
@@ -775,6 +890,8 @@ class CounterfactualService:
                 "outcomes": OUTCOME_ORDER,
                 "geography_dimensions": ["team", "division", "conference"],
                 "geography_data_quality": geography_quality,
+                "validation_diagnostics": self.validation_diag,
+                "geography_claim_policy": geography_claim_policy,
                 "season_anomaly": anomaly_tags,
             },
             "cards": {

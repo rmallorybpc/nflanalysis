@@ -443,6 +443,7 @@ async function loadGeoTable(seasons) {
       const payload = await loadOverviewBySeason(season);
       const sensitivityProfiles = payload?.charts?.geography_sensitivity_profiles || [];
       const knownScopeProfile = sensitivityProfiles.find((profile) => profile.mode === "known_scope_only");
+      const claimPolicy = payload?.scope?.geography_claim_policy || null;
 
       const geoRows = (knownScopeProfile?.points || payload?.charts?.geography_impact_profile || [])
         .filter((r) => r.outcome_name === "win_pct" && r.move_count > 0);
@@ -466,6 +467,12 @@ async function loadGeoTable(seasons) {
       );
       const strongest = sorted[0];
       const summary = knownScopeProfile?.win_pct_summary || null;
+      const policyReason = Array.isArray(claimPolicy?.reasons)
+        ? claimPolicy.reasons.find((reason) => reason !== "ok") || null
+        : null;
+      const reasonLabel = policyReason
+        ? policyReason.replaceAll("_", " ")
+        : null;
 
       const fmtImpact = (v) => (v != null ? Number(v).toFixed(6) : "—");
 
@@ -490,6 +497,7 @@ async function loadGeoTable(seasons) {
             ${scopeIcon[strongest.move_scope] || ""}
             ${scopeLabel[strongest.move_scope] || strongest.move_scope}
             ${summary && summary.robustness_flag === false ? " (exploratory)" : ""}
+            ${claimPolicy && claimPolicy.can_make_strong_claim === false && reasonLabel ? ` [${reasonLabel}]` : ""}
           </td>
         </tr>
       `);

@@ -31,6 +31,8 @@ class OverviewPayloadTests(unittest.TestCase):
         self.assertIn("outcomes", scope)
         self.assertIn("geography_dimensions", scope)
         self.assertIn("geography_data_quality", scope)
+        self.assertIn("validation_diagnostics", scope)
+        self.assertIn("geography_claim_policy", scope)
 
         cards = payload["cards"]
         self.assertIn("top_positive_team", cards)

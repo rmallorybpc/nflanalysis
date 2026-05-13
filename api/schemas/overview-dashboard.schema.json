@@ -220,7 +220,9 @@
         "move_type_counts",
         "outcomes",
         "geography_dimensions",
-        "geography_data_quality"
+        "geography_data_quality",
+        "validation_diagnostics",
+        "geography_claim_policy"
       ],
       "properties": {
         "season_range": {
@@ -292,6 +294,12 @@
         },
         "geography_data_quality": {
           "$ref": "#/$defs/GeographyDataQuality"
+        },
+        "validation_diagnostics": {
+          "$ref": "#/$defs/ValidationDiagnostics"
+        },
+        "geography_claim_policy": {
+          "$ref": "#/$defs/GeographyClaimPolicy"
         }
       },
       "additionalProperties": false
@@ -396,6 +404,7 @@
         "strongest_move_count",
         "runner_up_scope",
         "runner_up_avg_abs_impact",
+        "placebo_win_pct_p_value",
         "robustness_flag",
         "robustness_reason"
       ],
@@ -417,6 +426,11 @@
         "runner_up_avg_abs_impact": {
           "type": "number",
           "minimum": 0
+        },
+        "placebo_win_pct_p_value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
         },
         "robustness_flag": {
           "type": "boolean"
@@ -462,6 +476,69 @@
         },
         "win_pct_summary": {
           "$ref": "#/$defs/GeographyModeSummary"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ValidationDiagnostics": {
+      "type": "object",
+      "required": [
+        "available",
+        "placebo_win_pct_p_value",
+        "placebo_iterations",
+        "generated_at"
+      ],
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "placebo_win_pct_p_value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "placebo_iterations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "generated_at": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GeographyClaimPolicy": {
+      "type": "object",
+      "required": [
+        "can_make_strong_claim",
+        "reasons",
+        "min_robust_move_count",
+        "max_unknown_scope_share",
+        "max_placebo_p_value"
+      ],
+      "properties": {
+        "can_make_strong_claim": {
+          "type": "boolean"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "min_robust_move_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_unknown_scope_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_placebo_p_value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
         }
       },
       "additionalProperties": false

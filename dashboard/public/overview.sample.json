@@ -32,6 +32,22 @@
       "unknown_scope_share": 0.0,
       "missing_from_team_events": 0,
       "destination_only_events": 0
+    },
+    "validation_diagnostics": {
+      "available": true,
+      "placebo_win_pct_p_value": 0.08,
+      "placebo_iterations": 200,
+      "generated_at": "2026-03-20T14:58:08Z"
+    },
+    "geography_claim_policy": {
+      "can_make_strong_claim": false,
+      "reasons": [
+        "known_scope_not_robust",
+        "trades_not_robust"
+      ],
+      "min_robust_move_count": 10,
+      "max_unknown_scope_share": 0.2,
+      "max_placebo_p_value": 0.1
     }
   },
   "cards": {
@@ -247,6 +263,7 @@
           "strongest_move_count": 1,
           "runner_up_scope": "same_division",
           "runner_up_avg_abs_impact": 0.003671,
+          "placebo_win_pct_p_value": 0.08,
           "robustness_flag": false,
           "robustness_reason": "low_sample"
         }
@@ -318,6 +335,7 @@
           "strongest_move_count": 1,
           "runner_up_scope": "same_division",
           "runner_up_avg_abs_impact": 0.003671,
+          "placebo_win_pct_p_value": 0.08,
           "robustness_flag": false,
           "robustness_reason": "low_sample"
         }
@@ -389,6 +407,7 @@
           "strongest_move_count": 1,
           "runner_up_scope": "same_division",
           "runner_up_avg_abs_impact": 0.003671,
+          "placebo_win_pct_p_value": 0.08,
           "robustness_flag": false,
           "robustness_reason": "low_sample"
         }
