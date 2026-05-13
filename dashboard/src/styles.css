@@ -1180,11 +1180,75 @@ h1 {
 }
 
 .findings-subtitle {
-  font-size: 1rem;
+  font-size: 1.02rem;
   color: rgba(45, 52, 54, 0.74);
   max-width: 600px;
   margin: 0 auto;
-  line-height: 1.6;
+  line-height: 1.7;
+}
+
+.findings-status {
+  margin: 12px auto 0;
+  max-width: 720px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(45, 52, 54, 0.16);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.findings-retry-btn {
+  border: 1px solid rgba(45, 52, 54, 0.24);
+  border-radius: 8px;
+  background: var(--tmg-white);
+  color: var(--tmg-charcoal);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.findings-retry-btn:hover {
+  border-color: rgba(132, 169, 140, 0.5);
+  color: var(--tmg-sage-hover);
+}
+
+.findings-retry-btn:focus-visible {
+  outline: 2px solid var(--tmg-sage);
+  outline-offset: 2px;
+}
+
+.findings-retry-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.findings-status--info {
+  color: rgba(45, 52, 54, 0.78);
+  background: rgba(132, 169, 140, 0.1);
+}
+
+.findings-status--warning {
+  color: #8a5a00;
+  border-color: rgba(196, 127, 0, 0.35);
+  background: rgba(196, 127, 0, 0.12);
+}
+
+.findings-status--success {
+  color: #1f5e2c;
+  border-color: rgba(46, 133, 64, 0.35);
+  background: rgba(46, 133, 64, 0.12);
+}
+
+.findings-status--success .findings-retry-btn {
+  display: none;
 }
 
 .findings-section {
@@ -1206,7 +1270,7 @@ h1 {
 }
 
 .findings-section h2 {
-  font-size: 1.15rem;
+  font-size: 1.18rem;
   font-weight: 500;
   color: var(--tmg-text);
   margin-bottom: 14px;
@@ -1214,16 +1278,16 @@ h1 {
 }
 
 .findings-context {
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   color: rgba(45, 52, 54, 0.72);
-  line-height: 1.7;
+  line-height: 1.75;
   margin-bottom: 12px;
 }
 
 .findings-answer {
-  font-size: 0.92rem;
+  font-size: 0.97rem;
   color: var(--tmg-text);
-  line-height: 1.7;
+  line-height: 1.75;
   margin-bottom: 20px;
   padding: 12px 16px;
   background: rgba(132, 169, 140, 0.08);
@@ -1241,15 +1305,15 @@ h1 {
 .findings-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.84rem;
+  font-size: 0.87rem;
   background: var(--tmg-white);
 }
 
 .findings-table th {
   text-align: left;
   padding: 7px 10px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.76rem;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: rgba(45, 52, 54, 0.72);
@@ -1293,9 +1357,9 @@ h1 {
 }
 
 .findings-note {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: rgba(45, 52, 54, 0.68);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .findings-note a {

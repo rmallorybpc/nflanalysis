@@ -10,8 +10,11 @@ const TEAM_IDS = [
 const spendingRequestCache = {};
 const overviewPayloadCache = {};
 let teamOutcomesCache = null;
+let findingsLoadInFlight = false;
 
 const FINDINGS_SEASONS = [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+const FETCH_TIMEOUT_MS = 12000;
+const FETCH_RETRIES = 1;
 
 function seasonLabel(year) {
   return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
@@ -35,6 +38,28 @@ function toFiniteNumber(value, fallback = 0) {
   return Number.isFinite(num) ? num : fallback;
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function fetchWithRetry(url, options = {}, retries = FETCH_RETRIES) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await fetchWithTimeout(url, options);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError || new Error("Network request failed");
+}
+
 function parseCsvCell(value) {
   const raw = String(value || "").trim();
   if (raw.length >= 2 && raw.startsWith('"') && raw.endsWith('"')) {
@@ -43,20 +68,84 @@ function parseCsvCell(value) {
   return raw;
 }
 
+function splitCsvLine(line) {
+  const values = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    const next = line[i + 1];
+    if (ch === '"') {
+      if (inQuotes && next === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (ch === "," && !inQuotes) {
+      values.push(current);
+      current = "";
+      continue;
+    }
+
+    current += ch;
+  }
+
+  values.push(current);
+  return values.map(parseCsvCell);
+}
+
 function parseCsvRows(csvText) {
   const lines = String(csvText || "").trim().split(/\r?\n/);
   if (lines.length <= 1) {
     return [];
   }
 
-  const headers = lines[0].split(",").map(parseCsvCell);
+  const headers = splitCsvLine(lines[0]);
   return lines.slice(1).map((line) => {
-    const values = line.split(",").map(parseCsvCell);
+    const values = splitCsvLine(line);
     const row = {};
     headers.forEach((header, index) => {
       row[header] = (values[index] || "").trim();
     });
     return row;
+  });
+}
+
+function setFindingsStatus(message, type = "info", options = {}) {
+  const { showRetry = false, loading = false } = options;
+  const el = document.getElementById("findingsStatus");
+  const textEl = document.getElementById("findingsStatusText");
+  const retryBtn = document.getElementById("findingsRetryBtn");
+  if (!el || !textEl) return;
+  textEl.textContent = message;
+  el.className = `findings-status findings-status--${type}`;
+  el.setAttribute("data-status", type);
+  if (retryBtn) {
+    retryBtn.hidden = !showRetry;
+    retryBtn.disabled = loading;
+  }
+}
+
+function resetFindingsCaches() {
+  Object.keys(spendingRequestCache).forEach((key) => {
+    delete spendingRequestCache[key];
+  });
+  Object.keys(overviewPayloadCache).forEach((key) => {
+    delete overviewPayloadCache[key];
+  });
+  teamOutcomesCache = null;
+}
+
+function statusTimestampLabel() {
+  return new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   });
 }
 
@@ -74,7 +163,7 @@ async function loadTeamOutcomes() {
   let csvText = "";
   for (const path of candidates) {
     try {
-      const resp = await fetch(path);
+      const resp = await fetchWithRetry(path);
       if (resp.ok) {
         csvText = await resp.text();
         break;
@@ -117,7 +206,7 @@ async function loadTeamOutcomes() {
 
 async function loadOverviewData(season) {
   const apiUrl = buildOverviewUrl(season);
-  const live = await fetch(apiUrl);
+  const live = await fetchWithRetry(apiUrl);
   if (!live.ok) {
     let detail = `status ${live.status}`;
     try {
@@ -159,7 +248,7 @@ async function loadSeasonSpendingByTeam(season, onProgress) {
         season: String(season),
       });
 
-      return fetch(`${API_BASE}/v1/dashboard/team-detail?${params.toString()}`)
+      return fetchWithRetry(`${API_BASE}/v1/dashboard/team-detail?${params.toString()}`)
         .then(async (resp) => {
           if (!resp.ok) {
             throw new Error(`status ${resp.status}`);
@@ -204,11 +293,19 @@ async function loadSeasonSpendingByTeam(season, onProgress) {
       throw new Error("Unable to load team spending data.");
     }
 
-    return spendByTeam;
+    return {
+      spendByTeam,
+      fulfilledCount,
+      totalCount: total,
+    };
   })();
 
-  spendingRequestCache[season] = promise;
-  return promise;
+  spendingRequestCache[season] = promise
+    .catch((err) => {
+      delete spendingRequestCache[season];
+      throw err;
+    });
+  return spendingRequestCache[season];
 }
 
 async function loadGeoTable() {
@@ -228,6 +325,7 @@ async function loadGeoTable() {
   };
 
   const rows = [];
+  let failedSeasons = 0;
 
   for (const season of FINDINGS_SEASONS) {
     try {
@@ -279,6 +377,7 @@ async function loadGeoTable() {
         </tr>
       `);
     } catch (_err) {
+      failedSeasons += 1;
       rows.push(`
         <tr>
           <td>${seasonLabel(season)}</td>
@@ -292,6 +391,11 @@ async function loadGeoTable() {
 
   tbody.innerHTML = rows.join("")
     || "<tr><td colspan=\"5\">No data available.</td></tr>";
+
+  return {
+    totalSeasons: FINDINGS_SEASONS.length,
+    failedSeasons,
+  };
 }
 
 async function loadSpendTable() {
@@ -307,12 +411,17 @@ async function loadSpendTable() {
     console.warn("Spending table loaded without win-change outcomes:", err);
   }
   const rows = [];
+  let failedSeasons = 0;
+  let partialSeasonCount = 0;
 
   for (const season of FINDINGS_SEASONS) {
     try {
-      const spendingByTeam = await loadSeasonSpendingByTeam(
+      const { spendByTeam: spendingByTeam, fulfilledCount, totalCount } = await loadSeasonSpendingByTeam(
         season, () => {}
       );
+      if (fulfilledCount < totalCount) {
+        partialSeasonCount += 1;
+      }
 
       const spends = Object.values(spendingByTeam)
         .map((t) => t.totalAavM)
@@ -375,6 +484,7 @@ async function loadSpendTable() {
         </tr>
       `);
     } catch (_err) {
+      failedSeasons += 1;
       rows.push(`
         <tr>
           <td>${seasonLabel(season)}</td>
@@ -388,9 +498,21 @@ async function loadSpendTable() {
 
   tbody.innerHTML = rows.join("")
     || "<tr><td colspan=\"7\">No data available.</td></tr>";
+
+  return {
+    totalSeasons: FINDINGS_SEASONS.length,
+    failedSeasons,
+    partialSeasonCount,
+    outcomesAvailable,
+  };
 }
 
 async function initFindings() {
+  if (findingsLoadInFlight) {
+    return;
+  }
+  findingsLoadInFlight = true;
+
   const params = new URLSearchParams(window.location.search);
   const season = params.get("season") || "2026";
   const teamId = toTeamId(params.get("team_id")) || "BUF";
@@ -409,12 +531,53 @@ async function initFindings() {
   if (overviewEl) overviewEl.href = `./index.html${linkSuffix}`;
   if (spendEl) spendEl.href = `./index.html${linkSuffix}`;
 
-  await Promise.all([
-    loadGeoTable(),
-    loadSpendTable(),
-  ]);
+  try {
+    setFindingsStatus("Loading findings data...", "info", { loading: true, showRetry: false });
+
+    const [geoSummary, spendSummary] = await Promise.all([
+      loadGeoTable(),
+      loadSpendTable(),
+    ]);
+
+    const hasFailures = (geoSummary?.failedSeasons || 0) > 0
+      || (spendSummary?.failedSeasons || 0) > 0;
+    const hasPartial = (spendSummary?.partialSeasonCount || 0) > 0
+      || !spendSummary?.outcomesAvailable;
+
+    const loadedAt = statusTimestampLabel();
+
+    if (hasFailures) {
+      setFindingsStatus(
+        `Some seasons could not be loaded. Tables show available rows only. Last updated at ${loadedAt}.`,
+        "warning",
+        { showRetry: true }
+      );
+    } else if (hasPartial) {
+      setFindingsStatus(
+        `Data loaded with partial coverage. Some win-change fields may show placeholders. Last updated at ${loadedAt}.`,
+        "warning",
+        { showRetry: true }
+      );
+    } else {
+      setFindingsStatus(
+        `All findings data loaded successfully. Last updated at ${loadedAt}.`,
+        "success",
+        { showRetry: false }
+      );
+    }
+  } finally {
+    findingsLoadInFlight = false;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const retryBtn = document.getElementById("findingsRetryBtn");
+  if (retryBtn) {
+    retryBtn.addEventListener("click", () => {
+      resetFindingsCaches();
+      initFindings().catch((err) => console.error(err));
+    });
+  }
+
   initFindings().catch((err) => console.error(err));
 });
