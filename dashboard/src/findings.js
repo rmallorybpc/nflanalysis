@@ -441,7 +441,10 @@ async function loadGeoTable(seasons) {
   for (const season of seasonList) {
     try {
       const payload = await loadOverviewBySeason(season);
-      const geoRows = (payload?.charts?.geography_impact_profile || [])
+      const sensitivityProfiles = payload?.charts?.geography_sensitivity_profiles || [];
+      const knownScopeProfile = sensitivityProfiles.find((profile) => profile.mode === "known_scope_only");
+
+      const geoRows = (knownScopeProfile?.points || payload?.charts?.geography_impact_profile || [])
         .filter((r) => r.outcome_name === "win_pct" && r.move_count > 0);
 
       if (geoRows.length < 2) {
@@ -462,6 +465,7 @@ async function loadGeoTable(seasons) {
         (a, b) => b.avg_abs_impact - a.avg_abs_impact
       );
       const strongest = sorted[0];
+      const summary = knownScopeProfile?.win_pct_summary || null;
 
       const fmtImpact = (v) => (v != null ? Number(v).toFixed(6) : "—");
 
@@ -485,6 +489,7 @@ async function loadGeoTable(seasons) {
           <td>
             ${scopeIcon[strongest.move_scope] || ""}
             ${scopeLabel[strongest.move_scope] || strongest.move_scope}
+            ${summary && summary.robustness_flag === false ? " (exploratory)" : ""}
           </td>
         </tr>
       `);

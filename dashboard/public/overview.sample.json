@@ -25,7 +25,14 @@
       "team",
       "division",
       "conference"
-    ]
+    ],
+    "geography_data_quality": {
+      "total_events": 3,
+      "unknown_scope_events": 0,
+      "unknown_scope_share": 0.0,
+      "missing_from_team_events": 0,
+      "destination_only_events": 0
+    }
   },
   "cards": {
     "top_positive_team": {
@@ -170,6 +177,221 @@
         "outcome_name": "offensive_epa_per_play",
         "move_count": 1,
         "avg_abs_impact": 0.002431
+      }
+    ],
+    "geography_sensitivity_profiles": [
+      {
+        "mode": "all_events",
+        "label": "All events",
+        "included_event_count": 3,
+        "excluded_event_count": 0,
+        "points": [
+          {
+            "move_scope": "same_division",
+            "outcome_name": "win_pct",
+            "move_count": 2,
+            "avg_abs_impact": 0.003671
+          },
+          {
+            "move_scope": "same_division",
+            "outcome_name": "point_diff_per_game",
+            "move_count": 2,
+            "avg_abs_impact": 0.051395
+          },
+          {
+            "move_scope": "same_division",
+            "outcome_name": "offensive_epa_per_play",
+            "move_count": 2,
+            "avg_abs_impact": 0.000786
+          },
+          {
+            "move_scope": "cross_division",
+            "outcome_name": "win_pct",
+            "move_count": 0,
+            "avg_abs_impact": 0.0
+          },
+          {
+            "move_scope": "cross_division",
+            "outcome_name": "point_diff_per_game",
+            "move_count": 0,
+            "avg_abs_impact": 0.0
+          },
+          {
+            "move_scope": "cross_division",
+            "outcome_name": "offensive_epa_per_play",
+            "move_count": 0,
+            "avg_abs_impact": 0.0
+          },
+          {
+            "move_scope": "cross_conference",
+            "outcome_name": "win_pct",
+            "move_count": 1,
+            "avg_abs_impact": 0.0121
+          },
+          {
+            "move_scope": "cross_conference",
+            "outcome_name": "point_diff_per_game",
+            "move_count": 1,
+            "avg_abs_impact": 0.169405
+          },
+          {
+            "move_scope": "cross_conference",
+            "outcome_name": "offensive_epa_per_play",
+            "move_count": 1,
+            "avg_abs_impact": 0.002431
+          }
+        ],
+        "win_pct_summary": {
+          "strongest_scope": "cross_conference",
+          "strongest_avg_abs_impact": 0.0121,
+          "strongest_move_count": 1,
+          "runner_up_scope": "same_division",
+          "runner_up_avg_abs_impact": 0.003671,
+          "robustness_flag": false,
+          "robustness_reason": "low_sample"
+        }
+      },
+      {
+        "mode": "known_scope_only",
+        "label": "Known scope only",
+        "included_event_count": 3,
+        "excluded_event_count": 0,
+        "points": [
+          {
+            "move_scope": "same_division",
+            "outcome_name": "win_pct",
+            "move_count": 2,
+            "avg_abs_impact": 0.003671
+          },
+          {
+            "move_scope": "same_division",
+            "outcome_name": "point_diff_per_game",
+            "move_count": 2,
+            "avg_abs_impact": 0.051395
+          },
+          {
+            "move_scope": "same_division",
+            "outcome_name": "offensive_epa_per_play",
+            "move_count": 2,
+            "avg_abs_impact": 0.000786
+          },
+          {
+            "move_scope": "cross_division",
+            "outcome_name": "win_pct",
+            "move_count": 0,
+            "avg_abs_impact": 0.0
+          },
+          {
+            "move_scope": "cross_division",
+            "outcome_name": "point_diff_per_game",
+            "move_count": 0,
+            "avg_abs_impact": 0.0
+          },
+          {
+            "move_scope": "cross_division",
+            "outcome_name": "offensive_epa_per_play",
+            "move_count": 0,
+            "avg_abs_impact": 0.0
+          },
+          {
+            "move_scope": "cross_conference",
+            "outcome_name": "win_pct",
+            "move_count": 1,
+            "avg_abs_impact": 0.0121
+          },
+          {
+            "move_scope": "cross_conference",
+            "outcome_name": "point_diff_per_game",
+            "move_count": 1,
+            "avg_abs_impact": 0.169405
+          },
+          {
+            "move_scope": "cross_conference",
+            "outcome_name": "offensive_epa_per_play",
+            "move_count": 1,
+            "avg_abs_impact": 0.002431
+          }
+        ],
+        "win_pct_summary": {
+          "strongest_scope": "cross_conference",
+          "strongest_avg_abs_impact": 0.0121,
+          "strongest_move_count": 1,
+          "runner_up_scope": "same_division",
+          "runner_up_avg_abs_impact": 0.003671,
+          "robustness_flag": false,
+          "robustness_reason": "low_sample"
+        }
+      },
+      {
+        "mode": "trades_only",
+        "label": "Trades only",
+        "included_event_count": 3,
+        "excluded_event_count": 0,
+        "points": [
+          {
+            "move_scope": "same_division",
+            "outcome_name": "win_pct",
+            "move_count": 2,
+            "avg_abs_impact": 0.003671
+          },
+          {
+            "move_scope": "same_division",
+            "outcome_name": "point_diff_per_game",
+            "move_count": 2,
+            "avg_abs_impact": 0.051395
+          },
+          {
+            "move_scope": "same_division",
+            "outcome_name": "offensive_epa_per_play",
+            "move_count": 2,
+            "avg_abs_impact": 0.000786
+          },
+          {
+            "move_scope": "cross_division",
+            "outcome_name": "win_pct",
+            "move_count": 0,
+            "avg_abs_impact": 0.0
+          },
+          {
+            "move_scope": "cross_division",
+            "outcome_name": "point_diff_per_game",
+            "move_count": 0,
+            "avg_abs_impact": 0.0
+          },
+          {
+            "move_scope": "cross_division",
+            "outcome_name": "offensive_epa_per_play",
+            "move_count": 0,
+            "avg_abs_impact": 0.0
+          },
+          {
+            "move_scope": "cross_conference",
+            "outcome_name": "win_pct",
+            "move_count": 1,
+            "avg_abs_impact": 0.0121
+          },
+          {
+            "move_scope": "cross_conference",
+            "outcome_name": "point_diff_per_game",
+            "move_count": 1,
+            "avg_abs_impact": 0.169405
+          },
+          {
+            "move_scope": "cross_conference",
+            "outcome_name": "offensive_epa_per_play",
+            "move_count": 1,
+            "avg_abs_impact": 0.002431
+          }
+        ],
+        "win_pct_summary": {
+          "strongest_scope": "cross_conference",
+          "strongest_avg_abs_impact": 0.0121,
+          "strongest_move_count": 1,
+          "runner_up_scope": "same_division",
+          "runner_up_avg_abs_impact": 0.003671,
+          "robustness_flag": false,
+          "robustness_reason": "low_sample"
+        }
       }
     ]
   }

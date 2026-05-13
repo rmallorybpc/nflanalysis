@@ -10,6 +10,9 @@ from pathlib import Path
 from typing import Any
 
 OUTCOME_ORDER = ["win_pct", "point_diff_per_game", "offensive_epa_per_play"]
+ALLOWED_MOVE_SCOPES = ["same_division", "cross_division", "cross_conference"]
+ALLOWED_MOVE_TYPES = {"trade", "free_agency"}
+MIN_ROBUST_MOVE_COUNT = 10
 
 TEAM_GEO = {
     "ARI": ("NFC", "West"),
@@ -329,72 +332,146 @@ class CounterfactualService:
             )
         return points
 
-    def _build_geography_impact_profile(self, seasons: list[int]) -> list[dict[str, Any]]:
-        movement_rows = _read_csv(self.config.movement_events)
-        allowed_scopes = ["same_division", "cross_division", "cross_conference"]
+    def _move_effect_for_profile(
+        self,
+        player_id: str,
+        to_team: str,
+        scope: str,
+        outcome: str,
+    ) -> float:
+        # Reuse the scenario layering so geography comparisons stay consistent.
+        player_effect = self.effect_map.get((outcome, "player", player_id), None)
+        position_group = self.player_group.get(player_id, "other")
+        pos_team_key = f"{position_group}|{to_team}"
+        pos_team_effect = self.effect_map.get((outcome, "position_team", pos_team_key), None)
 
+        if player_effect is not None or pos_team_effect is not None:
+            raw_effect = (player_effect or 0.0) + (pos_team_effect or 0.0)
+        else:
+            feature_name = POSITION_GROUP_FEATURE.get(position_group)
+            raw_effect = 0.0
+            if feature_name:
+                coef = self.baseline_coefs.get((outcome, feature_name), 0.0)
+                raw_effect = coef * 1.0
+
+        geo_feature_name = GEOGRAPHY_FEATURE.get(scope)
+        if geo_feature_name:
+            raw_effect += self.baseline_coefs.get((outcome, geo_feature_name), 0.0)
+
+        return abs(raw_effect)
+
+    def _resolve_scope_for_mode(
+        self,
+        row: dict[str, str],
+        *,
+        require_known_scope: bool,
+        allow_destination_inference: bool,
+    ) -> str | None:
+        explicit_scope = (row.get("move_scope", "") or "").strip()
+        from_team = (row.get("from_team_id", "") or "").strip()
+        to_team = (row.get("to_team_id", "") or "").strip()
+
+        if explicit_scope in GEOGRAPHY_FEATURE:
+            return explicit_scope
+
+        if from_team and to_team:
+            inferred = _move_scope(from_team, to_team)
+            return inferred if inferred in GEOGRAPHY_FEATURE else None
+
+        if allow_destination_inference and to_team:
+            inferred = _infer_scope_from_destination(to_team)
+            return inferred if inferred in GEOGRAPHY_FEATURE else None
+
+        if require_known_scope:
+            return None
+
+        return None
+
+    def _mode_strongest_scope_summary(self, points: list[dict[str, Any]]) -> dict[str, Any]:
+        win_rows = [
+            row for row in points
+            if row["outcome_name"] == "win_pct" and int(row.get("move_count", 0)) > 0
+        ]
+        if len(win_rows) < 2:
+            return {
+                "strongest_scope": "",
+                "strongest_avg_abs_impact": 0.0,
+                "strongest_move_count": 0,
+                "runner_up_scope": "",
+                "runner_up_avg_abs_impact": 0.0,
+                "robustness_flag": False,
+                "robustness_reason": "insufficient_scope_coverage",
+            }
+
+        sorted_rows = sorted(win_rows, key=lambda row: float(row["avg_abs_impact"]), reverse=True)
+        top = sorted_rows[0]
+        runner_up = sorted_rows[1]
+
+        top_count = int(top["move_count"])
+        runner_up_count = int(runner_up["move_count"])
+        robust = top_count >= MIN_ROBUST_MOVE_COUNT and runner_up_count >= MIN_ROBUST_MOVE_COUNT
+        reason = "ok" if robust else "low_sample"
+
+        return {
+            "strongest_scope": str(top["move_scope"]),
+            "strongest_avg_abs_impact": float(top["avg_abs_impact"]),
+            "strongest_move_count": top_count,
+            "runner_up_scope": str(runner_up["move_scope"]),
+            "runner_up_avg_abs_impact": float(runner_up["avg_abs_impact"]),
+            "robustness_flag": robust,
+            "robustness_reason": reason,
+        }
+
+    def _build_geography_profile_mode(
+        self,
+        movement_rows: list[dict[str, str]],
+        seasons: list[int],
+        *,
+        mode: str,
+        label: str,
+        include_move_types: set[str],
+        require_known_scope: bool,
+        allow_destination_inference: bool,
+    ) -> dict[str, Any]:
         buckets: dict[tuple[str, str], list[float]] = {
             (scope, outcome): []
-            for scope in allowed_scopes
+            for scope in ALLOWED_MOVE_SCOPES
             for outcome in OUTCOME_ORDER
         }
 
+        included_events = 0
+        excluded_events = 0
         allowed_seasons = {str(season) for season in seasons}
         for row in movement_rows:
             if row.get("nfl_season", "").strip() not in allowed_seasons:
                 continue
+
             move_type = row.get("move_type", "").strip()
-            if move_type not in {"trade", "free_agency"}:
+            if move_type not in include_move_types:
                 continue
 
-            from_team = row.get("from_team_id", "").strip()
-            to_team = row.get("to_team_id", "").strip()
-
-            if from_team and to_team:
-                scope = _resolve_move_scope(from_team, to_team, row.get("move_scope", ""))
-            elif to_team:
-                scope = _resolve_move_scope(from_team, to_team, row.get("move_scope", ""))
-            else:
-                scope = _resolve_move_scope(from_team, to_team, row.get("move_scope", ""))
-
-            if scope not in allowed_scopes:
+            scope = self._resolve_scope_for_mode(
+                row,
+                require_known_scope=require_known_scope,
+                allow_destination_inference=allow_destination_inference,
+            )
+            if scope not in ALLOWED_MOVE_SCOPES:
+                excluded_events += 1
                 continue
 
-            player_id = row.get("player_id", "").strip()
+            to_team = (row.get("to_team_id", "") or "").strip()
+            if not to_team:
+                excluded_events += 1
+                continue
+
+            included_events += 1
+            player_id = (row.get("player_id", "") or "").strip()
             for outcome in OUTCOME_ORDER:
-                # Layer 1: player-level hierarchical effect
-                player_effect = self.effect_map.get(
-                    (outcome, "player", player_id), None
-                )
-
-                # Layer 2: position-team hierarchical effect
-                position_group = self.player_group.get(player_id, "other")
-                pos_team_key = f"{position_group}|{to_team}"
-                pos_team_effect = self.effect_map.get(
-                    (outcome, "position_team", pos_team_key), None
-                )
-
-                if player_effect is not None or pos_team_effect is not None:
-                    raw_effect = (player_effect or 0.0) + (pos_team_effect or 0.0)
-                else:
-                    # Layer 3: baseline coefficient fallback
-                    feature_name = POSITION_GROUP_FEATURE.get(position_group)
-                    raw_effect = 0.0
-                    if feature_name:
-                        coef = self.baseline_coefs.get(
-                            (outcome, feature_name), 0.0
-                        )
-                        raw_effect = coef * 1.0
-
-                geo_feature_name = GEOGRAPHY_FEATURE.get(scope)
-                if geo_feature_name:
-                    raw_effect += self.baseline_coefs.get((outcome, geo_feature_name), 0.0)
-
-                effect = abs(raw_effect)
+                effect = self._move_effect_for_profile(player_id, to_team, scope, outcome)
                 buckets[(scope, outcome)].append(effect)
 
         points: list[dict[str, Any]] = []
-        for scope in allowed_scopes:
+        for scope in ALLOWED_MOVE_SCOPES:
             for outcome in OUTCOME_ORDER:
                 values = buckets[(scope, outcome)]
                 count = len(values)
@@ -407,7 +484,106 @@ class CounterfactualService:
                         "avg_abs_impact": round(avg_abs, 6),
                     }
                 )
-        return points
+
+        return {
+            "mode": mode,
+            "label": label,
+            "included_event_count": included_events,
+            "excluded_event_count": excluded_events,
+            "points": points,
+            "win_pct_summary": self._mode_strongest_scope_summary(points),
+        }
+
+    def _build_geography_diagnostics(
+        self,
+        movement_rows: list[dict[str, str]],
+        seasons: list[int],
+    ) -> dict[str, int | float]:
+        allowed_seasons = {str(season) for season in seasons}
+        total_events = 0
+        missing_from_team = 0
+        destination_only_events = 0
+        unknown_scope_events = 0
+
+        for row in movement_rows:
+            if row.get("nfl_season", "").strip() not in allowed_seasons:
+                continue
+
+            move_type = row.get("move_type", "").strip()
+            if move_type not in ALLOWED_MOVE_TYPES:
+                continue
+
+            total_events += 1
+            from_team = (row.get("from_team_id", "") or "").strip()
+            to_team = (row.get("to_team_id", "") or "").strip()
+            explicit_scope = (row.get("move_scope", "") or "").strip()
+
+            if not from_team:
+                missing_from_team += 1
+            if to_team and not from_team:
+                destination_only_events += 1
+
+            if explicit_scope in GEOGRAPHY_FEATURE:
+                continue
+            if from_team and to_team and _move_scope(from_team, to_team) in GEOGRAPHY_FEATURE:
+                continue
+            unknown_scope_events += 1
+
+        unknown_share = (unknown_scope_events / total_events) if total_events else 0.0
+        return {
+            "total_events": total_events,
+            "unknown_scope_events": unknown_scope_events,
+            "unknown_scope_share": round(unknown_share, 6),
+            "missing_from_team_events": missing_from_team,
+            "destination_only_events": destination_only_events,
+        }
+
+    def _build_geography_impact_profile(self, seasons: list[int]) -> list[dict[str, Any]]:
+        movement_rows = _read_csv(self.config.movement_events)
+        mode_profile = self._build_geography_profile_mode(
+            movement_rows,
+            seasons,
+            mode="all_events",
+            label="All events",
+            include_move_types=ALLOWED_MOVE_TYPES,
+            require_known_scope=False,
+            allow_destination_inference=True,
+        )
+        return mode_profile["points"]
+
+    def _build_geography_sensitivity_profiles(self, seasons: list[int]) -> tuple[list[dict[str, Any]], dict[str, int | float]]:
+        movement_rows = _read_csv(self.config.movement_events)
+        profiles = [
+            self._build_geography_profile_mode(
+                movement_rows,
+                seasons,
+                mode="all_events",
+                label="All events",
+                include_move_types=ALLOWED_MOVE_TYPES,
+                require_known_scope=False,
+                allow_destination_inference=True,
+            ),
+            self._build_geography_profile_mode(
+                movement_rows,
+                seasons,
+                mode="known_scope_only",
+                label="Known scope only",
+                include_move_types=ALLOWED_MOVE_TYPES,
+                require_known_scope=True,
+                allow_destination_inference=False,
+            ),
+            self._build_geography_profile_mode(
+                movement_rows,
+                seasons,
+                mode="trades_only",
+                label="Trades only",
+                include_move_types={"trade"},
+                require_known_scope=True,
+                allow_destination_inference=False,
+            ),
+        ]
+        diagnostics = self._build_geography_diagnostics(movement_rows, seasons)
+        return profiles, diagnostics
 
     def _team_base_rows(self, team_id: str, season: int, week: int | None) -> list[dict[str, str]]:
         self._validate_season_available(season)
@@ -565,6 +741,7 @@ class CounterfactualService:
         available_seasons = self._available_seasons()
         season_coverage = self._build_season_coverage(available_seasons)
         geography_profile = self._build_geography_impact_profile([season])
+        geography_sensitivity_profiles, geography_quality = self._build_geography_sensitivity_profiles([season])
         season_events = [
             row
             for row in _read_csv(self.config.movement_events)
@@ -597,6 +774,7 @@ class CounterfactualService:
                 "move_type_counts": move_type_counts,
                 "outcomes": OUTCOME_ORDER,
                 "geography_dimensions": ["team", "division", "conference"],
+                "geography_data_quality": geography_quality,
                 "season_anomaly": anomaly_tags,
             },
             "cards": {
@@ -610,6 +788,7 @@ class CounterfactualService:
                 "outcome_distribution": dist_points,
                 "season_coverage": season_coverage,
                 "geography_impact_profile": geography_profile,
+                "geography_sensitivity_profiles": geography_sensitivity_profiles,
             },
         }
 

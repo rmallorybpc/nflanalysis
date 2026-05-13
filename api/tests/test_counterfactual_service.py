@@ -129,6 +129,14 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertIn("move_type_counts", scope)
         self.assertIn("outcomes", scope)
         self.assertIn("geography_dimensions", scope)
+        self.assertIn("geography_data_quality", scope)
+
+        data_quality = scope["geography_data_quality"]
+        self.assertIn("total_events", data_quality)
+        self.assertIn("unknown_scope_events", data_quality)
+        self.assertIn("unknown_scope_share", data_quality)
+        self.assertIn("missing_from_team_events", data_quality)
+        self.assertIn("destination_only_events", data_quality)
 
         cards = payload["cards"]
         self.assertIn("top_positive_team", cards)
@@ -141,6 +149,12 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertGreaterEqual(len(charts["outcome_distribution"]), 1)
         self.assertGreaterEqual(len(charts["season_coverage"]), 1)
         self.assertGreaterEqual(len(charts["geography_impact_profile"]), 1)
+        self.assertGreaterEqual(len(charts["geography_sensitivity_profiles"]), 1)
+
+        mode_names = {row["mode"] for row in charts["geography_sensitivity_profiles"]}
+        self.assertIn("all_events", mode_names)
+        self.assertIn("known_scope_only", mode_names)
+        self.assertIn("trades_only", mode_names)
 
     def test_overview_move_type_counts_are_season_filtered(self) -> None:
         seasons = sorted({int(row["nfl_season"]) for row in self.service.model_rows})

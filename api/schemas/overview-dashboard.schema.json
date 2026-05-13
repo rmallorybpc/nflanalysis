@@ -54,7 +54,8 @@
         "league_ranking",
         "outcome_distribution",
         "season_coverage",
-        "geography_impact_profile"
+        "geography_impact_profile",
+        "geography_sensitivity_profiles"
       ],
       "properties": {
         "league_ranking": {
@@ -83,6 +84,13 @@
           "minItems": 1,
           "items": {
             "$ref": "#/$defs/GeographyImpactPoint"
+          }
+        },
+        "geography_sensitivity_profiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/GeographySensitivityProfile"
           }
         }
       },
@@ -211,7 +219,8 @@
         "included_move_types",
         "move_type_counts",
         "outcomes",
-        "geography_dimensions"
+        "geography_dimensions",
+        "geography_data_quality"
       ],
       "properties": {
         "season_range": {
@@ -280,6 +289,9 @@
             "type": "string",
             "enum": ["team", "division", "conference"]
           }
+        },
+        "geography_data_quality": {
+          "$ref": "#/$defs/GeographyDataQuality"
         }
       },
       "additionalProperties": false
@@ -338,6 +350,118 @@
         "avg_abs_impact": {
           "type": "number",
           "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "GeographyDataQuality": {
+      "type": "object",
+      "required": [
+        "total_events",
+        "unknown_scope_events",
+        "unknown_scope_share",
+        "missing_from_team_events",
+        "destination_only_events"
+      ],
+      "properties": {
+        "total_events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unknown_scope_events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unknown_scope_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "missing_from_team_events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "destination_only_events": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "GeographyModeSummary": {
+      "type": "object",
+      "required": [
+        "strongest_scope",
+        "strongest_avg_abs_impact",
+        "strongest_move_count",
+        "runner_up_scope",
+        "runner_up_avg_abs_impact",
+        "robustness_flag",
+        "robustness_reason"
+      ],
+      "properties": {
+        "strongest_scope": {
+          "type": "string"
+        },
+        "strongest_avg_abs_impact": {
+          "type": "number",
+          "minimum": 0
+        },
+        "strongest_move_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runner_up_scope": {
+          "type": "string"
+        },
+        "runner_up_avg_abs_impact": {
+          "type": "number",
+          "minimum": 0
+        },
+        "robustness_flag": {
+          "type": "boolean"
+        },
+        "robustness_reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GeographySensitivityProfile": {
+      "type": "object",
+      "required": [
+        "mode",
+        "label",
+        "included_event_count",
+        "excluded_event_count",
+        "points",
+        "win_pct_summary"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["all_events", "known_scope_only", "trades_only"]
+        },
+        "label": {
+          "type": "string"
+        },
+        "included_event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "excluded_event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "points": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/GeographyImpactPoint"
+          }
+        },
+        "win_pct_summary": {
+          "$ref": "#/$defs/GeographyModeSummary"
         }
       },
       "additionalProperties": false

@@ -30,6 +30,7 @@ class OverviewPayloadTests(unittest.TestCase):
         self.assertIn("move_type_counts", scope)
         self.assertIn("outcomes", scope)
         self.assertIn("geography_dimensions", scope)
+        self.assertIn("geography_data_quality", scope)
 
         cards = payload["cards"]
         self.assertIn("top_positive_team", cards)
@@ -42,6 +43,7 @@ class OverviewPayloadTests(unittest.TestCase):
         self.assertGreaterEqual(len(charts["outcome_distribution"]), 1)
         self.assertGreaterEqual(len(charts["season_coverage"]), 1)
         self.assertGreaterEqual(len(charts["geography_impact_profile"]), 1)
+        self.assertGreaterEqual(len(charts["geography_sensitivity_profiles"]), 1)
 
 
 if __name__ == "__main__":
