@@ -286,7 +286,14 @@ async function loadSpendTable() {
   const tbody = document.getElementById("spendTableBody");
   if (!tbody) return;
 
-  const outcomes = await loadTeamOutcomes();
+  let outcomes = {};
+  let outcomesAvailable = true;
+  try {
+    outcomes = await loadTeamOutcomes();
+  } catch (err) {
+    outcomesAvailable = false;
+    console.warn("Spending table loaded without win-change outcomes:", err);
+  }
   const rows = [];
 
   for (const season of FINDINGS_SEASONS) {
@@ -305,17 +312,17 @@ async function loadSpendTable() {
       const topSpender = Object.values(spendingByTeam)
         .sort((a, b) => b.totalAavM - a.totalAavM)[0];
 
-      const topSpenderWins = outcomes[
+      const topSpenderWins = outcomesAvailable ? outcomes[
         `${season}:${topSpender?.teamId}`
-      ];
-      const topSpenderPriorWins = outcomes[
+      ] : null;
+      const topSpenderPriorWins = outcomesAvailable ? outcomes[
         `${season - 1}:${topSpender?.teamId}`
-      ];
+      ] : null;
       const topSpenderDelta = topSpenderWins && topSpenderPriorWins
         ? topSpenderWins.wins - topSpenderPriorWins.wins
         : null;
 
-      const winGains = TEAM_IDS.map((teamId) => {
+      const winGains = outcomesAvailable ? TEAM_IDS.map((teamId) => {
         const cur = outcomes[`${season}:${teamId}`];
         const prev = outcomes[`${season - 1}:${teamId}`];
         if (!cur || !prev) return null;
@@ -324,7 +331,7 @@ async function loadSpendTable() {
           delta: cur.wins - prev.wins,
           spend: spendingByTeam[teamId]?.totalAavM || 0,
         };
-      }).filter(Boolean);
+      }).filter(Boolean) : [];
 
       const biggestGain = winGains.sort(
         (a, b) => b.delta - a.delta
