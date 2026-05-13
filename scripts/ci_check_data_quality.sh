@@ -444,6 +444,33 @@ PY
 
 python3 - <<'PY'
 import csv
+from collections import Counter
+
+with open("data/processed/model_outputs_hierarchical.csv", newline="", encoding="utf-8") as f:
+  rows = list(csv.DictReader(f))
+
+if not rows:
+  raise SystemExit("model_outputs_hierarchical.csv is empty")
+
+keys = [
+  (
+    row.get("team_id", "").strip(),
+    row.get("nfl_season", "").strip(),
+    row.get("outcome_name", "").strip(),
+  )
+  for row in rows
+]
+
+dupes = [(key, count) for key, count in Counter(keys).items() if count > 1]
+if dupes:
+  print(f"DUPLICATE MODEL OUTPUT ROWS: {dupes[:10]}")
+  raise SystemExit("Model outputs contain duplicate team+season+outcome rows")
+
+print(f"Model output uniqueness check passed ({len(rows)} rows, {len(set(keys))} unique combinations)")
+PY
+
+python3 - <<'PY'
+import csv
 
 blocklist_path = "data/raw/offseason/player_blocklist.csv"
 events_path = "data/processed/movement_events.csv"

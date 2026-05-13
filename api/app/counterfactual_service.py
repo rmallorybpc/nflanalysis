@@ -502,7 +502,16 @@ class CounterfactualService:
         rank_rows = [row for row in latest_rows if row["outcome_name"].strip() == "win_pct"]
         rank_rows.sort(key=lambda row: _to_float(row["mis_value"], "mis_value"), reverse=True)
 
-        if not rank_rows:
+        deduped_rank_rows = []
+        seen_teams: set[str] = set()
+        for row in rank_rows:
+            team_id = row["team_id"].strip()
+            if team_id in seen_teams:
+                continue
+            seen_teams.add(team_id)
+            deduped_rank_rows.append(row)
+
+        if not deduped_rank_rows:
             raise ValueError("no ranking rows available for win_pct outcome")
 
         def to_card(row: dict[str, str]) -> dict[str, Any]:
@@ -520,12 +529,12 @@ class CounterfactualService:
                 "data_version": row["data_version"].strip(),
             }
 
-        league_net_mis = sum(_to_float(row["mis_value"], "mis_value") for row in rank_rows)
-        high_conf_count = sum(1 for row in rank_rows if row["low_confidence_flag"].strip().lower() == "false")
-        high_conf_share = high_conf_count / len(rank_rows)
+        league_net_mis = sum(_to_float(row["mis_value"], "mis_value") for row in deduped_rank_rows)
+        high_conf_count = sum(1 for row in deduped_rank_rows if row["low_confidence_flag"].strip().lower() == "false")
+        high_conf_share = high_conf_count / len(deduped_rank_rows)
 
         ranking_points = []
-        for index, row in enumerate(rank_rows, start=1):
+        for index, row in enumerate(deduped_rank_rows, start=1):
             ranking_points.append(
                 {
                     "rank": index,
@@ -556,17 +565,27 @@ class CounterfactualService:
         available_seasons = self._available_seasons()
         season_coverage = self._build_season_coverage(available_seasons)
         geography_profile = self._build_geography_impact_profile([season])
+        season_events = [
+            row
+            for row in _read_csv(self.config.movement_events)
+            if int(row.get("nfl_season", "0") or 0) == season
+        ]
         move_type_counts = {"trade": 0, "free_agency": 0}
-        for row in _read_csv(self.config.movement_events):
-            if int(row.get("nfl_season", "0") or 0) != season:
-                continue
+        for row in season_events:
             move_type = row.get("move_type", "").strip()
             if move_type in move_type_counts:
                 move_type_counts[move_type] += 1
+        anomaly_tags = sorted(
+            {
+                row.get("season_anomaly", "").strip()
+                for row in season_events
+                if row.get("season_anomaly", "").strip()
+            }
+        )
 
         return {
             "season": season,
-            "generated_at": rank_rows[0]["generated_at"].strip(),
+            "generated_at": deduped_rank_rows[0]["generated_at"].strip(),
             "scope": {
                 "season_range": {
                     "start": available_seasons[0],
@@ -578,10 +597,11 @@ class CounterfactualService:
                 "move_type_counts": move_type_counts,
                 "outcomes": OUTCOME_ORDER,
                 "geography_dimensions": ["team", "division", "conference"],
+                "season_anomaly": anomaly_tags,
             },
             "cards": {
-                "top_positive_team": to_card(rank_rows[0]),
-                "top_negative_team": to_card(rank_rows[-1]),
+                "top_positive_team": to_card(deduped_rank_rows[0]),
+                "top_negative_team": to_card(deduped_rank_rows[-1]),
                 "league_net_mis": round(league_net_mis, 6),
                 "high_confidence_share": round(high_conf_share, 6),
             },
@@ -656,6 +676,7 @@ class CounterfactualService:
 
         movement_rows = _read_csv(self.config.movement_events)
         relevant_moves = []
+        team_events = []
         for row in movement_rows:
             if row.get("season_phase", "").strip() != "regular":
                 continue
@@ -663,6 +684,8 @@ class CounterfactualService:
                 continue
             if row.get("to_team_id", "").strip() != team_id and row.get("from_team_id", "").strip() != team_id:
                 continue
+
+            team_events.append(row)
 
             sign = 1.0 if row.get("to_team_id", "").strip() == team_id else -1.0
             player_id = row.get("player_id", "").strip()
@@ -766,10 +789,19 @@ class CounterfactualService:
             "data_version": win_pct_row["data_version"].strip(),
         }
 
+        anomaly_tags = sorted(
+            {
+                row.get("season_anomaly", "").strip()
+                for row in team_events
+                if row.get("season_anomaly", "").strip()
+            }
+        )
+
         return {
             "team_id": team_id,
             "season": season,
             "generated_at": win_pct_row["generated_at"].strip(),
+            "season_anomaly": anomaly_tags,
             "cards": {
                 "current_mis": current_mis,
                 "inbound_move_count": int(_to_float(feature_row["inbound_move_count"], "inbound_move_count")),
