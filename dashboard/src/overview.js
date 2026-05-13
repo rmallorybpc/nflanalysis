@@ -18,6 +18,7 @@ const overviewPayloadCache = {};
 let teamOutcomesCache = null;
 let spendingResizeBound = false;
 let activeSpendingSeason = null;
+let rankingExpanded = false;
 
 function seasonLabel(year) {
   return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
@@ -180,6 +181,7 @@ function isOverviewPayload(payload) {
 }
 
 function resetRenderedData() {
+  rankingExpanded = false;
   document.getElementById("topPositiveCard").innerHTML = "";
   document.getElementById("topNegativeCard").innerHTML = "";
   document.getElementById("leagueCard").innerHTML = "";
@@ -193,6 +195,10 @@ function resetRenderedData() {
   document.getElementById("seasonCoverageChart").innerHTML = "";
   document.getElementById("geographyChart").innerHTML = "";
   document.getElementById("spendingChart").innerHTML = "";
+  const rankingExpandBtn = document.getElementById("rankingExpandBtn");
+  if (rankingExpandBtn) {
+    rankingExpandBtn.style.display = "none";
+  }
   const scorecardSection = document.getElementById("teamScorecardSection");
   if (scorecardSection) scorecardSection.style.display = "none";
 }
@@ -936,6 +942,49 @@ function renderRanking(payload) {
     });
     container.appendChild(node);
   });
+
+  applyRankingCollapse();
+}
+
+function applyRankingCollapse() {
+  const container = document.getElementById("rankingChart");
+  if (!container) return;
+
+  const rows = [...container.children].filter(
+    (el) => el.classList.contains("bar-row")
+      || el.tagName === "LI"
+      || el.dataset.teamId
+  );
+
+  if (rows.length === 0) return;
+
+  let selectedIdx = rows.findIndex((row) => row.classList.contains("ranking-row-selected"));
+  if (selectedIdx < 0) selectedIdx = 0;
+
+  const windowStart = Math.max(0, selectedIdx - 2);
+  const windowEnd = Math.min(rows.length - 1, selectedIdx + 2);
+
+  if (rankingExpanded) {
+    rows.forEach((row) => {
+      row.style.display = "";
+    });
+  } else {
+    rows.forEach((row, index) => {
+      row.style.display = index >= windowStart && index <= windowEnd ? "" : "none";
+    });
+  }
+
+  const btn = document.getElementById("rankingExpandBtn");
+  if (!btn) return;
+
+  if (rankingExpanded) {
+    btn.textContent = "Show top 5 only ↑";
+    btn.setAttribute("aria-expanded", "true");
+  } else {
+    btn.textContent = `Show all ${rows.length} teams ↓`;
+    btn.setAttribute("aria-expanded", "false");
+  }
+  btn.style.display = rows.length > 5 ? "" : "none";
 }
 
 function renderDistribution(payload) {
@@ -1124,8 +1173,12 @@ async function loadOverviewData(season) {
 }
 
 async function refreshOverview() {
+  const previousSeason = state.season;
   state.season = getNumberInputValue("seasonInput", state.season);
   state.teamId = toTeamId(document.getElementById("teamInput").value) || state.teamId;
+  if (state.season !== previousSeason) {
+    rankingExpanded = false;
+  }
   syncControls();
   writeQueryState();
   showOverviewSkeletons();
@@ -1193,6 +1246,7 @@ function bindControls() {
     const normalized = toTeamId(event.target.value);
     if (normalized) {
       state.teamId = normalized;
+      rankingExpanded = false;
       updateTeamLinks();
       document.querySelectorAll("#rankingChart .bar-row").forEach((el) => {
         const label = el.querySelector(".bar-label")?.textContent?.trim();
@@ -1202,9 +1256,22 @@ function bindControls() {
           el.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
       });
+      applyRankingCollapse();
       renderTeamScorecard();
     }
   });
+
+  document.getElementById("seasonInput").addEventListener("change", () => {
+    rankingExpanded = false;
+  });
+
+  const expandBtn = document.getElementById("rankingExpandBtn");
+  if (expandBtn) {
+    expandBtn.addEventListener("click", () => {
+      rankingExpanded = !rankingExpanded;
+      applyRankingCollapse();
+    });
+  }
 
   ["seasonInput", "teamInput"].forEach((id) => {
     document.getElementById(id).addEventListener("keydown", (event) => {

@@ -473,6 +473,31 @@ h1 {
   color: var(--color-primary, #0f7f7c);
 }
 
+.ranking-expand-btn {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 7px 12px;
+  background: transparent;
+  border: 1px solid var(--color-border, #334155);
+  border-radius: 4px;
+  color: var(--color-primary, #0f7f7c);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s;
+}
+
+.ranking-expand-btn:hover {
+  background: rgba(15, 127, 124, 0.08);
+}
+
+.ranking-expand-btn:focus-visible {
+  outline: 2px solid var(--color-primary, #0f7f7c);
+  outline-offset: 2px;
+}
+
 .bar-label,
 .bar-value,
 .stack-label {
