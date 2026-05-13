@@ -9,6 +9,8 @@ const TEAM_IDS = [
 
 const spendingRequestCache = {};
 const overviewPayloadCache = {};
+const seasonSpendIndexCache = {};
+const teamDetailSpendCache = {};
 let teamOutcomesCache = null;
 let findingsLoadInFlight = false;
 
@@ -249,6 +251,26 @@ function statusTimestampLabel() {
   });
 }
 
+function ensureGeographyCaveatNote() {
+  const expectedText = "Note: Geography classifications require a known prior team for each signing. Moves where the player's prior team is unavailable are excluded from this comparison. Sample sizes vary by season - treat these figures as directional, not definitive.";
+
+  const existing = document.querySelector(".findings-caveat");
+  if (existing) {
+    existing.textContent = expectedText;
+    return;
+  }
+
+  const geoTableWrap = document.querySelector("#geoTable")?.closest(".findings-table-wrap");
+  if (!geoTableWrap || !geoTableWrap.parentElement) {
+    return;
+  }
+
+  const caveat = document.createElement("p");
+  caveat.className = "findings-caveat";
+  caveat.textContent = expectedText;
+  geoTableWrap.insertAdjacentElement("afterend", caveat);
+}
+
 async function loadTeamOutcomes() {
   if (teamOutcomesCache) {
     return teamOutcomesCache;
@@ -330,6 +352,113 @@ async function loadOverviewBySeason(season) {
   const payload = await loadOverviewData(season);
   overviewPayloadCache[season] = payload;
   return payload;
+}
+
+async function loadSeasonSpendIndex() {
+  if (seasonSpendIndexCache.index) {
+    return seasonSpendIndexCache.index;
+  }
+
+  const candidates = [
+    "../../data/processed/movement_events.csv",
+    "/data/processed/movement_events.csv",
+    "/nflanalysis/data/processed/movement_events.csv",
+  ];
+
+  let csvText = "";
+  for (const path of candidates) {
+    try {
+      const resp = await fetchWithRetry(path);
+      if (resp.ok) {
+        csvText = await resp.text();
+        break;
+      }
+    } catch (_err) {
+      // Try the next candidate.
+    }
+  }
+
+  if (!csvText) {
+    throw new Error("Unable to load movement events for spending lookup.");
+  }
+
+  const rows = parseCsvRows(csvText);
+  const indexed = {};
+
+  rows.forEach((row) => {
+    const season = Number(row.nfl_season);
+    const teamId = toTeamId(row.to_team_id);
+    const moveType = String(row.move_type || "").toLowerCase();
+    if (!Number.isFinite(season) || !teamId || moveType !== "free_agency") {
+      return;
+    }
+
+    const key = `${season}:${teamId}`;
+    const current = indexed[key] || {
+      teamId,
+      season,
+      totalAavRaw: 0,
+      moveCount: 0,
+    };
+
+    current.totalAavRaw += toFiniteNumber(row.contract_aav, 0);
+    current.moveCount += 1;
+    indexed[key] = current;
+  });
+
+  seasonSpendIndexCache.index = indexed;
+  return indexed;
+}
+
+async function loadTeamDetailSpendByTeam(season, teamId) {
+  const normalizedTeamId = toTeamId(teamId);
+  if (!normalizedTeamId) {
+    return null;
+  }
+
+  const cacheKey = `${season}:${normalizedTeamId}`;
+  if (teamDetailSpendCache[cacheKey]) {
+    return teamDetailSpendCache[cacheKey];
+  }
+
+  const promise = (async () => {
+    const params = new URLSearchParams({
+      team_id: normalizedTeamId,
+      season: String(season),
+    });
+    const resp = await fetchWithRetry(`${API_BASE}/v1/dashboard/team-detail?${params.toString()}`);
+    if (!resp.ok) {
+      throw new Error(`status ${resp.status}`);
+    }
+
+    const payload = await resp.json();
+    const timeline = Array.isArray(payload?.timeline) ? payload.timeline : [];
+    const inboundFreeAgency = timeline.filter(
+      (event) => String(event.move_type || "").toLowerCase() === "free_agency"
+        && toTeamId(event.to_team_id) === normalizedTeamId
+    );
+
+    const totalAavRaw = inboundFreeAgency.reduce(
+      (sum, event) => sum + toFiniteNumber(event.contract_aav, 0),
+      0
+    );
+
+    // Team-detail contract_aav values are raw dollars; convert to millions once.
+    const totalAavM = aavDollarsToMillions(totalAavRaw);
+
+    return {
+      teamId: normalizedTeamId,
+      totalAavM,
+      moveCount: inboundFreeAgency.length,
+    };
+  })();
+
+  teamDetailSpendCache[cacheKey] = promise.catch((err) => {
+    delete teamDetailSpendCache[cacheKey];
+    throw err;
+  });
+
+  return teamDetailSpendCache[cacheKey];
 }
 
 async function loadSeasonSpendingByTeam(season, onProgress) {
@@ -530,14 +659,7 @@ async function loadSpendTable(seasons) {
   const tbody = document.getElementById("spendTableBody");
   if (!tbody) return;
 
-  let outcomes = {};
-  let outcomesAvailable = true;
-  try {
-    outcomes = await loadTeamOutcomes();
-  } catch (err) {
-    outcomesAvailable = false;
-    console.warn("Spending table loaded without win-change outcomes:", err);
-  }
+  const seasonSpendIndex = await loadSeasonSpendIndex();
   const rows = [];
   let failedSeasons = 0;
   let partialSeasonCount = 0;
@@ -549,64 +671,92 @@ async function loadSpendTable(seasons) {
 
   for (const season of seasonList) {
     try {
-      const { spendByTeam: spendingByTeam, fulfilledCount, totalCount } = await loadSeasonSpendingByTeam(
-        season, () => {}
+      const overview = await loadOverviewBySeason(season);
+      const rankingRows = Array.isArray(overview?.charts?.league_ranking)
+        ? overview.charts.league_ranking
+        : [];
+
+      if (rankingRows.length === 0) {
+        throw new Error("insufficient data");
+      }
+
+      const misByTeam = {};
+      rankingRows.forEach((row) => {
+        const teamId = toTeamId(row.team_id);
+        if (!teamId) {
+          return;
+        }
+        misByTeam[teamId] = toFiniteNumber(row.mis_value, 0);
+      });
+
+      const biggestGainTeamId = toTeamId(rankingRows[0]?.team_id);
+      if (!biggestGainTeamId) {
+        throw new Error("insufficient data");
+      }
+
+      const seasonSpendingRows = TEAM_IDS.map((teamId) => {
+        const indexed = seasonSpendIndex[`${season}:${teamId}`] || {
+          teamId,
+          totalAavRaw: 0,
+          moveCount: 0,
+        };
+        return {
+          teamId,
+          totalAavRaw: toFiniteNumber(indexed.totalAavRaw, 0),
+          totalAavM: aavDollarsToMillions(toFiniteNumber(indexed.totalAavRaw, 0)),
+          moveCount: toFiniteNumber(indexed.moveCount, 0),
+        };
+      });
+
+      const topSpenderSeed = [...seasonSpendingRows]
+        .sort((a, b) => b.totalAavRaw - a.totalAavRaw)[0];
+      const topSpenderTeamId = toTeamId(topSpenderSeed?.teamId);
+
+      if (!topSpenderTeamId) {
+        throw new Error("insufficient data");
+      }
+
+      const teamsForDetail = [...new Set([topSpenderTeamId, biggestGainTeamId])];
+      const detailResults = await Promise.all(
+        teamsForDetail.map((teamId) => loadTeamDetailSpendByTeam(season, teamId).catch(() => null))
       );
-      if (fulfilledCount < totalCount) {
+
+      const detailByTeam = {};
+      detailResults.forEach((detail) => {
+        if (detail?.teamId) {
+          detailByTeam[detail.teamId] = detail;
+        }
+      });
+
+      if (!detailByTeam[topSpenderTeamId] || !detailByTeam[biggestGainTeamId]) {
         partialSeasonCount += 1;
       }
 
-      const spends = Object.values(spendingByTeam)
+      const spends = seasonSpendingRows
         .map((t) => t.totalAavM)
         .filter((v) => v > 0);
       const leagueAvg = spends.length > 0
         ? spends.reduce((s, v) => s + v, 0) / spends.length
         : 0;
 
-      const topSpender = Object.values(spendingByTeam)
-        .sort((a, b) => b.totalAavM - a.totalAavM)[0];
-
-      const topSpenderWins = outcomesAvailable ? outcomes[
-        `${season}:${topSpender?.teamId}`
-      ] : null;
-      const topSpenderPriorWins = outcomesAvailable ? outcomes[
-        `${season - 1}:${topSpender?.teamId}`
-      ] : null;
-      const topSpenderDelta = topSpenderWins && topSpenderPriorWins
-        ? topSpenderWins.wins - topSpenderPriorWins.wins
+      const topSpender = detailByTeam[topSpenderTeamId] || {
+        teamId: topSpenderTeamId,
+        totalAavM: topSpenderSeed.totalAavM,
+      };
+      const topSpenderOutcome = Object.prototype.hasOwnProperty.call(misByTeam, topSpenderTeamId)
+        ? misByTeam[topSpenderTeamId]
         : null;
 
-      const winGains = outcomesAvailable ? TEAM_IDS.map((teamId) => {
-        const cur = outcomes[`${season}:${teamId}`];
-        const prev = outcomes[`${season - 1}:${teamId}`];
-        if (!cur || !prev) return null;
-        return {
-          teamId,
-          delta: cur.wins - prev.wins,
-          spend: spendingByTeam[teamId]?.totalAavM || 0,
-        };
-      }).filter(Boolean) : [];
-
-      const biggestGainDelta = winGains.length
-        ? Math.max(...winGains.map((entry) => entry.delta))
+      const biggestGainLabel = biggestGainTeamId || "—";
+      const biggestGainOutcome = Object.prototype.hasOwnProperty.call(misByTeam, biggestGainTeamId)
+        ? misByTeam[biggestGainTeamId]
         : null;
-      const biggestGainTies = biggestGainDelta == null
-        ? []
-        : winGains.filter((entry) => entry.delta === biggestGainDelta)
-          .sort((a, b) => a.teamId.localeCompare(b.teamId));
-      const biggestGainLabel = biggestGainTies.length
-        ? biggestGainTies.map((entry) => entry.teamId).join(" / ")
-        : "—";
-      const biggestGainSpend = biggestGainTies.length
-        ? Math.max(...biggestGainTies.map((entry) => entry.spend))
-        : 0;
+      const biggestGainSpend = detailByTeam[biggestGainTeamId]?.totalAavM || 0;
 
-      const fmtDelta = (v) => (v == null ? "—"
-        : v > 0 ? `▲ +${v} wins`
-        : v < 0 ? `▼ ${v} wins`
-        : "— no change");
+      const fmtOutcome = (v) => (v == null ? "—"
+        : `MIS ${v >= 0 ? "+" : ""}${v.toFixed(6)}`);
 
-      const deltaClass = (v) => (v == null ? ""
+      const outcomeClass = (v) => (v == null ? ""
         : v > 0 ? ' class="findings-gain"'
         : v < 0 ? ' class="findings-loss"' : "");
 
@@ -616,12 +766,12 @@ async function loadSpendTable(seasons) {
           <td>$${leagueAvg.toFixed(0)}M</td>
           <td>${topSpender?.teamId || "—"}
             ($${(topSpender?.totalAavM || 0).toFixed(0)}M)</td>
-          <td${deltaClass(topSpenderDelta)}>
-            ${fmtDelta(topSpenderDelta)}
+          <td${outcomeClass(topSpenderOutcome)}>
+            ${fmtOutcome(topSpenderOutcome)}
           </td>
           <td>${biggestGainLabel}</td>
-          <td${deltaClass(biggestGainDelta)}>
-            ${fmtDelta(biggestGainDelta)}
+          <td${outcomeClass(biggestGainOutcome)}>
+            ${fmtOutcome(biggestGainOutcome)}
           </td>
           <td>$${biggestGainSpend.toFixed(0)}M</td>
         </tr>
@@ -648,7 +798,7 @@ async function loadSpendTable(seasons) {
     totalSeasons: seasonList.length,
     failedSeasons,
     partialSeasonCount,
-    outcomesAvailable,
+    outcomesAvailable: true,
     reasonCounts,
   };
 }
@@ -676,6 +826,7 @@ async function initFindings() {
   const spendEl = document.getElementById("findingsSpendLink");
   if (overviewEl) overviewEl.href = `./index.html${linkSuffix}`;
   if (spendEl) spendEl.href = `./index.html${linkSuffix}`;
+  ensureGeographyCaveatNote();
 
   try {
     setFindingsStatus("Loading findings data...", "info", { loading: true, showRetry: false });
