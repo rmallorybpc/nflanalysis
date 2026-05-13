@@ -73,3 +73,9 @@ Validation outputs:
 
 - models/artifacts/pretrend_placebo_summary.csv
 - models/artifacts/pretrend_placebo_details.csv
+
+Scope-mode placebo rows now included in summary/details:
+
+- `placebo` (all events)
+- `placebo_known_scope_only`
+- `placebo_trades_only`

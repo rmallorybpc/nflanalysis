@@ -30,6 +30,56 @@ DETAIL_FIELDS = [
     "generated_at",
 ]
 
+ALLOWED_SCOPES = {"same_division", "cross_division", "cross_conference"}
+
+
+def _treated_keys_from_events(events: list[dict[str, str | int]]) -> set[tuple[str, str, int]]:
+    treated: set[tuple[str, str, int]] = set()
+    for ev in events:
+        season = str(ev["season"])
+        week = int(ev["week"])
+        to_team = str(ev["to_team"])
+        from_team = str(ev["from_team"])
+        if to_team:
+            treated.add((to_team, season, week))
+        if from_team:
+            treated.add((from_team, season, week))
+    return treated
+
+
+def _run_placebo_for_event_set(
+    *,
+    events: list[dict[str, str | int]],
+    outcome_name: str,
+    model_by_key_outcome: dict[tuple[str, str, int, str], float],
+    key_list: list[tuple[str, str, int]],
+    placebo_iterations: int,
+) -> tuple[float, float, int, int]:
+    treated_keys = _treated_keys_from_events(events)
+    n_treated = len(treated_keys)
+
+    actual_vals = [
+        model_by_key_outcome[(t, s, w, outcome_name)]
+        for (t, s, w) in treated_keys
+        if (t, s, w, outcome_name) in model_by_key_outcome
+    ]
+    actual_mean = mean(actual_vals)
+
+    placebo_means = []
+    if n_treated > 0 and len(key_list) >= n_treated:
+        for _ in range(placebo_iterations):
+            sampled = random.sample(key_list, n_treated)
+            vals = [
+                model_by_key_outcome[(t, s, w, outcome_name)]
+                for (t, s, w) in sampled
+                if (t, s, w, outcome_name) in model_by_key_outcome
+            ]
+            placebo_means.append(mean(vals))
+
+    extreme = sum(1 for v in placebo_means if v >= actual_mean)
+    p_value = (extreme + 1) / (len(placebo_means) + 1) if placebo_means else 1.0
+    return p_value, actual_mean, len(placebo_means), len(actual_vals)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate pre-trend and placebo diagnostics")
@@ -181,8 +231,27 @@ def main() -> None:
                 "week": to_int(week, "nfl_week"),
                 "to_team": r["to_team_id"].strip(),
                 "from_team": r["from_team_id"].strip(),
+                "move_type": r.get("move_type", "").strip(),
+                "move_scope": r.get("move_scope", "").strip(),
             }
         )
+
+    known_scope_events = [
+        ev for ev in movement_regular
+        if str(ev.get("move_scope", "")) in ALLOWED_SCOPES
+        and str(ev.get("to_team", ""))
+        and str(ev.get("from_team", ""))
+    ]
+    trades_only_events = [
+        ev for ev in known_scope_events
+        if str(ev.get("move_type", "")) == "trade"
+    ]
+
+    placebo_event_modes = [
+        ("placebo", "all_events", movement_regular),
+        ("placebo_known_scope_only", "known_scope_only", known_scope_events),
+        ("placebo_trades_only", "trades_only", trades_only_events),
+    ]
 
     summary_rows: list[dict[str, str]] = []
     detail_rows: list[dict[str, str]] = []
@@ -231,70 +300,55 @@ def main() -> None:
     random.seed(args.seed)
     all_keys = {(r["team_id"].strip(), r["nfl_season"].strip(), to_int(r["nfl_week"], "nfl_week")) for r in outcome_rows}
 
-    treated_keys = set()
-    for ev in movement_regular:
-        treated_keys.add((ev["to_team"], ev["season"], ev["week"]))
-        treated_keys.add((ev["from_team"], ev["season"], ev["week"]))
-
-    n_treated = len(treated_keys)
     key_list = sorted(all_keys)
 
     for outcome_name in ("win_pct", "point_diff_per_game", "offensive_epa_per_play"):
-        actual_vals = [
-            model_by_key_outcome[(t, s, w, outcome_name)]
-            for (t, s, w) in treated_keys
-            if (t, s, w, outcome_name) in model_by_key_outcome
-        ]
-        actual_mean = mean(actual_vals)
+        for test_name, mode_label, mode_events in placebo_event_modes:
+            p_value, actual_mean, n_placebo, n_actual = _run_placebo_for_event_set(
+                events=mode_events,
+                outcome_name=outcome_name,
+                model_by_key_outcome=model_by_key_outcome,
+                key_list=key_list,
+                placebo_iterations=args.placebo_iterations,
+            )
 
-        placebo_means = []
-        if n_treated > 0 and len(key_list) >= n_treated:
-            for _ in range(args.placebo_iterations):
-                sampled = random.sample(key_list, n_treated)
-                vals = [
-                    model_by_key_outcome[(t, s, w, outcome_name)]
-                    for (t, s, w) in sampled
-                    if (t, s, w, outcome_name) in model_by_key_outcome
-                ]
-                placebo_means.append(mean(vals))
+            summary_rows.append(
+                {
+                    "test_name": test_name,
+                    "outcome_name": outcome_name,
+                    "statistic_name": "one_sided_p_value",
+                    "statistic_value": f"{p_value:.6f}",
+                    "n_units": str(n_placebo),
+                    "notes": (
+                        "fraction of placebo means >= actual treated mean |MIS| "
+                        f"for mode={mode_label}"
+                    ),
+                    "generated_at": generated_at,
+                }
+            )
+            summary_rows.append(
+                {
+                    "test_name": test_name,
+                    "outcome_name": outcome_name,
+                    "statistic_name": "actual_treated_mean_abs_mis",
+                    "statistic_value": f"{actual_mean:.6f}",
+                    "n_units": str(n_actual),
+                    "notes": f"reference value used against placebo distribution for mode={mode_label}",
+                    "generated_at": generated_at,
+                }
+            )
 
-        extreme = sum(1 for v in placebo_means if v >= actual_mean)
-        p_value = (extreme + 1) / (len(placebo_means) + 1) if placebo_means else 1.0
-
-        summary_rows.append(
-            {
-                "test_name": "placebo",
-                "outcome_name": outcome_name,
-                "statistic_name": "one_sided_p_value",
-                "statistic_value": f"{p_value:.6f}",
-                "n_units": str(len(placebo_means)),
-                "notes": "fraction of placebo means >= actual treated mean |MIS|",
-                "generated_at": generated_at,
-            }
-        )
-        summary_rows.append(
-            {
-                "test_name": "placebo",
-                "outcome_name": outcome_name,
-                "statistic_name": "actual_treated_mean_abs_mis",
-                "statistic_value": f"{actual_mean:.6f}",
-                "n_units": str(len(actual_vals)),
-                "notes": "reference value used against placebo distribution",
-                "generated_at": generated_at,
-            }
-        )
-
-        detail_rows.append(
-            {
-                "test_name": "placebo",
-                "team_id": "ALL",
-                "nfl_season": "ALL",
-                "nfl_week": "ALL",
-                "outcome_name": outcome_name,
-                "value": f"{actual_mean:.6f}",
-                "generated_at": generated_at,
-            }
-        )
+            detail_rows.append(
+                {
+                    "test_name": test_name,
+                    "team_id": "ALL",
+                    "nfl_season": "ALL",
+                    "nfl_week": "ALL",
+                    "outcome_name": outcome_name,
+                    "value": f"{actual_mean:.6f}",
+                    "generated_at": generated_at,
+                }
+            )
 
     write_csv(args.summary_output, SUMMARY_FIELDS, summary_rows)
     write_csv(args.detail_output, DETAIL_FIELDS, detail_rows)

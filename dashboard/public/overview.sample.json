@@ -37,6 +37,21 @@
       "available": true,
       "placebo_win_pct_p_value": 0.08,
       "placebo_iterations": 200,
+      "scope_mode_placebo_win_pct_p_values": {
+        "all_events": 0.08,
+        "known_scope_only": 0.12,
+        "trades_only": 0.09
+      },
+      "scope_mode_placebo_available": {
+        "all_events": true,
+        "known_scope_only": true,
+        "trades_only": true
+      },
+      "scope_mode_placebo_iterations": {
+        "all_events": 200,
+        "known_scope_only": 200,
+        "trades_only": 200
+      },
       "generated_at": "2026-03-20T14:58:08Z"
     },
     "geography_claim_policy": {

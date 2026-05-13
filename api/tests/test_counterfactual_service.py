@@ -144,6 +144,9 @@ class CounterfactualServiceTests(unittest.TestCase):
         self.assertIn("available", validation_diag)
         self.assertIn("placebo_win_pct_p_value", validation_diag)
         self.assertIn("placebo_iterations", validation_diag)
+        self.assertIn("scope_mode_placebo_win_pct_p_values", validation_diag)
+        self.assertIn("scope_mode_placebo_available", validation_diag)
+        self.assertIn("scope_mode_placebo_iterations", validation_diag)
         self.assertIn("generated_at", validation_diag)
 
         claim_policy = scope["geography_claim_policy"]

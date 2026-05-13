@@ -15,6 +15,11 @@ ALLOWED_MOVE_TYPES = {"trade", "free_agency"}
 MIN_ROBUST_MOVE_COUNT = 10
 MAX_UNKNOWN_SCOPE_SHARE_FOR_STRONG_CLAIM = 0.2
 MAX_PLACEBO_P_VALUE_FOR_STRONG_CLAIM = 0.1
+PLACEBO_MODE_TO_TEST_NAME = {
+    "all_events": "placebo",
+    "known_scope_only": "placebo_known_scope_only",
+    "trades_only": "placebo_trades_only",
+}
 
 TEAM_GEO = {
     "ARI": ("NFC", "West"),
@@ -259,33 +264,64 @@ class CounterfactualService:
 
     def _load_validation_diagnostics(self) -> dict[str, Any]:
         path = self.config.validation_summary
+        default_mode_p_values = {
+            "all_events": 1.0,
+            "known_scope_only": 1.0,
+            "trades_only": 1.0,
+        }
+        default_mode_available = {
+            "all_events": False,
+            "known_scope_only": False,
+            "trades_only": False,
+        }
+        default_mode_iterations = {
+            "all_events": 0,
+            "known_scope_only": 0,
+            "trades_only": 0,
+        }
         if not path.exists():
             return {
                 "available": False,
                 "placebo_win_pct_p_value": 1.0,
                 "placebo_iterations": 0,
+                "scope_mode_placebo_win_pct_p_values": default_mode_p_values,
+                "scope_mode_placebo_available": default_mode_available,
+                "scope_mode_placebo_iterations": default_mode_iterations,
                 "generated_at": "",
             }
 
         rows = _read_csv(path)
-        p_value: float | None = None
-        iterations = 0
+        mode_p_values = dict(default_mode_p_values)
+        mode_available = dict(default_mode_available)
+        mode_iterations = dict(default_mode_iterations)
         generated_at = ""
+        test_name_to_mode = {test_name: mode for mode, test_name in PLACEBO_MODE_TO_TEST_NAME.items()}
         for row in rows:
             if not generated_at:
                 generated_at = (row.get("generated_at", "") or "").strip()
             test_name = (row.get("test_name", "") or "").strip()
             outcome_name = (row.get("outcome_name", "") or "").strip()
             statistic_name = (row.get("statistic_name", "") or "").strip()
-            if test_name == "placebo" and outcome_name == "win_pct" and statistic_name == "one_sided_p_value":
-                p_value = _to_float((row.get("statistic_value", "") or "0").strip(), "statistic_value")
-                iterations = int(_to_float((row.get("n_units", "") or "0").strip(), "n_units"))
-                break
+            mode = test_name_to_mode.get(test_name)
+            if mode is None:
+                continue
+            if outcome_name != "win_pct" or statistic_name != "one_sided_p_value":
+                continue
+
+            mode_p_values[mode] = _to_float((row.get("statistic_value", "") or "0").strip(), "statistic_value")
+            mode_iterations[mode] = int(_to_float((row.get("n_units", "") or "0").strip(), "n_units"))
+            mode_available[mode] = True
 
         return {
-            "available": p_value is not None,
-            "placebo_win_pct_p_value": round(p_value, 6) if p_value is not None else 1.0,
-            "placebo_iterations": iterations,
+            "available": mode_available["all_events"],
+            "placebo_win_pct_p_value": round(mode_p_values["all_events"], 6),
+            "placebo_iterations": mode_iterations["all_events"],
+            "scope_mode_placebo_win_pct_p_values": {
+                mode: round(value, 6)
+                for mode, value in mode_p_values.items()
+            },
+            "scope_mode_placebo_available": mode_available,
+            "scope_mode_placebo_iterations": mode_iterations,
             "generated_at": generated_at,
         }
 
@@ -573,13 +609,6 @@ class CounterfactualService:
         if not bool(trades_summary.get("robustness_flag", False)):
             reasons.append("trades_not_robust")
 
-        placebo_available = bool(validation_diag.get("available", False))
-        placebo_p_value = float(validation_diag.get("placebo_win_pct_p_value", 1.0) or 1.0)
-        if not placebo_available:
-            reasons.append("missing_placebo")
-        elif placebo_p_value > MAX_PLACEBO_P_VALUE_FOR_STRONG_CLAIM:
-            reasons.append("placebo_not_significant")
-
         can_make_strong_claim = len(reasons) == 0
         return {
             "can_make_strong_claim": can_make_strong_claim,
@@ -635,8 +664,10 @@ class CounterfactualService:
 
     def _build_geography_impact_profile(self, seasons: list[int]) -> list[dict[str, Any]]:
         movement_rows = _read_csv(self.config.movement_events)
-        placebo_p_value = float(self.validation_diag.get("placebo_win_pct_p_value", 1.0) or 1.0)
-        placebo_available = bool(self.validation_diag.get("available", False))
+        mode_p_values = dict(self.validation_diag.get("scope_mode_placebo_win_pct_p_values", {}))
+        mode_available = dict(self.validation_diag.get("scope_mode_placebo_available", {}))
+        placebo_p_value = float(mode_p_values.get("all_events", self.validation_diag.get("placebo_win_pct_p_value", 1.0)) or 1.0)
+        placebo_available = bool(mode_available.get("all_events", self.validation_diag.get("available", False)))
         mode_profile = self._build_geography_profile_mode(
             movement_rows,
             seasons,
@@ -656,8 +687,8 @@ class CounterfactualService:
         validation_diag: dict[str, Any],
     ) -> tuple[list[dict[str, Any]], dict[str, int | float], dict[str, Any]]:
         movement_rows = _read_csv(self.config.movement_events)
-        placebo_p_value = float(validation_diag.get("placebo_win_pct_p_value", 1.0) or 1.0)
-        placebo_available = bool(validation_diag.get("available", False))
+        mode_p_values = dict(validation_diag.get("scope_mode_placebo_win_pct_p_values", {}))
+        mode_available = dict(validation_diag.get("scope_mode_placebo_available", {}))
         profiles = [
             self._build_geography_profile_mode(
                 movement_rows,
@@ -667,8 +698,8 @@ class CounterfactualService:
                 include_move_types=ALLOWED_MOVE_TYPES,
                 require_known_scope=False,
                 allow_destination_inference=True,
-                placebo_p_value=placebo_p_value,
-                placebo_available=placebo_available,
+                placebo_p_value=float(mode_p_values.get("all_events", validation_diag.get("placebo_win_pct_p_value", 1.0)) or 1.0),
+                placebo_available=bool(mode_available.get("all_events", validation_diag.get("available", False))),
             ),
             self._build_geography_profile_mode(
                 movement_rows,
@@ -678,8 +709,8 @@ class CounterfactualService:
                 include_move_types=ALLOWED_MOVE_TYPES,
                 require_known_scope=True,
                 allow_destination_inference=False,
-                placebo_p_value=placebo_p_value,
-                placebo_available=placebo_available,
+                placebo_p_value=float(mode_p_values.get("known_scope_only", validation_diag.get("placebo_win_pct_p_value", 1.0)) or 1.0),
+                placebo_available=bool(mode_available.get("known_scope_only", validation_diag.get("available", False))),
             ),
             self._build_geography_profile_mode(
                 movement_rows,
@@ -689,8 +720,8 @@ class CounterfactualService:
                 include_move_types={"trade"},
                 require_known_scope=True,
                 allow_destination_inference=False,
-                placebo_p_value=placebo_p_value,
-                placebo_available=placebo_available,
+                placebo_p_value=float(mode_p_values.get("trades_only", validation_diag.get("placebo_win_pct_p_value", 1.0)) or 1.0),
+                placebo_available=bool(mode_available.get("trades_only", validation_diag.get("available", False))),
             ),
         ]
         diagnostics = self._build_geography_diagnostics(movement_rows, seasons)

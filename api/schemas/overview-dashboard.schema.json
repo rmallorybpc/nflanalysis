@@ -486,6 +486,9 @@
         "available",
         "placebo_win_pct_p_value",
         "placebo_iterations",
+        "scope_mode_placebo_win_pct_p_values",
+        "scope_mode_placebo_available",
+        "scope_mode_placebo_iterations",
         "generated_at"
       ],
       "properties": {
@@ -501,8 +504,86 @@
           "type": "integer",
           "minimum": 0
         },
+        "scope_mode_placebo_win_pct_p_values": {
+          "$ref": "#/$defs/ScopeModeNumericMap"
+        },
+        "scope_mode_placebo_available": {
+          "$ref": "#/$defs/ScopeModeBooleanMap"
+        },
+        "scope_mode_placebo_iterations": {
+          "$ref": "#/$defs/ScopeModeIntegerMap"
+        },
         "generated_at": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ScopeModeNumericMap": {
+      "type": "object",
+      "required": [
+        "all_events",
+        "known_scope_only",
+        "trades_only"
+      ],
+      "properties": {
+        "all_events": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "known_scope_only": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "trades_only": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "ScopeModeBooleanMap": {
+      "type": "object",
+      "required": [
+        "all_events",
+        "known_scope_only",
+        "trades_only"
+      ],
+      "properties": {
+        "all_events": {
+          "type": "boolean"
+        },
+        "known_scope_only": {
+          "type": "boolean"
+        },
+        "trades_only": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ScopeModeIntegerMap": {
+      "type": "object",
+      "required": [
+        "all_events",
+        "known_scope_only",
+        "trades_only"
+      ],
+      "properties": {
+        "all_events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "known_scope_only": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "trades_only": {
+          "type": "integer",
+          "minimum": 0
         }
       },
       "additionalProperties": false

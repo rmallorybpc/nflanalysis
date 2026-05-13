@@ -34,6 +34,11 @@ class OverviewPayloadTests(unittest.TestCase):
         self.assertIn("validation_diagnostics", scope)
         self.assertIn("geography_claim_policy", scope)
 
+        validation_diag = scope["validation_diagnostics"]
+        self.assertIn("scope_mode_placebo_win_pct_p_values", validation_diag)
+        self.assertIn("scope_mode_placebo_available", validation_diag)
+        self.assertIn("scope_mode_placebo_iterations", validation_diag)
+
         cards = payload["cards"]
         self.assertIn("top_positive_team", cards)
         self.assertIn("top_negative_team", cards)

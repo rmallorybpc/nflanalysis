@@ -1,4 +1,10 @@
 test_name,team_id,nfl_season,nfl_week,outcome_name,value,generated_at
-placebo,ALL,ALL,ALL,win_pct,0.402787,2026-03-20T14:58:08Z
-placebo,ALL,ALL,ALL,point_diff_per_game,5.639021,2026-03-20T14:58:08Z
-placebo,ALL,ALL,ALL,offensive_epa_per_play,0.084990,2026-03-20T14:58:08Z
+placebo,ALL,ALL,ALL,win_pct,0.082135,2026-05-13T19:57:57Z
+placebo_known_scope_only,ALL,ALL,ALL,win_pct,0.082135,2026-05-13T19:57:57Z
+placebo_trades_only,ALL,ALL,ALL,win_pct,0.082135,2026-05-13T19:57:57Z
+placebo,ALL,ALL,ALL,point_diff_per_game,2.380189,2026-05-13T19:57:57Z
+placebo_known_scope_only,ALL,ALL,ALL,point_diff_per_game,2.380189,2026-05-13T19:57:57Z
+placebo_trades_only,ALL,ALL,ALL,point_diff_per_game,2.380189,2026-05-13T19:57:57Z
+placebo,ALL,ALL,ALL,offensive_epa_per_play,0.013150,2026-05-13T19:57:57Z
+placebo_known_scope_only,ALL,ALL,ALL,offensive_epa_per_play,0.013150,2026-05-13T19:57:57Z
+placebo_trades_only,ALL,ALL,ALL,offensive_epa_per_play,0.013150,2026-05-13T19:57:57Z
