@@ -12,6 +12,24 @@ const state = {
   teamId: "BUF",
 };
 
+const PLACEBO_MODE_CONFIG = [
+  {
+    key: "all_events",
+    label: "All events",
+    subtitle: "Trades + free agency (with inferred destinations)",
+  },
+  {
+    key: "known_scope_only",
+    label: "Known scope only",
+    subtitle: "Only rows with explicit geography",
+  },
+  {
+    key: "trades_only",
+    label: "Trades only",
+    subtitle: "Trade moves with explicit scope",
+  },
+];
+
 const spendingCache = {};
 const spendingRequestCache = {};
 const overviewPayloadCache = {};
@@ -151,6 +169,7 @@ function showOverviewSkeletons() {
   document.getElementById("rankingChart").innerHTML = `<div class="skeleton-list">${skeletonRows(5, ["100%", "100%", "100%", "100%", "100%"], 20)}</div>`;
   document.getElementById("distributionChart").innerHTML = `<div class="skeleton-list">${skeletonRows(3, ["100%", "70%", "45%"], 20)}</div>`;
   document.getElementById("scopeList").innerHTML = `<div class="skeleton-list">${skeletonRows(2, ["100%", "100%"], 16)}</div>`;
+  document.getElementById("placeboModesPanel").innerHTML = `<div class="skeleton-list">${skeletonRows(3, ["100%", "100%", "100%"], 62)}</div>`;
   document.getElementById("seasonCoverageChart").innerHTML = "";
   document.getElementById("geographyChart").innerHTML = `<div class="skeleton-list">${skeletonRows(4, ["100%", "92%", "86%", "78%"], 18, "chart-skeleton-row")}</div>`;
   document.getElementById("spendingChart").innerHTML = `
@@ -165,6 +184,7 @@ function showOverviewErrorStates() {
   renderErrorState(document.getElementById("rankingChart"));
   renderErrorState(document.getElementById("distributionChart"));
   renderErrorState(document.getElementById("scopeList"));
+  renderErrorState(document.getElementById("placeboModesPanel"));
   renderErrorState(document.getElementById("seasonCoverageChart"));
   renderErrorState(document.getElementById("geographyChart"));
   renderErrorState(document.getElementById("spendingChart"));
@@ -192,6 +212,7 @@ function resetRenderedData() {
   document.getElementById("rankingChart").innerHTML = "";
   document.getElementById("distributionChart").innerHTML = "";
   document.getElementById("scopeList").innerHTML = "";
+  document.getElementById("placeboModesPanel").innerHTML = "";
   document.getElementById("seasonCoverageChart").innerHTML = "";
   document.getElementById("geographyChart").innerHTML = "";
   document.getElementById("spendingChart").innerHTML = "";
@@ -1031,9 +1052,11 @@ function renderDistribution(payload) {
 function renderScope(payload) {
   const scope = payload.scope;
   const scopeList = document.getElementById("scopeList");
+  const placeboPanel = document.getElementById("placeboModesPanel");
 
   if (!scope) {
     renderEmptyState(scopeList, "No data available.");
+    renderEmptyState(placeboPanel, "No placebo diagnostics available.");
     return;
   }
 
@@ -1049,6 +1072,59 @@ function renderScope(payload) {
     <div class="scope-pill">Outcomes: ${outcomes}</div>
     <div class="scope-pill">Geography: ${geos}</div>
   `;
+
+  renderPlaceboModeDiagnostics(scope.validation_diagnostics);
+}
+
+function formatPlaceboPValue(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) {
+    return "n/a";
+  }
+  if (num < 0.001) {
+    return "< 0.001";
+  }
+  return num.toFixed(3);
+}
+
+function renderPlaceboModeDiagnostics(validationDiagnostics) {
+  const panel = document.getElementById("placeboModesPanel");
+  if (!panel) {
+    return;
+  }
+
+  const pValues = validationDiagnostics?.scope_mode_placebo_win_pct_p_values || {};
+  const available = validationDiagnostics?.scope_mode_placebo_available || {};
+  const iterations = validationDiagnostics?.scope_mode_placebo_iterations || {};
+
+  panel.innerHTML = PLACEBO_MODE_CONFIG.map((mode) => {
+    const isAvailable = Boolean(available[mode.key]);
+    const pValue = isAvailable
+      ? formatPlaceboPValue(pValues[mode.key])
+      : "n/a";
+    const nIter = Number(iterations[mode.key]);
+    const iterationLabel = Number.isFinite(nIter) && nIter > 0 ? String(Math.trunc(nIter)) : "0";
+    const status = !isAvailable
+      ? "Unavailable"
+      : Number(pValues[mode.key]) <= 0.1
+        ? "Passes <= 0.10"
+        : "Above 0.10";
+    const statusClass = !isAvailable
+      ? "placebo-mode-status missing"
+      : Number(pValues[mode.key]) <= 0.1
+        ? "placebo-mode-status robust"
+        : "placebo-mode-status caution";
+
+    return `
+      <article class="placebo-mode-card">
+        <h4>${mode.label}</h4>
+        <p class="placebo-mode-subtitle">${mode.subtitle}</p>
+        <div class="placebo-mode-value">p = ${pValue}</div>
+        <div class="${statusClass}">${status}</div>
+        <p class="placebo-mode-meta">Iterations: ${iterationLabel}</p>
+      </article>
+    `;
+  }).join("");
 }
 
 function renderSeasonCoverage(payload) {

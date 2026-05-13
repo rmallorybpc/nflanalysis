@@ -548,6 +548,79 @@ h1 {
   background: rgba(16, 37, 58, 0.08);
 }
 
+.placebo-modes-panel {
+  margin: 0.7rem 0 1rem;
+}
+
+.placebo-modes-title {
+  margin: 0 0 0.45rem;
+  font-size: 0.9rem;
+  color: var(--tmg-charcoal);
+}
+
+.placebo-modes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.placebo-mode-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.6rem;
+  background: rgba(132, 169, 140, 0.08);
+}
+
+.placebo-mode-card h4 {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--tmg-charcoal);
+}
+
+.placebo-mode-subtitle {
+  margin: 0.25rem 0 0.35rem;
+  font-size: 0.74rem;
+  color: rgba(45, 52, 54, 0.62);
+  min-height: 2.2em;
+}
+
+.placebo-mode-value {
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--tmg-charcoal);
+}
+
+.placebo-mode-status {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.12rem 0.42rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.placebo-mode-status.robust {
+  background: rgba(46, 133, 64, 0.14);
+  color: var(--tmg-success);
+}
+
+.placebo-mode-status.caution {
+  background: rgba(196, 127, 0, 0.14);
+  color: var(--tmg-warning);
+}
+
+.placebo-mode-status.missing {
+  background: rgba(176, 0, 32, 0.1);
+  color: var(--tmg-error);
+}
+
+.placebo-mode-meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: rgba(45, 52, 54, 0.62);
+}
+
 .geo-list {
   display: grid;
   gap: 0.42rem;
@@ -912,6 +985,10 @@ h1 {
 
   .scorecard-cell:last-child {
     border-bottom: none;
+  }
+
+  .placebo-modes-grid {
+    grid-template-columns: 1fr;
   }
 }
 
