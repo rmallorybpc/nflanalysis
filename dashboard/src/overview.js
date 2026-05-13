@@ -182,6 +182,10 @@ function resetRenderedData() {
   document.getElementById("topPositiveCard").innerHTML = "";
   document.getElementById("topNegativeCard").innerHTML = "";
   document.getElementById("leagueCard").innerHTML = "";
+  const geographyInsightEl = document.getElementById("geographyInsightCard");
+  if (geographyInsightEl) {
+    geographyInsightEl.innerHTML = "";
+  }
   document.getElementById("rankingChart").innerHTML = "";
   document.getElementById("distributionChart").innerHTML = "";
   document.getElementById("scopeList").innerHTML = "";
@@ -646,6 +650,63 @@ function setCard(el, title, value, meta) {
   `;
 }
 
+function renderGeographyCard(payload) {
+  const el = document.getElementById("geographyInsightCard");
+  if (!el) {
+    return;
+  }
+
+  const rows = Array.isArray(payload?.charts?.geography_impact_profile)
+    ? payload.charts.geography_impact_profile
+    : [];
+
+  const winPctRows = rows.filter((row) => row.outcome_name === "win_pct" && Number(row.move_count) > 0);
+
+  if (winPctRows.length < 2) {
+    el.innerHTML = "";
+    return;
+  }
+
+  const sorted = [...winPctRows].sort((a, b) => Number(b.avg_abs_impact) - Number(a.avg_abs_impact));
+  const top = sorted[0];
+
+  const scopeIcon = {
+    same_division: "📍",
+    cross_division: "🔀",
+    cross_conference: "🌐",
+  };
+
+  const scopeLabel = {
+    same_division: "Same-Division",
+    cross_division: "Cross-Division",
+    cross_conference: "Cross-Conference",
+  };
+
+  const icon = scopeIcon[top.move_scope] || "📊";
+  const label = scopeLabel[top.move_scope] || top.move_scope;
+  const weakest = sorted[sorted.length - 1];
+  const topImpact = Number(top.avg_abs_impact);
+  const weakestImpact = Number(weakest.avg_abs_impact);
+  const ratio = weakestImpact > 0
+    ? ((topImpact / weakestImpact - 1) * 100).toFixed(0)
+    : null;
+
+  const metaText = ratio !== null
+    ? `${ratio}% stronger than ${scopeLabel[weakest.move_scope] || weakest.move_scope} | ${top.move_count} moves`
+    : `${top.move_count} moves · avg impact ${topImpact.toFixed(4)}`;
+
+  el.innerHTML = `
+    <h3>Geography Insight</h3>
+    <div class="mis-label">Strongest Signal</div>
+    <div class="value geography-icon-value">${icon} ${label}</div>
+    <div class="meta">${metaText}</div>
+    <p class="glossary-plain">
+      Signings of this geography type show the strongest average
+      win probability impact in this season's data.
+    </p>
+  `;
+}
+
 function renderCards(payload) {
   const cards = payload.cards;
   const confidenceLabel = (flag) => (flag ? "Low confidence" : "High confidence");
@@ -671,6 +732,8 @@ function renderCards(payload) {
     fmt(cards.league_net_mis),
     `High confidence share ${Math.round(cards.high_confidence_share * 100)}%`
   );
+
+  renderGeographyCard(payload);
 }
 
 function renderRanking(payload) {

@@ -208,7 +208,7 @@ h1 {
 .cards {
   margin-top: 1rem;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.9rem;
 }
 
@@ -230,6 +230,10 @@ h1 {
 
 .metric-card:nth-child(3) {
   animation-delay: 170ms;
+}
+
+.metric-card:nth-child(4) {
+  animation-delay: 240ms;
 }
 
 .metric-card h3 {
@@ -447,6 +451,17 @@ h1 {
 
 .geo-impact {
   font-weight: 600;
+}
+
+.metric-card.geography {
+  border-color: var(--color-primary, #0f7f7c);
+}
+
+.geography-icon-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary, #0f7f7c);
+  margin: 6px 0;
 }
 
 .geo-finding {
