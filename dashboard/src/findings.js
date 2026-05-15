@@ -420,36 +420,29 @@ async function loadGeoTable(seasons) {
     cross_conference: "🌐",
   };
 
-  const confidenceFromPolicy = (canMakeStrongClaim, strongestScopes) => {
+  const confidenceFromPolicy = (canMakeStrongClaim, strongestScopes, hasClearWinner, reasons) => {
     if (canMakeStrongClaim) {
       return "High";
     }
-    const distinct = Array.from(new Set(strongestScopes));
-    if (strongestScopes.length >= 2 && distinct.length === 1) {
-      return "Medium";
+    if (!hasClearWinner) {
+      return "Low";
     }
-    if (strongestScopes.length >= 2 && distinct.length === 2) {
-      return "Medium";
+    const reasonSet = new Set(Array.isArray(reasons) ? reasons : []);
+    const bothRobustnessFlagsFailed = reasonSet.has("known_scope_not_robust") && reasonSet.has("trades_not_robust");
+    if (bothRobustnessFlagsFailed) {
+      return "Low";
     }
-    return "Low";
+    return "Medium";
   };
 
-  const reasonFromConfidence = (confidence, hasClearWinner, canMakeStrongClaim) => {
+  const reasonFromConfidence = (confidence, hasClearWinner) => {
     if (confidence === "High") {
-      return "Consistent across validation checks with enough supporting moves.";
+      return "Checks aligned; claim gate passed.";
     }
     if (confidence === "Medium" && hasClearWinner) {
-      return "Most checks point in the same direction, but robustness is not fully met.";
+      return "Checks mostly aligned; claim gate not passed.";
     }
-    if (confidence === "Medium") {
-      return "Signal is present, but validation checks are mixed.";
-    }
-    if (!hasClearWinner) {
-      return "Different checks point to different winners this season.";
-    }
-    return canMakeStrongClaim
-      ? "Signal is clear, but supporting sample is limited."
-      : "Direction is informative, but evidence is exploratory.";
+    return "Checks disagree this season.";
   };
 
   const rows = [];
@@ -527,10 +520,29 @@ async function loadGeoTable(seasons) {
         : "No clear winner";
 
       const canMakeStrongClaim = Boolean(claimPolicy?.can_make_strong_claim);
-      const confidence = confidenceFromPolicy(canMakeStrongClaim, strongestScopes);
+      const reasons = Array.isArray(claimPolicy?.reasons)
+        ? claimPolicy.reasons.filter((reason) => reason !== "ok")
+        : [];
+      const confidence = confidenceFromPolicy(canMakeStrongClaim, strongestScopes, hasClearWinner, reasons);
       const confidenceTone = confidence.toLowerCase();
 
-      const whyText = reasonFromConfidence(confidence, hasClearWinner, canMakeStrongClaim);
+      const whyText = reasonFromConfidence(confidence, hasClearWinner);
+
+      const evidenceRows = (payload?.charts?.geography_impact_profile || [])
+        .filter((row) => row.outcome_name === "win_pct" && Number(row.move_count) > 0)
+        .sort((a, b) => Number(b.avg_abs_impact) - Number(a.avg_abs_impact));
+
+      let evidenceText = "Directional signal only";
+      if (evidenceRows.length >= 2) {
+        const strongest = evidenceRows[0];
+        const weakest = evidenceRows[evidenceRows.length - 1];
+        const strongestImpact = Number(strongest.avg_abs_impact);
+        const weakestImpact = Number(weakest.avg_abs_impact);
+        if (Number.isFinite(strongestImpact) && Number.isFinite(weakestImpact) && weakestImpact > 0) {
+          const ratio = ((strongestImpact / weakestImpact - 1) * 100).toFixed(0);
+          evidenceText = `${ratio}% stronger than ${scopeLabel[weakest.move_scope] || weakest.move_scope}`;
+        }
+      }
 
       const analyzedText = movesAnalyzed > 0
         ? `${movesAnalyzed} moves`
@@ -541,7 +553,7 @@ async function loadGeoTable(seasons) {
           <td>${seasonLabel(season)}</td>
           <td>${shortAnswer}</td>
           <td><span class="findings-confidence findings-confidence--${confidenceTone}">${confidence}</span></td>
-          <td>${whyText}</td>
+          <td>${evidenceText}<br><small>${whyText}</small></td>
           <td>${analyzedText}</td>
         </tr>
       `);
