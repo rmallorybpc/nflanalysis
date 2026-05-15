@@ -44,7 +44,7 @@ function toFiniteNumber(value, fallback = 0) {
   return Number.isFinite(num) ? num : fallback;
 }
 
-function aavDollarsToMillions(value) {
+function dollarsToMillions(value) {
   return toFiniteNumber(value, 0) / 1_000_000;
 }
 
@@ -350,11 +350,11 @@ async function loadSeasonSpendIndex() {
     const current = indexed[key] || {
       teamId,
       season,
-      totalAavRaw: 0,
+      totalSpendRaw: 0,
       moveCount: 0,
     };
 
-    current.totalAavRaw += toFiniteNumber(row.contract_aav, 0);
+    current.totalSpendRaw += toFiniteNumber(row.contract_total, 0);
     current.moveCount += 1;
     indexed[key] = current;
   });
@@ -606,19 +606,19 @@ async function loadSpendTable(seasons) {
       const seasonSpendingRows = TEAM_IDS.map((teamId) => {
         const indexed = seasonSpendIndex[`${season}:${teamId}`] || {
           teamId,
-          totalAavRaw: 0,
+          totalSpendRaw: 0,
           moveCount: 0,
         };
         return {
           teamId,
-          totalAavRaw: toFiniteNumber(indexed.totalAavRaw, 0),
-          totalAavM: aavDollarsToMillions(toFiniteNumber(indexed.totalAavRaw, 0)),
+          totalSpendRaw: toFiniteNumber(indexed.totalSpendRaw, 0),
+          totalSpendM: dollarsToMillions(toFiniteNumber(indexed.totalSpendRaw, 0)),
           moveCount: toFiniteNumber(indexed.moveCount, 0),
         };
       });
 
       const topSpenderSeed = [...seasonSpendingRows]
-        .sort((a, b) => b.totalAavRaw - a.totalAavRaw)[0];
+        .sort((a, b) => b.totalSpendRaw - a.totalSpendRaw)[0];
       const topSpenderTeamId = toTeamId(topSpenderSeed?.teamId);
 
       if (!topSpenderTeamId) {
@@ -631,7 +631,7 @@ async function loadSpendTable(seasons) {
       });
 
       const spends = seasonSpendingRows
-        .map((t) => t.totalAavM)
+        .map((t) => t.totalSpendM)
         .filter((v) => v > 0);
       const leagueAvg = spends.length > 0
         ? spends.reduce((s, v) => s + v, 0) / spends.length
@@ -639,7 +639,7 @@ async function loadSpendTable(seasons) {
 
       const topSpender = seasonSpendingByTeam[topSpenderTeamId] || {
         teamId: topSpenderTeamId,
-        totalAavM: topSpenderSeed.totalAavM,
+        totalSpendM: topSpenderSeed.totalSpendM,
       };
 
       if (seasonStatus === "upcoming") {
@@ -650,7 +650,7 @@ async function loadSpendTable(seasons) {
             <td>${seasonLabel(season)}</td>
             <td>$${leagueAvg.toFixed(0)}M</td>
             <td>${topSpender?.teamId || "—"}
-              ($${(topSpender?.totalAavM || 0).toFixed(0)}M)</td>
+              ($${(topSpender?.totalSpendM || 0).toFixed(0)}M)</td>
             <td>Upcoming season - pending games</td>
             <td>Upcoming season - pending games</td>
             <td>Upcoming season - pending games</td>
@@ -685,7 +685,7 @@ async function loadSpendTable(seasons) {
       const biggestGainOutcome = Object.prototype.hasOwnProperty.call(winDeltaByTeam, biggestGainTeamId)
         ? winDeltaByTeam[biggestGainTeamId]
         : null;
-      const biggestGainSpend = seasonSpendingByTeam[biggestGainTeamId]?.totalAavM || 0;
+      const biggestGainSpend = seasonSpendingByTeam[biggestGainTeamId]?.totalSpendM || 0;
       const biggestGainLabel = biggestGainTeamId
         ? `${biggestGainTeamId} ($${biggestGainSpend.toFixed(0)}M)`
         : "—";
@@ -710,7 +710,7 @@ async function loadSpendTable(seasons) {
           <td>${seasonLabel(season)}</td>
           <td>$${leagueAvg.toFixed(0)}M</td>
           <td>${topSpender?.teamId || "—"}
-            ($${(topSpender?.totalAavM || 0).toFixed(0)}M)</td>
+            ($${(topSpender?.totalSpendM || 0).toFixed(0)}M)</td>
           <td${outcomeClass(topSpenderOutcome)}>
             ${fmtOutcome(topSpenderOutcome)}
           </td>
