@@ -822,6 +822,8 @@ async function initFindings() {
     const loadedAt = statusTimestampLabel();
     const upcomingSeasonCount = spendSummary?.upcomingSeasonCount || 0;
     const outcomeGapSeasonCount = spendSummary?.outcomeGapSeasonCount || 0;
+    const hasRealPartialProblems = outcomeGapSeasonCount > 0;
+    const hasExpectedPlaceholderOnly = hasPartial && !hasRealPartialProblems;
 
     // Keep failure warnings first. Partial coverage warning is expected when
     // upcoming seasons are included and win-change outcomes are not yet observable.
@@ -831,7 +833,13 @@ async function initFindings() {
         "warning",
         { showRetry: true }
       );
-    } else if (hasPartial) {
+    } else if (hasRealPartialProblems) {
+      setFindingsStatus(
+        `Data loaded with missing complete win-change rows (${outcomeGapSeasonCount} season${outcomeGapSeasonCount === 1 ? "" : "s"}). Retry may resolve transient data gaps. Last updated at ${loadedAt}.`,
+        "warning",
+        { showRetry: true }
+      );
+    } else if (hasExpectedPlaceholderOnly) {
       const partialNotes = [];
       if (upcomingSeasonCount > 0) {
         partialNotes.push(`${upcomingSeasonCount} upcoming season${upcomingSeasonCount === 1 ? "" : "s"} with expected placeholders`);
@@ -845,7 +853,7 @@ async function initFindings() {
       setFindingsStatus(
         `Data loaded with partial coverage${partialSuffix} Some win-change placeholders are expected for upcoming seasons. Last updated at ${loadedAt}.`,
         "warning",
-        { showRetry: true }
+        { showRetry: false }
       );
     } else {
       setFindingsStatus(
