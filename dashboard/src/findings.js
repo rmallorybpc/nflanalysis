@@ -301,15 +301,31 @@ async function loadTeamOutcomes() {
     if (!teamId || !Number.isFinite(season)) {
       return;
     }
-    indexed[`${season}:${teamId}`] = {
+    const nflWeek = toFiniteNumber(row.nfl_week, -1);
+    const snapshot = {
       team_id: teamId,
       season,
+      nfl_week: nflWeek,
       wins: toFiniteNumber(row.wins),
       losses: toFiniteNumber(row.losses),
       ties: toFiniteNumber(row.ties),
       win_pct: toFiniteNumber(row.win_pct),
       games_played: toFiniteNumber(row.games_played),
     };
+
+    const key = `${season}:${teamId}`;
+    const current = indexed[key];
+    if (!current) {
+      indexed[key] = snapshot;
+      return;
+    }
+
+    const hasMoreGames = snapshot.games_played > current.games_played;
+    const sameGamesLaterWeek = snapshot.games_played === current.games_played
+      && snapshot.nfl_week > current.nfl_week;
+    if (hasMoreGames || sameGamesLaterWeek) {
+      indexed[key] = snapshot;
+    }
   });
 
   if (Object.keys(indexed).length === 0) {
@@ -606,10 +622,14 @@ async function loadSpendTable(seasons) {
   const tbody = document.getElementById("spendTableBody");
   if (!tbody) return;
 
-  const seasonSpendIndex = await loadSeasonSpendIndex();
+  const [seasonSpendIndex, teamOutcomes] = await Promise.all([
+    loadSeasonSpendIndex(),
+    loadTeamOutcomes(),
+  ]);
   const rows = [];
   let failedSeasons = 0;
   let partialSeasonCount = 0;
+  let seasonsWithWinOutcomes = 0;
   const reasonCounts = {};
 
   const seasonList = Array.isArray(seasons) && seasons.length > 0
@@ -618,29 +638,6 @@ async function loadSpendTable(seasons) {
 
   for (const season of seasonList) {
     try {
-      const overview = await loadOverviewBySeason(season);
-      const rankingRows = Array.isArray(overview?.charts?.league_ranking)
-        ? overview.charts.league_ranking
-        : [];
-
-      if (rankingRows.length === 0) {
-        throw new Error("insufficient data");
-      }
-
-      const misByTeam = {};
-      rankingRows.forEach((row) => {
-        const teamId = toTeamId(row.team_id);
-        if (!teamId) {
-          return;
-        }
-        misByTeam[teamId] = toFiniteNumber(row.mis_value, 0);
-      });
-
-      const biggestGainTeamId = toTeamId(rankingRows[0]?.team_id);
-      if (!biggestGainTeamId) {
-        throw new Error("insufficient data");
-      }
-
       const seasonSpendingRows = TEAM_IDS.map((teamId) => {
         const indexed = seasonSpendIndex[`${season}:${teamId}`] || {
           teamId,
@@ -679,18 +676,46 @@ async function loadSpendTable(seasons) {
         teamId: topSpenderTeamId,
         totalAavM: topSpenderSeed.totalAavM,
       };
-      const topSpenderOutcome = Object.prototype.hasOwnProperty.call(misByTeam, topSpenderTeamId)
-        ? misByTeam[topSpenderTeamId]
-        : null;
+      const winDeltaByTeam = {};
+      TEAM_IDS.forEach((teamId) => {
+        const current = teamOutcomes[`${season}:${teamId}`];
+        const prior = teamOutcomes[`${season - 1}:${teamId}`];
+        if (!current || !prior) {
+          return;
+        }
+        winDeltaByTeam[teamId] = toFiniteNumber(current.wins, 0) - toFiniteNumber(prior.wins, 0);
+      });
 
-      const biggestGainLabel = biggestGainTeamId || "—";
-      const biggestGainOutcome = Object.prototype.hasOwnProperty.call(misByTeam, biggestGainTeamId)
-        ? misByTeam[biggestGainTeamId]
+      const winDeltaRows = Object.entries(winDeltaByTeam)
+        .map(([teamId, winDelta]) => ({ teamId, winDelta }))
+        .sort((a, b) => {
+          if (b.winDelta !== a.winDelta) {
+            return b.winDelta - a.winDelta;
+          }
+          return a.teamId.localeCompare(b.teamId);
+        });
+
+      const biggestGainTeamId = winDeltaRows[0]?.teamId || "";
+      const topSpenderOutcome = Object.prototype.hasOwnProperty.call(winDeltaByTeam, topSpenderTeamId)
+        ? winDeltaByTeam[topSpenderTeamId]
+        : null;
+      const biggestGainOutcome = Object.prototype.hasOwnProperty.call(winDeltaByTeam, biggestGainTeamId)
+        ? winDeltaByTeam[biggestGainTeamId]
         : null;
       const biggestGainSpend = seasonSpendingByTeam[biggestGainTeamId]?.totalAavM || 0;
+      const biggestGainLabel = biggestGainTeamId
+        ? `${biggestGainTeamId} ($${biggestGainSpend.toFixed(0)}M)`
+        : "—";
+
+      if (winDeltaRows.length > 0) {
+        seasonsWithWinOutcomes += 1;
+      }
+      if (topSpenderOutcome == null || biggestGainOutcome == null) {
+        partialSeasonCount += 1;
+      }
 
       const fmtOutcome = (v) => (v == null ? "—"
-        : `MIS ${v >= 0 ? "+" : ""}${v.toFixed(6)}`);
+        : `${v >= 0 ? "+" : ""}${v.toFixed(0)} wins`);
 
       const outcomeClass = (v) => (v == null ? ""
         : v > 0 ? ' class="findings-gain"'
@@ -709,7 +734,6 @@ async function loadSpendTable(seasons) {
           <td${outcomeClass(biggestGainOutcome)}>
             ${fmtOutcome(biggestGainOutcome)}
           </td>
-          <td>$${biggestGainSpend.toFixed(0)}M</td>
         </tr>
       `);
     } catch (err) {
@@ -719,7 +743,7 @@ async function loadSpendTable(seasons) {
       rows.push(`
         <tr>
           <td>${seasonLabel(season)}</td>
-          <td colspan="6" class="findings-error">
+          <td colspan="5" class="findings-error">
             Data unavailable (${reason})
           </td>
         </tr>
@@ -728,13 +752,13 @@ async function loadSpendTable(seasons) {
   }
 
   tbody.innerHTML = rows.join("")
-    || "<tr><td colspan=\"7\">No data available.</td></tr>";
+    || "<tr><td colspan=\"6\">No data available.</td></tr>";
 
   return {
     totalSeasons: seasonList.length,
     failedSeasons,
     partialSeasonCount,
-    outcomesAvailable: true,
+    outcomesAvailable: seasonsWithWinOutcomes > 0,
     reasonCounts,
   };
 }
