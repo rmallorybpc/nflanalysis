@@ -822,6 +822,7 @@ async function initFindings() {
     const loadedAt = statusTimestampLabel();
     const upcomingSeasonCount = spendSummary?.upcomingSeasonCount || 0;
     const outcomeGapSeasonCount = spendSummary?.outcomeGapSeasonCount || 0;
+    // Show Retry only for actionable issues (hard failures or real missing-row gaps).
     const hasRealPartialProblems = outcomeGapSeasonCount > 0;
     const hasExpectedPlaceholderOnly = hasPartial && !hasRealPartialProblems;
 
