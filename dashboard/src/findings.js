@@ -590,6 +590,8 @@ async function loadSpendTable(seasons) {
   const rows = [];
   let failedSeasons = 0;
   let partialSeasonCount = 0;
+  let upcomingSeasonCount = 0;
+  let outcomeGapSeasonCount = 0;
   let seasonsWithWinOutcomes = 0;
   const reasonCounts = {};
 
@@ -642,6 +644,7 @@ async function loadSpendTable(seasons) {
 
       if (seasonStatus === "upcoming") {
         partialSeasonCount += 1;
+        upcomingSeasonCount += 1;
         rows.push(`
           <tr>
             <td>${seasonLabel(season)}</td>
@@ -692,6 +695,7 @@ async function loadSpendTable(seasons) {
       }
       if (topSpenderOutcome == null || biggestGainOutcome == null) {
         partialSeasonCount += 1;
+        outcomeGapSeasonCount += 1;
       }
 
       const fmtOutcome = (v) => (v == null ? "—"
@@ -738,6 +742,8 @@ async function loadSpendTable(seasons) {
     totalSeasons: seasonList.length,
     failedSeasons,
     partialSeasonCount,
+    upcomingSeasonCount,
+    outcomeGapSeasonCount,
     outcomesAvailable: seasonsWithWinOutcomes > 0,
     reasonCounts,
   };
@@ -799,7 +805,11 @@ async function initFindings() {
     const reasonSummary = formatReasonSummary(combinedReasonCounts);
 
     const loadedAt = statusTimestampLabel();
+    const upcomingSeasonCount = spendSummary?.upcomingSeasonCount || 0;
+    const outcomeGapSeasonCount = spendSummary?.outcomeGapSeasonCount || 0;
 
+    // Keep failure warnings first. Partial coverage warning is expected when
+    // upcoming seasons are included and win-change outcomes are not yet observable.
     if (hasFailures) {
       setFindingsStatus(
         `Some seasons could not be loaded (${reasonSummary || "see table rows for details"}). Tables show available rows only. Last updated at ${loadedAt}.`,
@@ -807,8 +817,18 @@ async function initFindings() {
         { showRetry: true }
       );
     } else if (hasPartial) {
+      const partialNotes = [];
+      if (upcomingSeasonCount > 0) {
+        partialNotes.push(`${upcomingSeasonCount} upcoming season${upcomingSeasonCount === 1 ? "" : "s"} with expected placeholders`);
+      }
+      if (outcomeGapSeasonCount > 0) {
+        partialNotes.push(`${outcomeGapSeasonCount} season${outcomeGapSeasonCount === 1 ? "" : "s"} missing complete win-change rows`);
+      }
+      const partialSuffix = partialNotes.length > 0
+        ? ` (${partialNotes.join("; ")}).`
+        : ".";
       setFindingsStatus(
-        `Data loaded with partial coverage. Some win-change fields may show placeholders. Last updated at ${loadedAt}.`,
+        `Data loaded with partial coverage${partialSuffix} Some win-change placeholders are expected for upcoming seasons. Last updated at ${loadedAt}.`,
         "warning",
         { showRetry: true }
       );
