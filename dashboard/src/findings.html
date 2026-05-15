@@ -105,14 +105,15 @@
             <thead>
               <tr>
                 <th>Season</th>
-                <th>Same Division</th>
-                <th>Cross Division</th>
-                <th>Cross Conference</th>
-                <th>Strongest Signal</th>
+                <th>All Events</th>
+                <th>Known Scope Only</th>
+                <th>Trades Only</th>
+                <th>Stability</th>
+                <th>Claim Verdict</th>
               </tr>
             </thead>
             <tbody id="geoTableBody">
-              <tr><td colspan="5" class="findings-loading">
+              <tr><td colspan="6" class="findings-loading">
                 Loading geography data...
               </td></tr>
             </tbody>
@@ -128,11 +129,11 @@
         </p>
 
         <p class="findings-note">
-          Values show average absolute win probability impact per
-          inbound signing of each geography type for that season.
-          Higher is stronger signal. "Exploratory" labels indicate
-          evidence that is directionally interesting but not strong
-          enough for a firm claim.
+          Each mode reports the strongest move geography for win_pct,
+          with move count and placebo p-value for transparency.
+          Stability indicates whether the strongest scope remains
+          consistent across all_events, known_scope_only, and
+          trades_only. Claim verdict is the policy-gated conclusion.
           <a href="./index.html" id="findingsOverviewLink">
             Explore geography by season ->
           </a>

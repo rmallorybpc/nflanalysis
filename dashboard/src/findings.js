@@ -420,6 +420,39 @@ async function loadGeoTable(seasons) {
     cross_conference: "🌐",
   };
 
+  const modeLabel = {
+    all_events: "All",
+    known_scope_only: "Known",
+    trades_only: "Trades",
+  };
+
+  const formatPValue = (value) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return "n/a";
+    return num.toFixed(3);
+  };
+
+  const strongestCell = (profile) => {
+    if (!profile) {
+      return "<span class=\"findings-error\">n/a</span>";
+    }
+
+    const summary = profile.win_pct_summary || null;
+    const strongestScope = String(summary?.strongest_scope || "").trim();
+    const strongestCount = Number(summary?.strongest_move_count || 0);
+    const pValue = formatPValue(summary?.placebo_win_pct_p_value);
+
+    if (!strongestScope || strongestCount <= 0) {
+      return "<span class=\"findings-error\">insufficient</span>";
+    }
+
+    const icon = scopeIcon[strongestScope] || "📊";
+    const label = scopeLabel[strongestScope] || strongestScope;
+    const exploratory = summary?.robustness_flag === false ? " exploratory" : "";
+
+    return `${icon} ${label}${exploratory}<br><small>n=${strongestCount} | p=${pValue}</small>`;
+  };
+
   const rows = [];
   let failedSeasons = 0;
   const reasonCounts = {};
@@ -432,63 +465,76 @@ async function loadGeoTable(seasons) {
     try {
       const payload = await loadOverviewBySeason(season);
       const sensitivityProfiles = payload?.charts?.geography_sensitivity_profiles || [];
-      const knownScopeProfile = sensitivityProfiles.find((profile) => profile.mode === "known_scope_only");
       const claimPolicy = payload?.scope?.geography_claim_policy || null;
 
-      const geoRows = (knownScopeProfile?.points || payload?.charts?.geography_impact_profile || [])
-        .filter((r) => r.outcome_name === "win_pct" && r.move_count > 0);
+      const byMode = {};
+      sensitivityProfiles.forEach((profile) => {
+        const mode = String(profile?.mode || "").trim();
+        if (mode) {
+          byMode[mode] = profile;
+        }
+      });
 
-      if (geoRows.length < 2) {
+      if (!byMode.all_events && Array.isArray(payload?.charts?.geography_impact_profile)) {
+        const fallbackPoints = payload.charts.geography_impact_profile;
+        byMode.all_events = {
+          mode: "all_events",
+          label: "All events",
+          points: fallbackPoints,
+          win_pct_summary: null,
+        };
+      }
+
+      const allModes = ["all_events", "known_scope_only", "trades_only"];
+      const strongestScopes = [];
+      allModes.forEach((mode) => {
+        const summary = byMode[mode]?.win_pct_summary || null;
+        const strongestScope = String(summary?.strongest_scope || "").trim();
+        const strongestCount = Number(summary?.strongest_move_count || 0);
+        if (strongestScope && strongestCount > 0) {
+          strongestScopes.push(strongestScope);
+        }
+      });
+
+      if (strongestScopes.length === 0) {
         incrementReasonCount(reasonCounts, "insufficient data");
         rows.push(`
           <tr>
             <td>${seasonLabel(season)}</td>
-            <td colspan="4" class="findings-error">Data unavailable</td>
+            <td colspan="5" class="findings-error">Data unavailable</td>
           </tr>
         `);
         continue;
       }
 
-      const byScope = {};
-      geoRows.forEach((r) => { byScope[r.move_scope] = r; });
+      const distinctStrongest = Array.from(new Set(strongestScopes));
+      const stableAcrossModes = distinctStrongest.length === 1;
+      const stableScope = distinctStrongest[0] || "";
 
-      const sorted = [...geoRows].sort(
-        (a, b) => b.avg_abs_impact - a.avg_abs_impact
-      );
-      const strongest = sorted[0];
-      const summary = knownScopeProfile?.win_pct_summary || null;
-      const policyReason = Array.isArray(claimPolicy?.reasons)
-        ? claimPolicy.reasons.find((reason) => reason !== "ok") || null
-        : null;
-      const reasonLabel = policyReason
-        ? policyReason.replaceAll("_", " ")
-        : null;
+      const stabilityText = stableAcrossModes
+        ? `Stable (${scopeLabel[stableScope] || stableScope})`
+        : "Shifts by mode";
 
-      const fmtImpact = (v) => (v != null ? Number(v).toFixed(6) : "—");
+      const verdictText = claimPolicy?.can_make_strong_claim
+        ? "Strong claim allowed"
+        : "Exploratory only";
 
-      const isBest = (scope) => (
-        scope === strongest.move_scope
-          ? " class=\"findings-best\"" : ""
-      );
+      const reasons = Array.isArray(claimPolicy?.reasons)
+        ? claimPolicy.reasons.filter((reason) => reason !== "ok")
+        : [];
+
+      const reasonText = reasons.length > 0
+        ? reasons.join(", ").replaceAll("_", " ")
+        : "policy checks passed";
 
       rows.push(`
         <tr>
           <td>${seasonLabel(season)}</td>
-          <td${isBest("same_division")}>
-            ${fmtImpact(byScope.same_division?.avg_abs_impact)}
-          </td>
-          <td${isBest("cross_division")}>
-            ${fmtImpact(byScope.cross_division?.avg_abs_impact)}
-          </td>
-          <td${isBest("cross_conference")}>
-            ${fmtImpact(byScope.cross_conference?.avg_abs_impact)}
-          </td>
-          <td>
-            ${scopeIcon[strongest.move_scope] || ""}
-            ${scopeLabel[strongest.move_scope] || strongest.move_scope}
-            ${summary && summary.robustness_flag === false ? " (exploratory)" : ""}
-            ${claimPolicy && claimPolicy.can_make_strong_claim === false && reasonLabel ? ` [${reasonLabel}]` : ""}
-          </td>
+          <td>${strongestCell(byMode.all_events)}</td>
+          <td>${strongestCell(byMode.known_scope_only)}</td>
+          <td>${strongestCell(byMode.trades_only)}</td>
+          <td>${stabilityText}</td>
+          <td>${verdictText}<br><small>${reasonText}</small></td>
         </tr>
       `);
     } catch (err) {
@@ -498,7 +544,7 @@ async function loadGeoTable(seasons) {
       rows.push(`
         <tr>
           <td>${seasonLabel(season)}</td>
-          <td colspan="4" class="findings-error">
+          <td colspan="5" class="findings-error">
             Data unavailable (${reason})
           </td>
         </tr>
@@ -507,7 +553,7 @@ async function loadGeoTable(seasons) {
   }
 
   tbody.innerHTML = rows.join("")
-    || "<tr><td colspan=\"5\">No data available.</td></tr>";
+    || "<tr><td colspan=\"6\">No data available.</td></tr>";
 
   return {
     totalSeasons: seasonList.length,
