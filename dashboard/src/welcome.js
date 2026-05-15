@@ -1,3 +1,7 @@
+import { getLatestCompletedSeason } from "./seasonStatus.js";
+
+let defaultSeason = 2025;
+
 function rewriteNavLinksFromParams() {
   const params = new URLSearchParams(window.location.search);
   const season = params.get("season") || "";
@@ -20,10 +24,10 @@ function rewriteNavLinksFromParams() {
 
 function buildExampleUrl(exampleKey) {
   const map = {
-    overview: "/src/index.html?season=2026&team_id=BUF#highlight=overview-metric",
+    overview: `/src/index.html?season=${defaultSeason}&team_id=BUF#highlight=overview-metric`,
     team: "/src/team.html?season=2022&team_id=JAX#highlight=timeline",
-    scenario: "/src/scenario.html?season=2026#highlight=scenario-compare",
-    explorer: "/src/explorer.html?season=2026#highlight=spend-vs-mis",
+    scenario: `/src/scenario.html?season=${defaultSeason}#highlight=scenario-compare`,
+    explorer: `/src/explorer.html?season=${defaultSeason}#highlight=spend-vs-mis`,
   };
   const raw = map[exampleKey];
   if (!raw) {
@@ -35,6 +39,22 @@ function buildExampleUrl(exampleKey) {
   const joiner = pathAndQuery.includes("?") ? "&" : "?";
   const withSource = `${pathAndQuery}${joiner}from=welcome`;
   return hash ? `${withSource}#${hash}` : withSource;
+}
+
+function applyDefaultSeasonLinks(season) {
+  const safeSeason = Number.isFinite(Number(season)) ? String(Math.trunc(Number(season))) : String(defaultSeason);
+  const cta = document.querySelector(".welcome-cta");
+  if (cta) {
+    cta.setAttribute("href", `./index.html?season=${safeSeason}`);
+    cta.textContent = `Explore the ${safeSeason} Season ->`;
+  }
+
+  const overviewLink = document.getElementById("overviewLink");
+  const teamLink = document.getElementById("teamPageLink");
+  const scenarioLink = document.getElementById("scenarioPageLink");
+  if (overviewLink) overviewLink.setAttribute("href", `./index.html?season=${safeSeason}&team_id=BUF`);
+  if (teamLink) teamLink.setAttribute("href", `./team.html?team_id=BUF&season=${safeSeason}`);
+  if (scenarioLink) scenarioLink.setAttribute("href", `./scenario.html?team_id=BUF&season=${safeSeason}`);
 }
 
 function bindExampleButtons() {
@@ -49,9 +69,13 @@ function bindExampleButtons() {
   });
 }
 
-function main() {
+async function main() {
+  defaultSeason = await getLatestCompletedSeason(defaultSeason);
+  applyDefaultSeasonLinks(defaultSeason);
   rewriteNavLinksFromParams();
   bindExampleButtons();
 }
 
-document.addEventListener("DOMContentLoaded", main);
+document.addEventListener("DOMContentLoaded", () => {
+  main().catch((err) => console.error(err));
+});

@@ -1,3 +1,9 @@
+import {
+  getLatestCompletedSeason,
+  getSeasonSummary,
+  loadTeamOutcomesIndex,
+} from "./seasonStatus.js";
+
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
 
 const TEAM_IDS = [
@@ -15,6 +21,7 @@ const state = {
 
 let geoProfileCache = null;
 let cardsExpanded = false;
+const seasonSummaryCache = {};
 
 function seasonLabel(year) {
   return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
@@ -239,6 +246,40 @@ function setStatus(message, isError = false) {
   const el = document.getElementById("statusMessage");
   el.textContent = message || "";
   el.classList.toggle("error", Boolean(isError));
+}
+
+async function getSeasonSummaryFor(season) {
+  if (seasonSummaryCache[season]) {
+    return seasonSummaryCache[season];
+  }
+  const outcomes = await loadTeamOutcomesIndex();
+  const summary = getSeasonSummary(outcomes, season);
+  seasonSummaryCache[season] = summary;
+  return summary;
+}
+
+function renderSeasonContextNotice(seasonSummary) {
+  const hero = document.querySelector("main .hero");
+  if (!hero) {
+    return;
+  }
+
+  let noticeEl = document.getElementById("teamSeasonNotice");
+  if (!noticeEl) {
+    noticeEl = document.createElement("p");
+    noticeEl.id = "teamSeasonNotice";
+    noticeEl.className = "status-message";
+    hero.appendChild(noticeEl);
+  }
+
+  if (!seasonSummary || seasonSummary.status !== "upcoming") {
+    noticeEl.textContent = "";
+    noticeEl.classList.remove("error");
+    return;
+  }
+
+  noticeEl.textContent = `${seasonLabel(seasonSummary.season)} is upcoming. Team outputs on this page are model estimates from player movement, not observed results.`;
+  noticeEl.classList.add("error");
 }
 
 function renderEmptyState(container, message) {
@@ -1000,6 +1041,12 @@ async function refreshTeamDetail() {
   if (state.teamId !== previousTeamId || state.season !== previousSeason) {
     cardsExpanded = false;
   }
+  try {
+    const seasonSummary = await getSeasonSummaryFor(state.season);
+    renderSeasonContextNotice(seasonSummary);
+  } catch (_err) {
+    renderSeasonContextNotice(null);
+  }
   syncControls();
   writeQueryState();
   showTeamSkeletons();
@@ -1070,9 +1117,18 @@ function bindControls() {
   return { reloadAction };
 }
 
-function main() {
+async function main() {
   rewriteNavLinksFromParams();
   const { hasTeam, hasSeason } = parseQueryState();
+  if (!hasSeason) {
+    state.season = await getLatestCompletedSeason(state.season);
+  }
+  try {
+    const seasonSummary = await getSeasonSummaryFor(state.season);
+    renderSeasonContextNotice(seasonSummary);
+  } catch (_err) {
+    renderSeasonContextNotice(null);
+  }
   syncControls();
   bindShareButton();
   const { reloadAction } = bindControls();
@@ -1082,5 +1138,5 @@ function main() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  main();
+  main().catch((err) => console.error(err));
 });

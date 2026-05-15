@@ -1,3 +1,9 @@
+import {
+  getLatestCompletedSeason,
+  getSeasonSummary,
+  loadTeamOutcomesIndex,
+} from "./seasonStatus.js";
+
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
 
 const TEAM_IDS = [
@@ -43,6 +49,7 @@ function seasonLabel(year) {
 
 let allEvents = [];
 let failedTeamCount = 0;
+const seasonSummaryCache = {};
 
 async function loadGeoProfile(season) {
   if (geoProfileCache && geoProfileCache.season === season) {
@@ -778,6 +785,7 @@ async function refreshExplorer() {
 
 function bindControls() {
   document.getElementById("seasonInput").addEventListener("change", () => {
+    refreshSeasonNotice().catch((err) => console.error(err));
     refreshExplorer().catch((err) => console.error(err));
   });
 
@@ -814,16 +822,20 @@ function bindControls() {
   });
 }
 
-function main() {
+async function main() {
   rewriteNavLinksFromParams();
-  parseQueryState();
+  const { hasSeason } = parseQueryState();
+  if (!hasSeason) {
+    state.season = await getLatestCompletedSeason(state.season);
+  }
   syncControls();
+  await refreshSeasonNotice();
   bindControls();
   refreshExplorer().catch((err) => console.error(err));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  main();
+  main().catch((err) => console.error(err));
 });
 
 function toTeamId(value) {
@@ -880,6 +892,51 @@ function setStatus(message, isError = false) {
   const el = document.getElementById("statusMessage");
   el.textContent = message || "";
   el.classList.toggle("error", Boolean(isError));
+}
+
+async function getSeasonSummaryFor(season) {
+  if (seasonSummaryCache[season]) {
+    return seasonSummaryCache[season];
+  }
+  const outcomes = await loadTeamOutcomesIndex();
+  const summary = getSeasonSummary(outcomes, season);
+  seasonSummaryCache[season] = summary;
+  return summary;
+}
+
+function renderSeasonContextNotice(seasonSummary) {
+  const hero = document.querySelector("main .hero");
+  if (!hero) {
+    return;
+  }
+
+  let noticeEl = document.getElementById("explorerSeasonNotice");
+  if (!noticeEl) {
+    noticeEl = document.createElement("p");
+    noticeEl.id = "explorerSeasonNotice";
+    noticeEl.className = "status-message";
+    hero.appendChild(noticeEl);
+  }
+
+  if (!seasonSummary || seasonSummary.status !== "upcoming") {
+    noticeEl.textContent = "";
+    noticeEl.classList.remove("error");
+    return;
+  }
+
+  noticeEl.textContent = `${seasonLabel(seasonSummary.season)} is upcoming. Explorer cards show movement and model impact estimates, not observed game outcomes.`;
+  noticeEl.classList.add("error");
+}
+
+async function refreshSeasonNotice() {
+  const seasonValue = Number(document.getElementById("seasonInput")?.value);
+  const season = Number.isFinite(seasonValue) && seasonValue > 0 ? Math.trunc(seasonValue) : state.season;
+  try {
+    const summary = await getSeasonSummaryFor(season);
+    renderSeasonContextNotice(summary);
+  } catch (_err) {
+    renderSeasonContextNotice(null);
+  }
 }
 
 function teamSeasonEmptyMessage() {

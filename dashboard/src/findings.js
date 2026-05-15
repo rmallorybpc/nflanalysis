@@ -1,3 +1,9 @@
+import {
+  classifySeasonStatus,
+  getLatestCompletedSeason,
+  getSeasonSummary,
+  loadTeamOutcomesIndex,
+} from "./seasonStatus.js";
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
 
 const TEAM_IDS = [
@@ -269,71 +275,8 @@ async function loadTeamOutcomes() {
   if (teamOutcomesCache) {
     return teamOutcomesCache;
   }
-
-  const candidates = [
-    "../../data/processed/team_week_outcomes.csv",
-    "/data/processed/team_week_outcomes.csv",
-    "/nflanalysis/data/processed/team_week_outcomes.csv",
-  ];
-
-  let csvText = "";
-  for (const path of candidates) {
-    try {
-      const resp = await fetchWithRetry(path);
-      if (resp.ok) {
-        csvText = await resp.text();
-        break;
-      }
-    } catch (_err) {
-      // Try the next candidate.
-    }
-  }
-
-  if (!csvText) {
-    throw new Error("Unable to load team outcomes for spending table.");
-  }
-
-  const rows = parseCsvRows(csvText);
-  const indexed = {};
-  rows.forEach((row) => {
-    const teamId = toTeamId(row.team_id);
-    const season = Number(row.nfl_season);
-    if (!teamId || !Number.isFinite(season)) {
-      return;
-    }
-    const nflWeek = toFiniteNumber(row.nfl_week, -1);
-    const snapshot = {
-      team_id: teamId,
-      season,
-      nfl_week: nflWeek,
-      wins: toFiniteNumber(row.wins),
-      losses: toFiniteNumber(row.losses),
-      ties: toFiniteNumber(row.ties),
-      win_pct: toFiniteNumber(row.win_pct),
-      games_played: toFiniteNumber(row.games_played),
-    };
-
-    const key = `${season}:${teamId}`;
-    const current = indexed[key];
-    if (!current) {
-      indexed[key] = snapshot;
-      return;
-    }
-
-    const hasMoreGames = snapshot.games_played > current.games_played;
-    const sameGamesLaterWeek = snapshot.games_played === current.games_played
-      && snapshot.nfl_week > current.nfl_week;
-    if (hasMoreGames || sameGamesLaterWeek) {
-      indexed[key] = snapshot;
-    }
-  });
-
-  if (Object.keys(indexed).length === 0) {
-    throw new Error("Team outcomes CSV parsed, but no valid rows were indexed.");
-  }
-
-  teamOutcomesCache = indexed;
-  return indexed;
+  teamOutcomesCache = await loadTeamOutcomesIndex();
+  return teamOutcomesCache;
 }
 
 async function loadOverviewData(season) {
@@ -423,6 +366,7 @@ async function loadSeasonSpendIndex() {
 async function loadGeoTable(seasons) {
   const tbody = document.getElementById("geoTableBody");
   if (!tbody) return;
+  const teamOutcomes = await loadTeamOutcomes();
 
   const scopeLabel = {
     same_division: "Same-Division",
@@ -484,6 +428,7 @@ async function loadGeoTable(seasons) {
 
   for (const season of seasonList) {
     try {
+      const seasonStatus = classifySeasonStatus(teamOutcomes, season);
       const payload = await loadOverviewBySeason(season);
       const sensitivityProfiles = payload?.charts?.geography_sensitivity_profiles || [];
       const claimPolicy = payload?.scope?.geography_claim_policy || null;
@@ -583,13 +528,16 @@ async function loadGeoTable(seasons) {
       const analyzedText = movesAnalyzed > 0
         ? `${movesAnalyzed} moves`
         : "n/a";
+      const seasonalContext = seasonStatus === "upcoming"
+        ? "Model signal only (season not yet played)."
+        : "";
 
       rows.push(`
         <tr>
           <td>${seasonLabel(season)}</td>
           <td>${shortAnswer}</td>
           <td><span class="findings-confidence findings-confidence--${confidenceTone}">${confidence}</span></td>
-          <td class="findings-cell-evidence">${evidenceText}<span class="findings-evidence-note"> | ${whyText}</span></td>
+          <td class="findings-cell-evidence">${evidenceText}<span class="findings-evidence-note"> | ${whyText}${seasonalContext ? ` | ${seasonalContext}` : ""}</span></td>
           <td>${analyzedText}</td>
         </tr>
       `);
@@ -638,6 +586,8 @@ async function loadSpendTable(seasons) {
 
   for (const season of seasonList) {
     try {
+      const seasonSummary = getSeasonSummary(teamOutcomes, season);
+      const seasonStatus = seasonSummary.status;
       const seasonSpendingRows = TEAM_IDS.map((teamId) => {
         const indexed = seasonSpendIndex[`${season}:${teamId}`] || {
           teamId,
@@ -676,6 +626,23 @@ async function loadSpendTable(seasons) {
         teamId: topSpenderTeamId,
         totalAavM: topSpenderSeed.totalAavM,
       };
+
+      if (seasonStatus === "upcoming") {
+        partialSeasonCount += 1;
+        rows.push(`
+          <tr>
+            <td>${seasonLabel(season)}</td>
+            <td>$${leagueAvg.toFixed(0)}M</td>
+            <td>${topSpender?.teamId || "—"}
+              ($${(topSpender?.totalAavM || 0).toFixed(0)}M)</td>
+            <td>Upcoming season - pending games</td>
+            <td>Upcoming season - pending games</td>
+            <td>Upcoming season - pending games</td>
+          </tr>
+        `);
+        continue;
+      }
+
       const winDeltaByTeam = {};
       TEAM_IDS.forEach((teamId) => {
         const current = teamOutcomes[`${season}:${teamId}`];
@@ -770,7 +737,7 @@ async function initFindings() {
   findingsLoadInFlight = true;
 
   const params = new URLSearchParams(window.location.search);
-  const season = params.get("season") || "2026";
+  const season = params.get("season") || String(await getLatestCompletedSeason());
   const teamId = toTeamId(params.get("team_id")) || "BUF";
 
   document.querySelectorAll("nav a").forEach((a) => {

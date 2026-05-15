@@ -1,3 +1,9 @@
+import {
+  getLatestCompletedSeason,
+  getSeasonSummary,
+  loadTeamOutcomesIndex,
+} from "./seasonStatus.js";
+
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
 const API_URL = `${API_BASE}/v1/dashboard/scenario-sandbox`;
 const PLAYERS_API_URL = `${API_BASE}/v1/dashboard/players`;
@@ -67,6 +73,7 @@ const DELTA_TOOLTIP = "The estimated difference this move makes — how much bet
 let playersCache = null;
 let hasTeamParamInQuery = false;
 let hasInitializedMoveTeams = false;
+const seasonSummaryCache = {};
 
 const state = {
   teamId: "BUF",
@@ -271,6 +278,49 @@ function setStatus(message, isError = false) {
   const el = document.getElementById("statusMessage");
   el.textContent = message || "";
   el.classList.toggle("error", Boolean(isError));
+}
+
+async function getSeasonSummaryFor(season) {
+  if (seasonSummaryCache[season]) {
+    return seasonSummaryCache[season];
+  }
+  const outcomes = await loadTeamOutcomesIndex();
+  const summary = getSeasonSummary(outcomes, season);
+  seasonSummaryCache[season] = summary;
+  return summary;
+}
+
+function renderSeasonContextNotice(seasonSummary) {
+  const hero = document.querySelector("main .hero");
+  if (!hero) {
+    return;
+  }
+
+  let noticeEl = document.getElementById("scenarioSeasonNotice");
+  if (!noticeEl) {
+    noticeEl = document.createElement("p");
+    noticeEl.id = "scenarioSeasonNotice";
+    noticeEl.className = "status-message";
+    hero.appendChild(noticeEl);
+  }
+
+  if (!seasonSummary || seasonSummary.status !== "upcoming") {
+    noticeEl.textContent = "";
+    noticeEl.classList.remove("error");
+    return;
+  }
+
+  noticeEl.textContent = `${seasonLabel(seasonSummary.season)} is upcoming. Scenario outputs are model estimates and should not be interpreted as observed wins.`;
+  noticeEl.classList.add("error");
+}
+
+async function refreshSeasonNotice() {
+  try {
+    const summary = await getSeasonSummaryFor(state.season);
+    renderSeasonContextNotice(summary);
+  } catch (_err) {
+    renderSeasonContextNotice(null);
+  }
 }
 
 function renderEmptyState(container, message) {
@@ -792,6 +842,7 @@ function bindControls() {
       syncStateFromControls();
       syncControls();
       writeQueryState();
+      refreshSeasonNotice().catch((err) => console.error(err));
     });
   });
 
@@ -839,13 +890,17 @@ function bindControls() {
   });
 }
 
-function main() {
+async function main() {
   rewriteNavLinksFromParams();
-  parseQueryState();
+  const { hasSeason } = parseQueryState();
+  if (!hasSeason) {
+    state.season = await getLatestCompletedSeason(state.season);
+  }
   syncControls();
+  await refreshSeasonNotice();
   bindControls();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  main();
+  main().catch((err) => console.error(err));
 });

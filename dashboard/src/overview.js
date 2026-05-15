@@ -1,3 +1,9 @@
+import {
+  getLatestCompletedSeason,
+  getSeasonSummary,
+  loadTeamOutcomesIndex,
+} from "./seasonStatus.js";
+
 const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
 
 const TEAM_IDS = [
@@ -317,51 +323,32 @@ async function loadTeamOutcomes() {
   if (teamOutcomesCache) {
     return teamOutcomesCache;
   }
+  teamOutcomesCache = await loadTeamOutcomesIndex();
+  return teamOutcomesCache;
+}
 
-  const candidates = [
-    "../../data/processed/team_week_outcomes.csv",
-    "/data/processed/team_week_outcomes.csv",
-    "/nflanalysis/data/processed/team_week_outcomes.csv",
-  ];
-
-  let csvText = "";
-  for (const path of candidates) {
-    try {
-      const resp = await fetch(path);
-      if (resp.ok) {
-        csvText = await resp.text();
-        break;
-      }
-    } catch (_err) {
-      // Try the next candidate.
-    }
+function renderSeasonModeNotice(seasonSummary) {
+  const heroMeta = document.querySelector(".hero-meta");
+  if (!heroMeta) {
+    return;
   }
 
-  if (!csvText) {
-    throw new Error("Unable to load team outcomes for spending chart.");
+  let noticeEl = document.getElementById("seasonModeNotice");
+  if (!noticeEl) {
+    noticeEl = document.createElement("p");
+    noticeEl.id = "seasonModeNotice";
+    noticeEl.className = "status-message";
+    heroMeta.insertAdjacentElement("afterend", noticeEl);
   }
 
-  const rows = parseCsvRows(csvText);
-  const indexed = {};
-  rows.forEach((row) => {
-    const teamId = toTeamId(row.team_id);
-    const season = Number(row.nfl_season);
-    if (!teamId || !Number.isFinite(season)) {
-      return;
-    }
-    indexed[`${season}:${teamId}`] = {
-      team_id: teamId,
-      season,
-      wins: toFiniteNumber(row.wins),
-      losses: toFiniteNumber(row.losses),
-      ties: toFiniteNumber(row.ties),
-      win_pct: toFiniteNumber(row.win_pct),
-      games_played: toFiniteNumber(row.games_played),
-    };
-  });
+  if (!seasonSummary || seasonSummary.status !== "upcoming") {
+    noticeEl.textContent = "";
+    noticeEl.classList.remove("error");
+    return;
+  }
 
-  teamOutcomesCache = indexed;
-  return indexed;
+  noticeEl.textContent = `${seasonLabel(seasonSummary.season)} is upcoming. Observed records and win-change metrics are hidden until games are played.`;
+  noticeEl.classList.add("error");
 }
 
 async function loadOverviewBySeason(season) {
@@ -477,6 +464,21 @@ function buildSpendingTooltip(point, season) {
 function renderSpendingSvg(season, cached) {
   const container = document.getElementById("spendingChart");
   if (!container) {
+    return;
+  }
+
+  if (cached.seasonStatus === "upcoming") {
+    const topSpend = [...cached.points]
+      .sort((a, b) => b.totalAavM - a.totalAavM)
+      .slice(0, 3)
+      .map((point) => `${point.teamId} ($${point.totalAavM.toFixed(0)}M)`)
+      .join(" | ");
+    container.innerHTML = `
+      <div class="empty-state">
+        ${seasonLabel(season)} has no observed game outcomes yet. Showing known spending only.<br />
+        Top spenders to date: ${topSpend || "n/a"}
+      </div>
+    `;
     return;
   }
 
@@ -684,6 +686,9 @@ async function renderSpendingChart(season, currentPayload = null) {
     misByTeam[teamId] = toFiniteNumber(row.mis_value);
   });
 
+  const seasonSummary = getSeasonSummary(outcomesIndex, season);
+  renderSeasonModeNotice(seasonSummary);
+
   const points = TEAM_IDS.map((teamId) => {
     const spending = spendingByTeam[teamId] || { totalAavM: 0, moveCount: 0 };
     const currentOutcome = outcomesIndex[`${season}:${teamId}`] || null;
@@ -708,6 +713,7 @@ async function renderSpendingChart(season, currentPayload = null) {
   const cached = {
     points,
     hasMissingPrior: points.some((point) => !point.hasPrior),
+    seasonStatus: seasonSummary.status,
   };
 
   spendingCache[season] = cached;
@@ -847,7 +853,10 @@ function renderTeamScorecard() {
 
   let winChangeText = "-";
   let winChangeClass = "scorecard-neutral";
-  if (teamPoint.hasPrior) {
+  if (cached.seasonStatus === "upcoming") {
+    winChangeText = "Observed wins unavailable until games begin";
+    winChangeClass = "scorecard-neutral";
+  } else if (teamPoint.hasPrior) {
     const delta = Math.round(
       (teamPoint.currentOutcome?.wins || 0)
       - (teamPoint.priorOutcome?.wins || 0)
@@ -887,7 +896,7 @@ function renderTeamScorecard() {
       </div>
       <div class="scorecard-cell">
         <div class="scorecard-label">Record</div>
-        <div class="scorecard-value">${currentRecord}</div>
+        <div class="scorecard-value">${cached.seasonStatus === "upcoming" ? "Pending season" : currentRecord}</div>
       </div>
       <div class="scorecard-cell">
         <div class="scorecard-label">vs Prior Year</div>
@@ -1373,10 +1382,13 @@ function bindControls() {
   return { refreshAction };
 }
 
-function main() {
+async function main() {
   prepopulatePageMetadata();
   rewriteNavLinksFromParams();
   const { hasSeason, hasTeamId } = parseQueryState();
+  if (!hasSeason) {
+    state.season = await getLatestCompletedSeason(state.season);
+  }
   syncControls();
   const { refreshAction } = bindControls();
   if (hasSeason || hasTeamId) {
@@ -1385,5 +1397,5 @@ function main() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  main();
+  main().catch((err) => console.error(err));
 });
