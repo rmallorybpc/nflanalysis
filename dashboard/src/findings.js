@@ -48,6 +48,21 @@ function dollarsToMillions(value) {
   return toFiniteNumber(value, 0) / 1_000_000;
 }
 
+function getContractTotalSpendRaw(row) {
+  const total = toFiniteNumber(row?.contract_total, 0);
+  if (total > 0) {
+    return total;
+  }
+
+  const aav = toFiniteNumber(row?.contract_aav, 0);
+  const years = toFiniteNumber(row?.contract_years, 0);
+  if (aav > 0 && years > 0) {
+    return aav * years;
+  }
+
+  return aav;
+}
+
 async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -354,7 +369,7 @@ async function loadSeasonSpendIndex() {
       moveCount: 0,
     };
 
-    current.totalSpendRaw += toFiniteNumber(row.contract_total, 0);
+    current.totalSpendRaw += getContractTotalSpendRaw(row);
     current.moveCount += 1;
     indexed[key] = current;
   });
