@@ -246,7 +246,7 @@ function statusTimestampLabel() {
 }
 
 function ensureGeographyCaveatNote() {
-  const expectedText = "Note: Confidence is lower when validation checks disagree or seasonal move counts are thin. Treat low-confidence seasons as directional rather than definitive.";
+  const expectedText = "Note: Confidence on this table is tuned to the free-agency question using all-events and known-scope checks. Low confidence means those free-agency checks are mixed or still thin.";
 
   const existing = document.querySelector(".findings-caveat");
   if (existing) {
@@ -420,29 +420,42 @@ async function loadGeoTable(seasons) {
     cross_conference: "🌐",
   };
 
-  const confidenceFromPolicy = (canMakeStrongClaim, strongestScopes, hasClearWinner, reasons) => {
-    if (canMakeStrongClaim) {
+  const confidenceFromPolicy = ({
+    hasClearWinner,
+    allSummary,
+    knownSummary,
+    unknownScopeShare,
+    maxUnknownScopeShare,
+  }) => {
+    const allRobust = Boolean(allSummary?.robustness_flag);
+    const knownRobust = Boolean(knownSummary?.robustness_flag);
+    const allScope = String(allSummary?.strongest_scope || "").trim();
+    const knownScope = String(knownSummary?.strongest_scope || "").trim();
+    const modeAgreement = allScope && knownScope && allScope === knownScope;
+    const unknownOk = Number.isFinite(unknownScopeShare)
+      ? unknownScopeShare <= maxUnknownScopeShare
+      : true;
+
+    if (hasClearWinner && allRobust && knownRobust && unknownOk) {
       return "High";
     }
     if (!hasClearWinner) {
       return "Low";
     }
-    const reasonSet = new Set(Array.isArray(reasons) ? reasons : []);
-    const bothRobustnessFlagsFailed = reasonSet.has("known_scope_not_robust") && reasonSet.has("trades_not_robust");
-    if (bothRobustnessFlagsFailed) {
-      return "Low";
+    if (allRobust || knownRobust || modeAgreement) {
+      return "Medium";
     }
-    return "Medium";
+    return "Low";
   };
 
   const reasonFromConfidence = (confidence, hasClearWinner) => {
     if (confidence === "High") {
-      return "Checks aligned; claim gate passed.";
+      return "Free-agency checks align with strong support.";
     }
     if (confidence === "Medium" && hasClearWinner) {
-      return "Checks mostly aligned; claim gate not passed.";
+      return "Free-agency checks point the same way, but support is still developing.";
     }
-    return "Checks disagree this season.";
+    return "Free-agency checks are mixed this season.";
   };
 
   const rows = [];
@@ -461,6 +474,7 @@ async function loadGeoTable(seasons) {
       const geographyQuality = payload?.scope?.geography_data_quality || {};
       const totalEvents = toFiniteNumber(geographyQuality.total_events, 0);
       const unknownScopeEvents = toFiniteNumber(geographyQuality.unknown_scope_events, 0);
+      const unknownScopeShare = toFiniteNumber(geographyQuality.unknown_scope_share, 0);
       const movesAnalyzed = Math.max(0, totalEvents - unknownScopeEvents);
 
       const byMode = {};
@@ -481,9 +495,9 @@ async function loadGeoTable(seasons) {
         };
       }
 
-      const allModes = ["all_events", "known_scope_only", "trades_only"];
+      const relevantModes = ["all_events", "known_scope_only"];
       const strongestScopes = [];
-      allModes.forEach((mode) => {
+      relevantModes.forEach((mode) => {
         const summary = byMode[mode]?.win_pct_summary || null;
         const strongestScope = String(summary?.strongest_scope || "").trim();
         const strongestCount = Number(summary?.strongest_move_count || 0);
@@ -519,11 +533,17 @@ async function loadGeoTable(seasons) {
         ? `${scopeIcon[topScope] || "📊"} ${scopeLabel[topScope] || topScope} appears strongest`
         : "No clear winner";
 
-      const canMakeStrongClaim = Boolean(claimPolicy?.can_make_strong_claim);
-      const reasons = Array.isArray(claimPolicy?.reasons)
-        ? claimPolicy.reasons.filter((reason) => reason !== "ok")
-        : [];
-      const confidence = confidenceFromPolicy(canMakeStrongClaim, strongestScopes, hasClearWinner, reasons);
+      const allSummary = byMode.all_events?.win_pct_summary || null;
+      const knownSummary = byMode.known_scope_only?.win_pct_summary || null;
+      const maxUnknownScopeShare = toFiniteNumber(claimPolicy?.max_unknown_scope_share, 0.2);
+
+      const confidence = confidenceFromPolicy({
+        hasClearWinner,
+        allSummary,
+        knownSummary,
+        unknownScopeShare,
+        maxUnknownScopeShare,
+      });
       const confidenceTone = confidence.toLowerCase();
 
       const whyText = reasonFromConfidence(confidence, hasClearWinner);
