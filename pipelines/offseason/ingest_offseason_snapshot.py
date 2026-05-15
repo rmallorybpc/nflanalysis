@@ -490,7 +490,7 @@ def build_movement_events(
                 )
                 continue
 
-            from_team_id = from_team if move_type == "trade" else ""
+            from_team_id = (row.get("from_team", "") or "").strip()
             out.append(
                 {
                     "move_id": move_id,
