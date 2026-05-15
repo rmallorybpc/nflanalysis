@@ -1276,6 +1276,15 @@ async function refreshOverview() {
   if (state.season !== previousSeason) {
     rankingExpanded = false;
   }
+
+  try {
+    const outcomesIndex = await loadTeamOutcomes();
+    const seasonSummary = getSeasonSummary(outcomesIndex, state.season);
+    renderSeasonModeNotice(seasonSummary);
+  } catch (_err) {
+    renderSeasonModeNotice(null);
+  }
+
   syncControls();
   writeQueryState();
   showOverviewSkeletons();
