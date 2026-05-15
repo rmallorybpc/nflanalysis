@@ -553,7 +553,7 @@ async function loadGeoTable(seasons) {
           <td>${seasonLabel(season)}</td>
           <td>${shortAnswer}</td>
           <td><span class="findings-confidence findings-confidence--${confidenceTone}">${confidence}</span></td>
-          <td>${evidenceText}<br><small>${whyText}</small></td>
+          <td class="findings-cell-evidence">${evidenceText}<span class="findings-evidence-note"> | ${whyText}</span></td>
           <td>${analyzedText}</td>
         </tr>
       `);

@@ -1414,6 +1414,15 @@ h1 {
   background: rgba(132, 169, 140, 0.09);
 }
 
+.findings-cell-evidence {
+  white-space: nowrap;
+}
+
+.findings-evidence-note {
+  color: rgba(45, 52, 54, 0.72);
+  font-size: 0.78em;
+}
+
 .findings-confidence {
   display: inline-block;
   min-width: 62px;
@@ -1567,6 +1576,16 @@ h1 {
   .findings-table th,
   .findings-table td {
     padding: 6px 8px;
+  }
+
+  .findings-cell-evidence {
+    white-space: normal;
+    line-height: 1.35;
+  }
+
+  .findings-evidence-note {
+    display: block;
+    margin-top: 2px;
   }
 }
 
