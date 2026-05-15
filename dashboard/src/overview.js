@@ -768,9 +768,20 @@ function renderGeographyCard(payload) {
     ? ((topImpact / weakestImpact - 1) * 100).toFixed(0)
     : null;
 
+  const geographyQuality = payload?.scope?.geography_data_quality || {};
+  const totalEvents = toFiniteNumber(geographyQuality.total_events, 0);
+  const unknownEvents = toFiniteNumber(geographyQuality.unknown_scope_events, 0);
+  const eventsUsed = Math.max(0, totalEvents - unknownEvents);
+  const topScopeMoves = toFiniteNumber(top.move_count, 0);
+
+  const usageText = eventsUsed > 0
+    ? `${eventsUsed} geography-qualified moves used`
+    : `${topScopeMoves} strongest-scope moves`;
+  const topScopeText = `top-scope n=${topScopeMoves}`;
+
   const metaText = ratio !== null
-    ? `${ratio}% stronger than ${scopeLabel[weakest.move_scope] || weakest.move_scope} | ${top.move_count} moves`
-    : `${top.move_count} moves · avg impact ${topImpact.toFixed(4)}`;
+    ? `${ratio}% stronger than ${scopeLabel[weakest.move_scope] || weakest.move_scope} | ${usageText} | ${topScopeText}`
+    : `${usageText} | ${topScopeText} | avg impact ${topImpact.toFixed(4)}`;
 
   el.innerHTML = `
     <h3>Geography Insight</h3>
@@ -778,8 +789,9 @@ function renderGeographyCard(payload) {
     <div class="value geography-icon-value">${icon} ${label}</div>
     <div class="meta">${metaText}</div>
     <p class="glossary-plain">
-      Signings of this geography type show the strongest average
-      win probability impact in this season's data.
+      Geography signal is ranked across scope buckets, while
+      "moves used" reports all geography-qualified events included
+      for this season.
     </p>
   `;
 }
