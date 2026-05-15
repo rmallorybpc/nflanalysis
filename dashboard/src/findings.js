@@ -151,7 +151,10 @@ function setFindingsStatus(message, type = "info", options = {}) {
   el.className = `findings-status findings-status--${type}`;
   el.setAttribute("data-status", type);
   if (retryBtn) {
-    retryBtn.hidden = !showRetry;
+    const isExpectedPlaceholderWarning = String(message || "").startsWith("Data loaded with partial coverage")
+      && String(message || "").includes("Some win-change placeholders are expected for upcoming seasons.");
+    const allowRetry = showRetry && !isExpectedPlaceholderWarning;
+    retryBtn.hidden = !allowRetry;
     retryBtn.disabled = loading;
   }
 }
