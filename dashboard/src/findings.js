@@ -429,6 +429,19 @@ async function loadGeoTable(seasons) {
   for (const season of seasonList) {
     try {
       const seasonStatus = classifySeasonStatus(teamOutcomes, season);
+      if (seasonStatus === "upcoming") {
+        rows.push(`
+          <tr>
+            <td>${seasonLabel(season)}</td>
+            <td>Upcoming season - pending games</td>
+            <td>Upcoming season - pending games</td>
+            <td>Upcoming season - pending games</td>
+            <td>Upcoming season - pending games</td>
+          </tr>
+        `);
+        continue;
+      }
+
       const payload = await loadOverviewBySeason(season);
       const sensitivityProfiles = payload?.charts?.geography_sensitivity_profiles || [];
       const claimPolicy = payload?.scope?.geography_claim_policy || null;
