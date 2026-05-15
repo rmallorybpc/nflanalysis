@@ -1399,6 +1399,27 @@ h1 {
   white-space: nowrap;
 }
 
+.findings-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-left: 5px;
+  border-radius: 50%;
+  border: 1px solid rgba(45, 52, 54, 0.45);
+  font-size: 0.64rem;
+  line-height: 1;
+  font-weight: 700;
+  color: rgba(45, 52, 54, 0.82);
+  background: rgba(255, 255, 255, 0.7);
+  cursor: help;
+}
+
+.findings-help[data-tooltip] {
+  border-bottom: none;
+}
+
 .findings-table td {
   padding: 7px 10px;
   color: var(--tmg-text);
