@@ -246,7 +246,7 @@ function statusTimestampLabel() {
 }
 
 function ensureGeographyCaveatNote() {
-  const expectedText = "Note: Geography classifications require a known prior team for each signing. Moves where the player's prior team is unavailable are excluded from this comparison. Sample sizes vary by season - treat these figures as directional, not definitive.";
+  const expectedText = "Note: Confidence is lower when validation checks disagree or seasonal move counts are thin. Treat low-confidence seasons as directional rather than definitive.";
 
   const existing = document.querySelector(".findings-caveat");
   if (existing) {
@@ -409,9 +409,9 @@ async function loadGeoTable(seasons) {
   if (!tbody) return;
 
   const scopeLabel = {
-    same_division: "Same Div",
-    cross_division: "Cross Div",
-    cross_conference: "Cross Conf",
+    same_division: "Same-Division",
+    cross_division: "Cross-Division",
+    cross_conference: "Cross-Conference",
   };
 
   const scopeIcon = {
@@ -420,37 +420,36 @@ async function loadGeoTable(seasons) {
     cross_conference: "🌐",
   };
 
-  const modeLabel = {
-    all_events: "All",
-    known_scope_only: "Known",
-    trades_only: "Trades",
+  const confidenceFromPolicy = (canMakeStrongClaim, strongestScopes) => {
+    if (canMakeStrongClaim) {
+      return "High";
+    }
+    const distinct = Array.from(new Set(strongestScopes));
+    if (strongestScopes.length >= 2 && distinct.length === 1) {
+      return "Medium";
+    }
+    if (strongestScopes.length >= 2 && distinct.length === 2) {
+      return "Medium";
+    }
+    return "Low";
   };
 
-  const formatPValue = (value) => {
-    const num = Number(value);
-    if (!Number.isFinite(num)) return "n/a";
-    return num.toFixed(3);
-  };
-
-  const strongestCell = (profile) => {
-    if (!profile) {
-      return "<span class=\"findings-error\">n/a</span>";
+  const reasonFromConfidence = (confidence, hasClearWinner, canMakeStrongClaim) => {
+    if (confidence === "High") {
+      return "Consistent across validation checks with enough supporting moves.";
     }
-
-    const summary = profile.win_pct_summary || null;
-    const strongestScope = String(summary?.strongest_scope || "").trim();
-    const strongestCount = Number(summary?.strongest_move_count || 0);
-    const pValue = formatPValue(summary?.placebo_win_pct_p_value);
-
-    if (!strongestScope || strongestCount <= 0) {
-      return "<span class=\"findings-error\">insufficient</span>";
+    if (confidence === "Medium" && hasClearWinner) {
+      return "Most checks point in the same direction, but robustness is not fully met.";
     }
-
-    const icon = scopeIcon[strongestScope] || "📊";
-    const label = scopeLabel[strongestScope] || strongestScope;
-    const exploratory = summary?.robustness_flag === false ? " exploratory" : "";
-
-    return `${icon} ${label}${exploratory}<br><small>n=${strongestCount} | p=${pValue}</small>`;
+    if (confidence === "Medium") {
+      return "Signal is present, but validation checks are mixed.";
+    }
+    if (!hasClearWinner) {
+      return "Different checks point to different winners this season.";
+    }
+    return canMakeStrongClaim
+      ? "Signal is clear, but supporting sample is limited."
+      : "Direction is informative, but evidence is exploratory.";
   };
 
   const rows = [];
@@ -466,6 +465,10 @@ async function loadGeoTable(seasons) {
       const payload = await loadOverviewBySeason(season);
       const sensitivityProfiles = payload?.charts?.geography_sensitivity_profiles || [];
       const claimPolicy = payload?.scope?.geography_claim_policy || null;
+      const geographyQuality = payload?.scope?.geography_data_quality || {};
+      const totalEvents = toFiniteNumber(geographyQuality.total_events, 0);
+      const unknownScopeEvents = toFiniteNumber(geographyQuality.unknown_scope_events, 0);
+      const movesAnalyzed = Math.max(0, totalEvents - unknownScopeEvents);
 
       const byMode = {};
       sensitivityProfiles.forEach((profile) => {
@@ -491,7 +494,7 @@ async function loadGeoTable(seasons) {
         const summary = byMode[mode]?.win_pct_summary || null;
         const strongestScope = String(summary?.strongest_scope || "").trim();
         const strongestCount = Number(summary?.strongest_move_count || 0);
-        if (strongestScope && strongestCount > 0) {
+        if (strongestScope && strongestCount > 0 && strongestScope in scopeLabel) {
           strongestScopes.push(strongestScope);
         }
       });
@@ -501,40 +504,45 @@ async function loadGeoTable(seasons) {
         rows.push(`
           <tr>
             <td>${seasonLabel(season)}</td>
-            <td colspan="5" class="findings-error">Data unavailable</td>
+            <td colspan="4" class="findings-error">Data unavailable</td>
           </tr>
         `);
         continue;
       }
 
-      const distinctStrongest = Array.from(new Set(strongestScopes));
-      const stableAcrossModes = distinctStrongest.length === 1;
-      const stableScope = distinctStrongest[0] || "";
+      const scopeFrequency = {};
+      strongestScopes.forEach((scope) => {
+        scopeFrequency[scope] = (scopeFrequency[scope] || 0) + 1;
+      });
+      const rankedScopes = Object.entries(scopeFrequency)
+        .sort((a, b) => b[1] - a[1]);
 
-      const stabilityText = stableAcrossModes
-        ? `Stable (${scopeLabel[stableScope] || stableScope})`
-        : "Shifts by mode";
+      const topScope = rankedScopes[0]?.[0] || "";
+      const topCount = Number(rankedScopes[0]?.[1] || 0);
+      const secondCount = Number(rankedScopes[1]?.[1] || 0);
+      const hasClearWinner = Boolean(topScope) && topCount > secondCount;
 
-      const verdictText = claimPolicy?.can_make_strong_claim
-        ? "Strong claim allowed"
-        : "Exploratory only";
+      const shortAnswer = hasClearWinner
+        ? `${scopeIcon[topScope] || "📊"} ${scopeLabel[topScope] || topScope} appears strongest`
+        : "No clear winner";
 
-      const reasons = Array.isArray(claimPolicy?.reasons)
-        ? claimPolicy.reasons.filter((reason) => reason !== "ok")
-        : [];
+      const canMakeStrongClaim = Boolean(claimPolicy?.can_make_strong_claim);
+      const confidence = confidenceFromPolicy(canMakeStrongClaim, strongestScopes);
+      const confidenceTone = confidence.toLowerCase();
 
-      const reasonText = reasons.length > 0
-        ? reasons.join(", ").replaceAll("_", " ")
-        : "policy checks passed";
+      const whyText = reasonFromConfidence(confidence, hasClearWinner, canMakeStrongClaim);
+
+      const analyzedText = movesAnalyzed > 0
+        ? `${movesAnalyzed} moves`
+        : "n/a";
 
       rows.push(`
         <tr>
           <td>${seasonLabel(season)}</td>
-          <td>${strongestCell(byMode.all_events)}</td>
-          <td>${strongestCell(byMode.known_scope_only)}</td>
-          <td>${strongestCell(byMode.trades_only)}</td>
-          <td>${stabilityText}</td>
-          <td>${verdictText}<br><small>${reasonText}</small></td>
+          <td>${shortAnswer}</td>
+          <td><span class="findings-confidence findings-confidence--${confidenceTone}">${confidence}</span></td>
+          <td>${whyText}</td>
+          <td>${analyzedText}</td>
         </tr>
       `);
     } catch (err) {
@@ -544,7 +552,7 @@ async function loadGeoTable(seasons) {
       rows.push(`
         <tr>
           <td>${seasonLabel(season)}</td>
-          <td colspan="5" class="findings-error">
+          <td colspan="4" class="findings-error">
             Data unavailable (${reason})
           </td>
         </tr>
@@ -553,7 +561,7 @@ async function loadGeoTable(seasons) {
   }
 
   tbody.innerHTML = rows.join("")
-    || "<tr><td colspan=\"6\">No data available.</td></tr>";
+    || "<tr><td colspan=\"5\">No data available.</td></tr>";
 
   return {
     totalSeasons: seasonList.length,

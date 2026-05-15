@@ -1414,6 +1414,36 @@ h1 {
   background: rgba(132, 169, 140, 0.09);
 }
 
+.findings-confidence {
+  display: inline-block;
+  min-width: 62px;
+  text-align: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.findings-confidence--high {
+  color: #1f6f3f;
+  background: rgba(46, 133, 64, 0.14);
+  border-color: rgba(46, 133, 64, 0.35);
+}
+
+.findings-confidence--medium {
+  color: #8a5a00;
+  background: rgba(196, 127, 0, 0.14);
+  border-color: rgba(196, 127, 0, 0.35);
+}
+
+.findings-confidence--low {
+  color: #8d1d2f;
+  background: rgba(176, 0, 32, 0.12);
+  border-color: rgba(176, 0, 32, 0.3);
+}
+
 .findings-best {
   color: var(--tmg-sage-hover);
   font-weight: 500;

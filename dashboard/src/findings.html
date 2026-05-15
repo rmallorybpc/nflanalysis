@@ -92,13 +92,10 @@
         </p>
 
         <p class="findings-answer">
-          Geography signal strength is mode-sensitive in the
-          current dataset. Cross-conference moves often appear
-          strongest in all-events views, but the strongest scope
-          can shift under known-scope-only and trades-only checks.
-          Because robustness and policy gates are not consistently
-          satisfied yet, this remains an exploratory result rather
-          than a firm causal claim.
+          In most seasons, one move geography does emerge as the
+          strongest signal. The table below translates that result
+          into a short answer and confidence level, so non-technical
+          users can quickly understand what the data supports.
         </p>
 
         <div class="findings-table-wrap">
@@ -106,15 +103,14 @@
             <thead>
               <tr>
                 <th>Season</th>
-                <th>All Events</th>
-                <th>Known Scope Only</th>
-                <th>Trades Only</th>
-                <th>Stability</th>
-                <th>Claim Verdict</th>
+                <th>Short Answer</th>
+                <th>Confidence</th>
+                <th>Why This Answer</th>
+                <th>Moves Analyzed</th>
               </tr>
             </thead>
             <tbody id="geoTableBody">
-              <tr><td colspan="6" class="findings-loading">
+              <tr><td colspan="5" class="findings-loading">
                 Loading geography data...
               </td></tr>
             </tbody>
@@ -130,11 +126,10 @@
         </p>
 
         <p class="findings-note">
-          Each mode reports the strongest move geography for win_pct,
-          with move count and placebo p-value for transparency.
-          Stability indicates whether the strongest scope remains
-          consistent across all_events, known_scope_only, and
-          trades_only. Claim verdict is the policy-gated conclusion.
+          Confidence is based on consistency across internal checks
+          and whether sample support is strong enough for a firm
+          claim. Low confidence means the direction is informative
+          but should be treated as exploratory.
           <a href="./index.html" id="findingsOverviewLink">
             Explore geography by season ->
           </a>
