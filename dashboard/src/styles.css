@@ -897,7 +897,8 @@ h1 {
 #spendingChart {
   width: 100%;
   max-width: 700px;
-  height: 400px;
+  min-height: 400px;
+  height: auto;
   position: relative;
   margin: 0 auto;
 }
