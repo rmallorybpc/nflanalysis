@@ -1,0 +1,56 @@
+============================================================
+GEOGRAPHY SCOPE COMPLETENESS AUDIT
+============================================================
+
+Total movement events: 11723
+
+Overall scope distribution:
+  same_division          6954 (59.3%)
+  cross_conference       2561 (21.8%)
+  cross_division         2089 (17.8%)
+  unknown                 119 (1.0%)
+
+Known scope total: 11604 (99.0%)
+Unknown scope total: 119 (1.0%)
+
+============================================================
+SCOPE COVERAGE BY MOVE TYPE
+============================================================
+
+FREE_AGENCY (6504 total, 99.9% known scope):
+  same_division          6499 (99.9%)
+  unknown                   5 (0.1%)
+
+TRADE (5219 total, 97.8% known scope):
+  cross_conference       2561 (49.1%)
+  cross_division         2089 (40.0%)
+  same_division           455 (8.7%)
+  unknown                 114 (2.2%)
+
+============================================================
+SCOPE COVERAGE BY SEASON
+============================================================
+
+Season    Total   Known%   SameDiv  CrossDiv  CrossConf  Unknown
+-----------------------------------------------------------------
+2017       1056    98.9%       601       207        236       12
+2018        943    95.9%       466       233        205       39
+2019       1037    96.9%       471       241        293       32
+2020       1691    99.9%      1203       221        265        2
+2021       1907    99.5%      1264       278        356        9
+2022       1646    99.7%      1167       188        286        5
+2023       1007    99.5%       612       166        224        5
+2024        867    99.1%       398       203        258        8
+2025        867    99.2%       349       234        277        7
+2026        702   100.0%       423       118        161        0
+
+============================================================
+AUDIT CONCLUSION
+============================================================
+
+Free agency moves with from_team_id: 6499/6504 (99.9%)
+Trade moves with known scope: 5105/5219 (97.8%)
+
+CONCLUSION: Geography analysis is effectively trades-only.
+Free agency (55% of all moves) cannot contribute to geography comparison
+without source team data.

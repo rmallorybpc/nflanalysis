@@ -1,0 +1,62 @@
+============================================================
+TRADES-ONLY GEOGRAPHY VALIDATION
+============================================================
+
+Trade moves with known scope and both teams: 5105
+Scope distribution in validated trades:
+  cross_conference      2561
+  cross_division        2089
+  same_division          455
+
+============================================================
+AVERAGE MIS BY SCOPE (TRADES ONLY, KNOWN FROM/TO TEAM)
+============================================================
+
+Scope                    N       Mean     Median     StdDev
+------------------------------------------------------------
+same_division          455  -0.053173  -0.044499   0.084487
+cross_division        2089  -0.043568  -0.038436   0.077027
+cross_conference      2561  -0.045599  -0.038761   0.078911
+
+Unmatched moves (no MIS data): 0
+
+============================================================
+SEASON-BY-SEASON STABILITY (WHICH SCOPE IS HIGHEST)
+============================================================
+
+Season   Strongest Scope            Mean     N  Consistent?
+------------------------------------------------------------
+2017     cross_conference       -0.016310   236 ✓ cross_conf
+2018     cross_division         -0.029352   233 ✗ cross_division
+2019     cross_conference       -0.000845   293 ✓ cross_conf
+2020     cross_division         -0.012785   221 ✗ cross_division
+2021     cross_division         0.030407   278 ✗ cross_division
+2022     same_division          -0.025667    37 ✗ same_division
+2023     cross_division         -0.096364   166 ✗ cross_division
+2024     cross_division         -0.100465   203 ✗ cross_division
+2025     same_division          -0.070777    43 ✗ same_division
+2026     cross_division         -0.194531   118 ✗ cross_division
+
+Cross-conference ranked highest in 2/10 seasons (20%)
+
+============================================================
+VALIDATION CONCLUSION
+============================================================
+
+PASS criteria for treating cross-conference as reliable:
+  1. Cross-conference mean > same-division and cross-division
+  2. Cross-conference ranked highest in >= 60% of seasons
+  3. Sample size >= 50 moves per scope type
+
+FAIL criteria (finding is likely noise or artifact):
+  1. Cross-conference not highest mean across scopes
+  2. Cross-conference ranked highest in < 50% of seasons
+  3. Sample size < 20 moves in any scope bucket
+
+Criterion 1 (cross-conf highest mean): FAIL
+Criterion 2 (consistent across seasons, 2/10): FAIL
+Criterion 3 (sufficient sample sizes, cc=2561 sd=455 cd=2089): PASS
+
+OVERALL: FAIL — Cross-conference is NOT the highest scope in trades-only data
+The finding likely reflects composition bias from all-moves analysis.
+Update Key Findings page to remove cross-conference strongest claim.
