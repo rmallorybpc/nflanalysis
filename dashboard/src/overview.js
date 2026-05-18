@@ -744,60 +744,44 @@ function renderGeographyCard(payload) {
     : [];
 
   const winPctRows = rows.filter((row) => row.outcome_name === "win_pct" && Number(row.move_count) > 0);
+  const sourceRows = winPctRows.length > 0 ? winPctRows : rows;
+  const scopeCounts = {
+    same_division: 0,
+    cross_division: 0,
+    cross_conference: 0,
+  };
 
-  if (winPctRows.length < 2) {
+  sourceRows.forEach((row) => {
+    const scope = row.move_scope;
+    if (!(scope in scopeCounts)) {
+      return;
+    }
+    scopeCounts[scope] = Math.max(scopeCounts[scope], toFiniteNumber(row.move_count, 0));
+  });
+
+  const hasCounts = Object.values(scopeCounts).some((count) => count > 0);
+  if (!hasCounts) {
     el.innerHTML = "";
     return;
   }
-
-  const sorted = [...winPctRows].sort((a, b) => Number(b.avg_abs_impact) - Number(a.avg_abs_impact));
-  const top = sorted[0];
-
-  const scopeIcon = {
-    same_division: "📍",
-    cross_division: "🔀",
-    cross_conference: "🌐",
-  };
 
   const scopeLabel = {
     same_division: "Same-Division",
     cross_division: "Cross-Division",
     cross_conference: "Cross-Conference",
   };
-
-  const icon = scopeIcon[top.move_scope] || "📊";
-  const label = scopeLabel[top.move_scope] || top.move_scope;
-  const weakest = sorted[sorted.length - 1];
-  const topImpact = Number(top.avg_abs_impact);
-  const weakestImpact = Number(weakest.avg_abs_impact);
-  const ratio = weakestImpact > 0
-    ? ((topImpact / weakestImpact - 1) * 100).toFixed(0)
-    : null;
-
-  const geographyQuality = payload?.scope?.geography_data_quality || {};
-  const totalEvents = toFiniteNumber(geographyQuality.total_events, 0);
-  const unknownEvents = toFiniteNumber(geographyQuality.unknown_scope_events, 0);
-  const eventsUsed = Math.max(0, totalEvents - unknownEvents);
-  const topScopeMoves = toFiniteNumber(top.move_count, 0);
-
-  const usageText = eventsUsed > 0
-    ? `${eventsUsed} geography-qualified moves used`
-    : `${topScopeMoves} strongest-scope moves`;
-  const topScopeText = `top-scope n=${topScopeMoves}`;
-
-  const metaText = ratio !== null
-    ? `${ratio}% stronger than ${scopeLabel[weakest.move_scope] || weakest.move_scope} | ${usageText} | ${topScopeText}`
-    : `${usageText} | ${topScopeText} | avg impact ${topImpact.toFixed(4)}`;
+  const scopeOrder = ["same_division", "cross_division", "cross_conference"];
+  const rowsHtml = scopeOrder.map((scope) => {
+    const label = scopeLabel[scope] || scope;
+    const count = Math.trunc(scopeCounts[scope] || 0);
+    return `<div class="meta">${label}: ${count} moves</div>`;
+  }).join("");
 
   el.innerHTML = `
-    <h3>Geography Insight</h3>
-    <div class="mis-label">Strongest Signal</div>
-    <div class="value geography-icon-value">${icon} ${label}</div>
-    <div class="meta">${metaText}</div>
+    <h3>Geography of Moves</h3>
+    ${rowsHtml}
     <p class="glossary-plain">
-      Geography signal is ranked across scope buckets, while
-      "moves used" reports all geography-qualified events included
-      for this season.
+      Move geography shows no consistent win probability signal across seasons
     </p>
   `;
 }
@@ -1190,44 +1174,10 @@ function renderGeography(payload) {
     container.appendChild(node);
   });
 
-  // Compute geography finding from win_pct rows only.
-  const winPctRows = rows.filter((row) => row.outcome_name === "win_pct" && Number(row.move_count) > 0);
-
-  if (winPctRows.length >= 2) {
-    const sorted = [...winPctRows].sort((a, b) => Number(b.avg_abs_impact) - Number(a.avg_abs_impact));
-    const strongest = sorted[0];
-    const weakest = sorted[sorted.length - 1];
-
-    const scopeLabel = {
-      same_division: "same-division",
-      cross_division: "cross-division",
-      cross_conference: "cross-conference",
-    };
-
-    const strongLabel = scopeLabel[strongest.move_scope] || strongest.move_scope;
-    const weakLabel = scopeLabel[weakest.move_scope] || weakest.move_scope;
-
-    const strongestImpact = Number(strongest.avg_abs_impact);
-    const weakestImpact = Number(weakest.avg_abs_impact);
-    const ratio = weakestImpact > 0
-      ? ((strongestImpact / weakestImpact - 1) * 100).toFixed(0)
-      : null;
-
-    let finding = "";
-    if (ratio !== null) {
-      const comparedMoveCount = sorted
-        .slice(0, 3)
-        .reduce((sum, row) => sum + Number(row.move_count || 0), 0);
-      finding = `In this dataset, ${strongLabel} inbound signings show the strongest average win impact — approximately ${ratio}% stronger than ${weakLabel} moves. This is an NFL-specific finding from ${comparedMoveCount} moves across ten seasons.`;
-    } else {
-      finding = "Geography data is available but move counts are too low for a reliable comparison this season.";
-    }
-
-    const findingEl = document.createElement("p");
-    findingEl.className = "geo-finding";
-    findingEl.textContent = finding;
-    container.appendChild(findingEl);
-  }
+  const findingEl = document.createElement("p");
+  findingEl.className = "geo-finding";
+  findingEl.textContent = "Across ten seasons, same-division, cross-division, and cross-conference signings produce nearly identical average win outcomes. Where a player came from does not reliably predict how much a team improves.";
+  container.appendChild(findingEl);
 }
 
 function applyMeta(payload) {
