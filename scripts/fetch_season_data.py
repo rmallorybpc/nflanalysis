@@ -679,6 +679,9 @@ def fetch_spotrac_fa(season: int) -> list[dict[str, str]]:
             from_team = to_team
         player = str(row.get("player", "")).strip()
 
+        if from_team and to_team and from_team == to_team:
+            continue  # Re-signing — not a movement event
+
         if not player or not to_team:
             continue
 

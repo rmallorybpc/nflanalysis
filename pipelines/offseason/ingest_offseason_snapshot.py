@@ -433,6 +433,14 @@ def build_movement_events(
             if not team:
                 continue
 
+            from_team = row.get("from_team", "").strip().upper()
+            to_team = row.get("team", "").strip().upper()
+
+            # Skip re-signings — player stayed with same team
+            if from_team and to_team and from_team == to_team:
+                print(f"[SKIP RE-SIGNING] {row.get('player')} re-signed with {to_team}")
+                continue
+
             # Draft additions (no prior team in offseason metadata) are not movement events.
             draft_year_raw = (row.get("draft_year") or "").strip()
             experience_raw = (row.get("experience") or "").strip()
@@ -471,7 +479,10 @@ def build_movement_events(
             move_id = f"ofs_{season}_{week:02d}_{idx:05d}"
             move_type = infer_players_metadata_move_type(row)
             if from_team and from_team != team and move_type != "trade":
-                move_type = "trade"
+                tx_type = clean_type(row.get("transaction_type", ""))
+                import_method = clean_type(row.get("import_method", ""))
+                if tx_type == "traded" or "trade" in import_method:
+                    move_type = "trade"
 
             # Blocklist check
             player_lower = str(row.get("player", "")).strip().lower()
