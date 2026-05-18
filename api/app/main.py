@@ -72,6 +72,10 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
             return origin
         return None
 
+    @staticmethod
+    def _sanitize_header_value(value: str) -> str:
+        return value.replace("\r", "").replace("\n", "").strip()
+
     def _set_cors_headers(self) -> None:
         if not ALLOWED_ORIGINS:
             self.send_header("Access-Control-Allow-Origin", "*")
@@ -82,7 +86,10 @@ class CounterfactualHandler(BaseHTTPRequestHandler):
         allowed_origin = self._allowed_origin()
         if allowed_origin is None:
             return
-        self.send_header("Access-Control-Allow-Origin", allowed_origin)
+        self.send_header(
+            "Access-Control-Allow-Origin",
+            self._sanitize_header_value(allowed_origin),
+        )
         self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
