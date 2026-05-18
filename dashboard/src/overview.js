@@ -781,7 +781,7 @@ function renderGeographyCard(payload) {
     <h3>Geography of Moves</h3>
     ${rowsHtml}
     <p class="glossary-plain">
-      Move geography shows no consistent win probability signal across seasons
+      No consistent win probability signal by geography type across ten seasons
     </p>
   `;
 }

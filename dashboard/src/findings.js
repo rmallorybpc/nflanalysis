@@ -270,7 +270,7 @@ function statusTimestampLabel() {
 }
 
 function ensureGeographyCaveatNote() {
-  const expectedText = "Note: Confidence on this table is tuned to the free-agency question using all-events and known-scope checks. Low confidence means those free-agency checks are mixed or still thin.";
+  const expectedText = "Note: Validation shows no consistent geography winner across seasons; confidence is set to Low and reported scope counts are shown for transparency.";
 
   const existing = document.querySelector(".findings-caveat");
   if (existing) {
@@ -386,56 +386,6 @@ async function loadGeoTable(seasons) {
   if (!tbody) return;
   const teamOutcomes = await loadTeamOutcomes();
 
-  const scopeLabel = {
-    same_division: "Same-Division",
-    cross_division: "Cross-Division",
-    cross_conference: "Cross-Conference",
-  };
-
-  const scopeIcon = {
-    same_division: "📍",
-    cross_division: "🔀",
-    cross_conference: "🌐",
-  };
-
-  const confidenceFromPolicy = ({
-    hasClearWinner,
-    allSummary,
-    knownSummary,
-    unknownScopeShare,
-    maxUnknownScopeShare,
-  }) => {
-    const allRobust = Boolean(allSummary?.robustness_flag);
-    const knownRobust = Boolean(knownSummary?.robustness_flag);
-    const allScope = String(allSummary?.strongest_scope || "").trim();
-    const knownScope = String(knownSummary?.strongest_scope || "").trim();
-    const modeAgreement = allScope && knownScope && allScope === knownScope;
-    const unknownOk = Number.isFinite(unknownScopeShare)
-      ? unknownScopeShare <= maxUnknownScopeShare
-      : true;
-
-    if (hasClearWinner && allRobust && knownRobust && unknownOk) {
-      return "High";
-    }
-    if (!hasClearWinner) {
-      return "Low";
-    }
-    if (allRobust || knownRobust || modeAgreement) {
-      return "Medium";
-    }
-    return "Low";
-  };
-
-  const reasonFromConfidence = (confidence, hasClearWinner) => {
-    if (confidence === "High") {
-      return "Free-agency checks align with strong support.";
-    }
-    if (confidence === "Medium" && hasClearWinner) {
-      return "Free-agency checks point the same way, but support is still developing.";
-    }
-    return "Free-agency checks are mixed this season.";
-  };
-
   const rows = [];
   let failedSeasons = 0;
   const reasonCounts = {};
@@ -461,100 +411,32 @@ async function loadGeoTable(seasons) {
       }
 
       const payload = await loadOverviewBySeason(season);
-      const sensitivityProfiles = payload?.charts?.geography_sensitivity_profiles || [];
-      const claimPolicy = payload?.scope?.geography_claim_policy || null;
       const geographyQuality = payload?.scope?.geography_data_quality || {};
       const totalEvents = toFiniteNumber(geographyQuality.total_events, 0);
       const unknownScopeEvents = toFiniteNumber(geographyQuality.unknown_scope_events, 0);
-      const unknownScopeShare = toFiniteNumber(geographyQuality.unknown_scope_share, 0);
       const movesAnalyzed = Math.max(0, totalEvents - unknownScopeEvents);
-
-      const byMode = {};
-      sensitivityProfiles.forEach((profile) => {
-        const mode = String(profile?.mode || "").trim();
-        if (mode) {
-          byMode[mode] = profile;
-        }
-      });
-
-      if (!byMode.all_events && Array.isArray(payload?.charts?.geography_impact_profile)) {
-        const fallbackPoints = payload.charts.geography_impact_profile;
-        byMode.all_events = {
-          mode: "all_events",
-          label: "All events",
-          points: fallbackPoints,
-          win_pct_summary: null,
-        };
-      }
-
-      const relevantModes = ["all_events", "known_scope_only"];
-      const strongestScopes = [];
-      relevantModes.forEach((mode) => {
-        const summary = byMode[mode]?.win_pct_summary || null;
-        const strongestScope = String(summary?.strongest_scope || "").trim();
-        const strongestCount = Number(summary?.strongest_move_count || 0);
-        if (strongestScope && strongestCount > 0 && strongestScope in scopeLabel) {
-          strongestScopes.push(strongestScope);
-        }
-      });
-
-      if (strongestScopes.length === 0) {
-        incrementReasonCount(reasonCounts, "insufficient data");
-        rows.push(`
-          <tr>
-            <td>${seasonLabel(season)}</td>
-            <td colspan="4" class="findings-error">Data unavailable</td>
-          </tr>
-        `);
-        continue;
-      }
-
-      const scopeFrequency = {};
-      strongestScopes.forEach((scope) => {
-        scopeFrequency[scope] = (scopeFrequency[scope] || 0) + 1;
-      });
-      const rankedScopes = Object.entries(scopeFrequency)
-        .sort((a, b) => b[1] - a[1]);
-
-      const topScope = rankedScopes[0]?.[0] || "";
-      const topCount = Number(rankedScopes[0]?.[1] || 0);
-      const secondCount = Number(rankedScopes[1]?.[1] || 0);
-      const hasClearWinner = Boolean(topScope) && topCount > secondCount;
-
-      const shortAnswer = hasClearWinner
-        ? `${scopeIcon[topScope] || "📊"} ${scopeLabel[topScope] || topScope} appears strongest`
-        : "No clear winner";
-
-      const allSummary = byMode.all_events?.win_pct_summary || null;
-      const knownSummary = byMode.known_scope_only?.win_pct_summary || null;
-      const maxUnknownScopeShare = toFiniteNumber(claimPolicy?.max_unknown_scope_share, 0.2);
-
-      const confidence = confidenceFromPolicy({
-        hasClearWinner,
-        allSummary,
-        knownSummary,
-        unknownScopeShare,
-        maxUnknownScopeShare,
-      });
-      const confidenceTone = confidence.toLowerCase();
-
-      const whyText = reasonFromConfidence(confidence, hasClearWinner);
-
       const evidenceRows = (payload?.charts?.geography_impact_profile || [])
-        .filter((row) => row.outcome_name === "win_pct" && Number(row.move_count) > 0)
-        .sort((a, b) => Number(b.avg_abs_impact) - Number(a.avg_abs_impact));
+        .filter((row) => row.outcome_name === "win_pct" && Number(row.move_count) > 0);
 
-      let evidenceText = "Directional signal only";
-      if (evidenceRows.length >= 2) {
-        const strongest = evidenceRows[0];
-        const weakest = evidenceRows[evidenceRows.length - 1];
-        const strongestImpact = Number(strongest.avg_abs_impact);
-        const weakestImpact = Number(weakest.avg_abs_impact);
-        if (Number.isFinite(strongestImpact) && Number.isFinite(weakestImpact) && weakestImpact > 0) {
-          const ratio = ((strongestImpact / weakestImpact - 1) * 100).toFixed(0);
-          evidenceText = `${ratio}% stronger than ${scopeLabel[weakest.move_scope] || weakest.move_scope}`;
+      const scopeCounts = {
+        same_division: 0,
+        cross_division: 0,
+        cross_conference: 0,
+      };
+      evidenceRows.forEach((row) => {
+        const scope = String(row.move_scope || "").trim();
+        if (!(scope in scopeCounts)) {
+          return;
         }
-      }
+        scopeCounts[scope] = Math.max(scopeCounts[scope], Math.trunc(toFiniteNumber(row.move_count, 0)));
+      });
+
+      const shortAnswer = `Same Div: ${scopeCounts.same_division} | Cross Div: ${scopeCounts.cross_division} | Cross Conf: ${scopeCounts.cross_conference}`;
+
+      const confidence = "Low — no consistent signal found";
+      const confidenceTone = "low";
+
+      const evidenceText = "No reliable difference between geography types across seasons. Standard deviation within each group exceeds the difference between groups.";
 
       const analyzedText = movesAnalyzed > 0
         ? `${movesAnalyzed} moves`
@@ -568,7 +450,7 @@ async function loadGeoTable(seasons) {
           <td>${seasonLabel(season)}</td>
           <td>${shortAnswer}</td>
           <td><span class="findings-confidence findings-confidence--${confidenceTone}">${confidence}</span></td>
-          <td class="findings-cell-evidence">${evidenceText}<span class="findings-evidence-note"> | ${whyText}${seasonalContext ? ` | ${seasonalContext}` : ""}</span></td>
+          <td class="findings-cell-evidence">${evidenceText}${seasonalContext ? `<span class="findings-evidence-note"> | ${seasonalContext}</span>` : ""}</td>
           <td>${analyzedText}</td>
         </tr>
       `);
