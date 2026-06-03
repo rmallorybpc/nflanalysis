@@ -26,7 +26,6 @@ function buildExampleUrl(exampleKey) {
   const map = {
     overview: `/src/index.html?season=${defaultSeason}&team_id=BUF#highlight=overview-metric`,
     team: "/src/team.html?season=2022&team_id=JAX#highlight=timeline",
-    scenario: `/src/scenario.html?season=${defaultSeason}`,
     explorer: `/src/explorer.html?season=${defaultSeason}#highlight=spend-vs-mis`,
   };
   const raw = map[exampleKey];
@@ -51,10 +50,8 @@ function applyDefaultSeasonLinks(season) {
 
   const overviewLink = document.getElementById("overviewLink");
   const teamLink = document.getElementById("teamPageLink");
-  const scenarioLink = document.getElementById("scenarioPageLink");
   if (overviewLink) overviewLink.setAttribute("href", `./index.html?season=${safeSeason}&team_id=BUF`);
   if (teamLink) teamLink.setAttribute("href", `./team.html?team_id=BUF&season=${safeSeason}`);
-  if (scenarioLink) scenarioLink.setAttribute("href", `./scenario.html?team_id=BUF&season=${safeSeason}`);
 }
 
 function bindExampleButtons() {

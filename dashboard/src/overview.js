@@ -119,7 +119,6 @@ function updateTeamLinks() {
   const href = `./team.html?${params.toString()}`;
   document.getElementById("open-team-detail").href = href;
   document.getElementById("teamPageLink").href = href;
-  document.getElementById("scenarioPageLink").href = `./scenario.html?${params.toString()}`;
   document.getElementById("explorerLink").href = `./explorer.html?${params.toString()}`;
 }
 

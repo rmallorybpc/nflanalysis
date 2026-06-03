@@ -153,7 +153,6 @@ function syncControls() {
   document.getElementById("findingsLink").href = `./findings.html?${params.toString()}`;
   document.getElementById("overviewLink").href = `./index.html?${params.toString()}`;
   document.getElementById("teamLink").href = `./team.html?${params.toString()}`;
-  document.getElementById("scenarioLink").href = `./scenario.html?${params.toString()}`;
   document.getElementById("explorerLink").href = `./explorer.html?${params.toString()}`;
 }
 
@@ -390,15 +389,6 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       ? `Wk ${Math.trunc(item.week)}`
       : item.eventDate || "Date unavailable";
 
-    const params = new URLSearchParams({
-      team_id: teamId,
-      season: String(season),
-      player_id: item.playerId,
-      from_team: item.fromTeam,
-      to_team: item.toTeam,
-    });
-    const whatIfHref = `./scenario.html?${params.toString()}`;
-
     let intervalHtml = "";
     if (item.interval) {
       const scale = scalesByOutcome[item.outcomeName] || {
@@ -468,7 +458,6 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       ${intervalHtml}
       ${contractHtml}
       ${lowConfidenceHtml}
-      <div class="movement-footer"><a href="${whatIfHref}">Run What-If &rarr;</a></div>
     `;
     cardsRoot.appendChild(card);
   });

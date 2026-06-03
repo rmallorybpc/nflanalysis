@@ -96,8 +96,6 @@ function syncControls() {
   findingsLink.href = `./findings.html?season=${state.season}&team_id=${state.teamId}`;
   const overviewLink = document.getElementById("overviewLink");
   overviewLink.href = `./index.html?season=${state.season}&team_id=${state.teamId}`;
-  const scenarioLink = document.getElementById("scenarioLink");
-  scenarioLink.href = `./scenario.html?season=${state.season}&team_id=${state.teamId}`;
   const explorerLink = document.getElementById("explorerLink");
   explorerLink.href = `./explorer.html?season=${state.season}&team_id=${state.teamId}`;
 }
@@ -727,15 +725,6 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       ? `Wk ${Math.trunc(item.week)}`
       : item.eventDate || "Date unavailable";
 
-    const params = new URLSearchParams({
-      team_id: teamId,
-      season: String(season),
-      player_id: item.playerId,
-      from_team: item.fromTeam,
-      to_team: item.toTeam,
-    });
-    const whatIfHref = `./scenario.html?${params.toString()}`;
-
     let intervalHtml = "";
     if (item.interval) {
       const scale = scalesByOutcome[item.outcomeName] || {
@@ -805,7 +794,6 @@ function renderMovementCards(events, teamId, season, containerEl = null) {
       ${intervalHtml}
       ${contractHtml}
       ${lowConfidenceHtml}
-      <div class="movement-footer"><a href="${whatIfHref}">Run What-If &rarr;</a></div>
     `;
     container.appendChild(card);
   });
