@@ -553,7 +553,9 @@ async function loadSpendTable(seasons) {
         totalSpendM: topSpenderSeed.totalSpendM,
       };
 
-      if (seasonStatus === "upcoming") {
+      // Win-change requires completed outcomes. Treat any non-completed season
+      // as upcoming in this context so placeholders are expected, not gaps.
+      if (seasonStatus !== "completed") {
         partialSeasonCount += 1;
         upcomingSeasonCount += 1;
         rows.push(`
@@ -722,8 +724,8 @@ async function initFindings() {
     const hasRealPartialProblems = outcomeGapSeasonCount > 0;
     const hasExpectedPlaceholderOnly = hasPartial && !hasRealPartialProblems;
 
-    // Keep failure warnings first. Partial coverage warning is expected when
-    // upcoming seasons are included and win-change outcomes are not yet observable.
+    // Keep failure warnings first. Expected placeholders for non-completed
+    // seasons should not raise warnings.
     if (hasFailures) {
       setFindingsStatus(
         `Some seasons could not be loaded (${reasonSummary || "see table rows for details"}). Tables show available rows only. Last updated at ${loadedAt}.`,
@@ -736,25 +738,12 @@ async function initFindings() {
         "warning",
         { showRetry: true }
       );
-    } else if (hasExpectedPlaceholderOnly) {
-      const partialNotes = [];
-      if (upcomingSeasonCount > 0) {
-        partialNotes.push(`${upcomingSeasonCount} upcoming season${upcomingSeasonCount === 1 ? "" : "s"} with expected placeholders`);
-      }
-      if (outcomeGapSeasonCount > 0) {
-        partialNotes.push(`${outcomeGapSeasonCount} season${outcomeGapSeasonCount === 1 ? "" : "s"} missing complete win-change rows`);
-      }
-      const partialSuffix = partialNotes.length > 0
-        ? ` (${partialNotes.join("; ")}).`
-        : ".";
-      setFindingsStatus(
-        `Data loaded with partial coverage${partialSuffix} Some win-change placeholders are expected for upcoming seasons. Last updated at ${loadedAt}.`,
-        "warning",
-        { showRetry: false }
-      );
     } else {
+      const upcomingSuffix = hasExpectedPlaceholderOnly && upcomingSeasonCount > 0
+        ? ` ${upcomingSeasonCount} upcoming season${upcomingSeasonCount === 1 ? " is" : "s are"} pending games.`
+        : "";
       setFindingsStatus(
-        `All findings data loaded successfully. Last updated at ${loadedAt}.`,
+        `All findings data loaded successfully.${upcomingSuffix} Last updated at ${loadedAt}.`,
         "success",
         { showRetry: false }
       );
