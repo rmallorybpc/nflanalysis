@@ -41,17 +41,13 @@ jobs:
           python3 models/hierarchical/train_hierarchical_model.py \
             --model-version "${OFFSEASON_HIERARCHICAL_MODEL_VERSION}"
           python3 pipelines/offseason/backfill_multi_season.py
+          python3 scripts/build_static_payloads.py
           bash scripts/ci_check_data_quality.sh
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ models/artifacts/
+          git add data/ models/artifacts/ dashboard/src/data/
           git diff --staged --quiet || git commit -m \
             "data(auto): annual FA fetch season=${{ github.event.inputs.season || '2026' }} [skip ci]"
           git push
-      - name: Trigger Render redeploy
-        env:
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: |
-          [ -n "$RENDER_DEPLOY_HOOK" ] && curl -X POST "$RENDER_DEPLOY_HOOK" || true

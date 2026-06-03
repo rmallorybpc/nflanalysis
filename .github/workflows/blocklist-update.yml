@@ -160,6 +160,10 @@ jobs:
           export OFFSEASON_HIERARCHICAL_MODEL_VERSION="hierarchical-eb-v${DATE_UTC}+${SHORT_SHA}-offseason"
           python3 pipelines/offseason/backfill_multi_season.py
 
+      - name: Rebuild dashboard static payloads
+        run: |
+          python3 scripts/build_static_payloads.py
+
       - name: Run CI checks
         run: |
           bash scripts/ci_check_data_quality.sh
@@ -177,19 +181,8 @@ jobs:
             data/processed/model_outputs.csv \
             data/processed/model_outputs_hierarchical.csv \
             models/artifacts/baseline_coefficients.csv \
-            models/artifacts/hierarchical_effects.csv
+            models/artifacts/hierarchical_effects.csv \
+            dashboard/src/data
           git diff --staged --quiet || git commit -m \
             "data(auto): re-ingest after blocklist update [skip ci]"
           git push
-
-      - name: Trigger Render redeploy
-        env:
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: |
-          if [ -n "$RENDER_DEPLOY_HOOK" ]; then
-            curl -X POST "$RENDER_DEPLOY_HOOK"
-            echo "Render redeploy triggered."
-          else
-            echo "RENDER_DEPLOY_HOOK secret not set — skipping auto-redeploy."
-            echo "Manually redeploy on Render to pick up the changes."
-          fi

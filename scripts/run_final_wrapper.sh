@@ -53,5 +53,8 @@ if [ "${EXIT_CODE}" -ne 0 ]; then
   exit "${EXIT_CODE}"
 fi
 
+echo "Regenerating dashboard static payloads..." | tee -a "${FINAL_LOG}"
+python3 scripts/build_static_payloads.py 2>&1 | tee -a "${FINAL_LOG}"
+
 echo "Runner completed successfully. Log: ${FINAL_LOG}"
 exit 0
