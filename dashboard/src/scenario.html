@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NFL Scenario Sandbox</title>
+    <title>NFL Scenario Sandbox Rebuild</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
     <style>
@@ -29,95 +29,19 @@
       }
     </style>
     <link rel="stylesheet" href="./styles.css" />
-    <link rel="stylesheet" href="./scenario.css" />
     <style>
-      .typeahead-wrap {
-        position: relative;
+      .rebuild-wrap {
+        max-width: 880px;
+        margin: 0 auto;
       }
 
-      .typeahead-list {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: calc(100% + 4px);
-        z-index: 20;
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        border: var(--tmg-border);
-        background: var(--tmg-surface);
-        border-radius: 10px;
-        max-height: 260px;
-        overflow-y: auto;
+      .rebuild-list {
+        margin: 0.5rem 0 0;
+        padding-left: 1.2rem;
       }
 
-      .typeahead-option {
-        padding: 8px 10px;
-        cursor: pointer;
-      }
-
-      .typeahead-option:hover,
-      .typeahead-option.active {
-        background: rgba(132, 169, 140, 0.12);
-      }
-
-      .comparison-chart-panel {
-        margin-top: 0.8rem;
-      }
-
-      .comparison-chart-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-      }
-
-      .comparison-chart-title {
-        margin: 0;
-      }
-
-      .comparison-chart-legend {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 0.8rem;
-        color: rgba(45, 52, 54, 0.62);
-      }
-
-      .comparison-chart-legend-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-      }
-
-      .comparison-chart-swatch {
-        width: 10px;
-        height: 10px;
-        border-radius: 2px;
-      }
-
-      .comparison-chart-wrap {
-        margin-top: 0.65rem;
-        position: relative;
-      }
-
-      .comparison-chart-tooltip {
-        position: absolute;
-        pointer-events: none;
-        z-index: 5;
-        background: var(--tmg-charcoal);
-        color: var(--tmg-white);
-        border-radius: 8px;
-        padding: 0.4rem 0.5rem;
-        font-size: 0.75rem;
-        line-height: 1.25;
-        white-space: nowrap;
-        box-shadow: 0 6px 14px rgba(45, 52, 54, 0.24);
-      }
-
-      .comparison-chart-tooltip[hidden] {
-        display: none;
+      .rebuild-list li {
+        margin: 0.35rem 0;
       }
     </style>
   </head>
@@ -134,7 +58,7 @@
         <a id="overviewLink" href="./index.html?season=2026&team_id=BUF">Overview</a>
         <a id="teamLink" href="./team.html?season=2026&team_id=BUF">Team Detail</a>
         <a id="explorerLink" href="./explorer.html">All Players</a>
-        <a href="./scenario.html" aria-current="page">Scenario Sandbox</a>
+        <a href="./scenario.html" aria-current="page">Scenario Sandbox (Rebuilding)</a>
       </div>
       <div class="tmg-dropdown-wrap">
         <button class="tmg-dropdown-btn" id="tmgDdBtn" aria-haspopup="true" aria-expanded="false" aria-controls="tmgDdMenu">
@@ -155,99 +79,29 @@
 
     <main class="page tmg-page tmg-container">
       <header class="hero">
-        <h1>What-If Simulator</h1>
-        <p>See how adding or removing a specific player move would change a team's estimated win probability, point differential, and offensive efficiency.</p>
+        <h1>Scenario Sandbox Is Being Rebuilt</h1>
+        <p>
+          The live counterfactual simulator has been temporarily disabled while the
+          dashboard completes migration to static, precomputed data.
+        </p>
       </header>
 
-      <section class="helper panel tmg-card-wide" aria-label="How to use scenario sandbox">
-        <h2>Getting Started</h2>
-        <p>Select a team and season, choose a player move to add or remove, then click Run Scenario. The results show the estimated difference in win probability and other outcomes compared to what actually happened.</p>
-      </section>
-
-      <section class="controls panel tmg-card-wide">
-        <h2>Scenario Inputs</h2>
-        <div class="control-grid">
-          <label>Team
-            <select id="teamId" aria-label="Scenario team selector"></select>
-          </label>
-          <label>Season
-            <input id="season" type="number" value="2026" />
-          </label>
-          <label>Scenario ID
-            <span id="scenarioId" aria-live="polite">pending-run</span>
-          </label>
-        </div>
-
-        <h3>Move</h3>
-        <div class="control-grid move-grid">
-          <label>Player
-            <div class="typeahead-wrap">
-              <input id="playerSearch" type="text" autocomplete="off" placeholder="Search player name" />
-              <input id="playerId" type="hidden" value="p_003" />
-              <ul id="playerSearchList" class="typeahead-list" role="listbox" hidden></ul>
-            </div>
-          </label>
-          <label>From Team
-            <select id="fromTeam" aria-label="Move from team selector"></select>
-          </label>
-          <label>To Team
-            <select id="toTeam" aria-label="Move to team selector"></select>
-          </label>
-          <label>Type of Move
-            <select id="moveType">
-              <option value="trade">trade</option>
-              <option value="free_agency">free_agency</option>
-            </select>
-          </label>
-          <label>Action
-            <select id="action">
-              <option value="add">add</option>
-              <option value="remove">remove</option>
-            </select>
-          </label>
-        </div>
-        <button id="runBtn" type="button" class="tmg-btn">Run Scenario</button>
-        <p id="statusMessage" class="status-message" role="status" aria-live="polite"></p>
-      </section>
-
-      <section class="panel tmg-card-wide">
-        <h2>Estimated Impact of This Move</h2>
-        <div id="deltaSummary" class="delta-grid"></div>
-      </section>
-
-      <section class="grid">
-        <article class="panel tmg-card">
-          <h2>What the Model Predicted Without This Move</h2>
-          <div id="baseline" class="estimate-list"></div>
-        </article>
-        <article class="panel tmg-card">
-          <h2>What the Model Predicts With This Move</h2>
-          <div id="scenario" class="estimate-list"></div>
-        </article>
-      </section>
-
-      <section id="comparisonChartPanel" class="panel comparison-chart-panel tmg-card-wide" style="display: none;">
-        <div class="comparison-chart-header">
-          <h2 class="comparison-chart-title" id="scenario-compare">Side-by-Side Comparison</h2>
-          <div class="comparison-chart-legend" aria-label="Chart legend">
-            <span class="comparison-chart-legend-item">
-              <span class="comparison-chart-swatch" style="background: var(--neu);"></span>
-              Baseline
-            </span>
-            <span class="comparison-chart-legend-item">
-              <span class="comparison-chart-swatch" style="background: var(--pos);"></span>
-              Scenario
-            </span>
-          </div>
-        </div>
-        <div id="comparisonChart" class="comparison-chart-wrap" aria-label="Baseline versus scenario grouped bar chart"></div>
-        <div id="comparisonChartTooltip" class="comparison-chart-tooltip" hidden></div>
+      <section class="panel tmg-card-wide rebuild-wrap" aria-label="Scenario rebuild notice">
+        <h2>What this means for now</h2>
+        <ul class="rebuild-list">
+          <li>Overview, Team Detail, Explorer, and Key Findings continue to work from static annual payloads.</li>
+          <li>Scenario-specific what-if calculations are temporarily unavailable in the browser.</li>
+          <li>This page will be re-enabled after a static-compatible redesign is finalized.</li>
+        </ul>
+        <p>
+          To continue analysis, use the available pages in the top navigation.
+        </p>
       </section>
 
       <footer class="tmg-footer">
         <p class="welcome-footer-text">
           Built on ten seasons of NFL transaction data (2017-2026)
-          using a hierarchical empirical-Bayes model and a live REST API.
+          using a hierarchical empirical-Bayes model and static precomputed payloads.
           Data sources: nflverse trades, Over The Cap contracts,
           and verified manual corrections.
         </p>
@@ -257,22 +111,6 @@
         </p>
       </footer>
     </main>
-
-    <template id="estimateTemplate">
-      <div class="estimate-row">
-        <div class="estimate-outcome"></div>
-        <div class="estimate-mis"></div>
-        <div class="estimate-int"></div>
-      </div>
-    </template>
-
-    <template id="deltaTemplate">
-      <div class="delta-card">
-        <div class="delta-outcome"></div>
-        <div class="delta-value"></div>
-        <div class="delta-range"></div>
-      </div>
-    </template>
 
     <script>
       (function () {
@@ -304,6 +142,5 @@
       })();
     </script>
     <script src="./nav.js"></script>
-    <script type="module" src="./scenario.js"></script>
   </body>
 </html>

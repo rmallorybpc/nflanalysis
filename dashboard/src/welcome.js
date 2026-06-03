@@ -26,7 +26,7 @@ function buildExampleUrl(exampleKey) {
   const map = {
     overview: `/src/index.html?season=${defaultSeason}&team_id=BUF#highlight=overview-metric`,
     team: "/src/team.html?season=2022&team_id=JAX#highlight=timeline",
-    scenario: `/src/scenario.html?season=${defaultSeason}#highlight=scenario-compare`,
+    scenario: `/src/scenario.html?season=${defaultSeason}`,
     explorer: `/src/explorer.html?season=${defaultSeason}#highlight=spend-vs-mis`,
   };
   const raw = map[exampleKey];
