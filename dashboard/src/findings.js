@@ -502,6 +502,7 @@ async function loadSpendTable(seasons) {
   let failedSeasons = 0;
   let partialSeasonCount = 0;
   let upcomingSeasonCount = 0;
+  const upcomingSeasons = [];
   let outcomeGapSeasonCount = 0;
   let seasonsWithWinOutcomes = 0;
   const reasonCounts = {};
@@ -553,11 +554,11 @@ async function loadSpendTable(seasons) {
         totalSpendM: topSpenderSeed.totalSpendM,
       };
 
-      // Win-change requires completed outcomes. Treat any non-completed season
-      // as upcoming in this context so placeholders are expected, not gaps.
-      if (seasonStatus !== "completed") {
+      const isUpcomingSeason = seasonSummary.teamsWithRows === 0 || seasonSummary.teamsWithGames === 0;
+      if (isUpcomingSeason) {
         partialSeasonCount += 1;
         upcomingSeasonCount += 1;
+        upcomingSeasons.push(season);
         rows.push(`
           <tr>
             <td>${seasonLabel(season)}</td>
@@ -656,6 +657,7 @@ async function loadSpendTable(seasons) {
     failedSeasons,
     partialSeasonCount,
     upcomingSeasonCount,
+    upcomingSeasons,
     outcomeGapSeasonCount,
     outcomesAvailable: seasonsWithWinOutcomes > 0,
     reasonCounts,
@@ -739,8 +741,11 @@ async function initFindings() {
         { showRetry: true }
       );
     } else {
+      const upcomingSeasons = Array.isArray(spendSummary?.upcomingSeasons)
+        ? spendSummary.upcomingSeasons
+        : [];
       const upcomingSuffix = hasExpectedPlaceholderOnly && upcomingSeasonCount > 0
-        ? ` ${upcomingSeasonCount} upcoming season${upcomingSeasonCount === 1 ? " is" : "s are"} pending games.`
+        ? ` ${upcomingSeasonCount} upcoming season${upcomingSeasonCount === 1 ? "" : "s"}${upcomingSeasons.length > 0 ? ` (${upcomingSeasons.join(", ")})` : ""} ${upcomingSeasonCount === 1 ? "is" : "are"} pending games.`
         : "";
       setFindingsStatus(
         `All findings data loaded successfully.${upcomingSuffix} Last updated at ${loadedAt}.`,
