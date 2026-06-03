@@ -4,7 +4,7 @@ import {
   loadTeamOutcomesIndex,
 } from "./seasonStatus.js";
 
-const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
+const DATA_ROOT = "./data";
 
 const TEAM_IDS = [
   "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
@@ -22,6 +22,7 @@ const state = {
 let geoProfileCache = null;
 let cardsExpanded = false;
 const seasonSummaryCache = {};
+let dataManifestPromise = null;
 
 function seasonLabel(year) {
   return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
@@ -38,12 +39,31 @@ function toTeamId(value) {
   return TEAM_IDS.includes(normalized) ? normalized : "";
 }
 
-function buildTeamDetailUrl(teamId, season) {
-  const params = new URLSearchParams({
-    team_id: teamId,
-    season: String(season),
-  });
-  return `${API_BASE}/v1/dashboard/team-detail?${params.toString()}`;
+async function loadDataManifest() {
+  if (dataManifestPromise) {
+    return dataManifestPromise;
+  }
+  dataManifestPromise = fetch(`${DATA_ROOT}/manifest.json?t=${Date.now()}`, { cache: "no-store" })
+    .then(async (resp) => {
+      if (!resp.ok) {
+        throw new Error(`status ${resp.status}`);
+      }
+      return resp.json();
+    })
+    .catch((err) => {
+      dataManifestPromise = null;
+      throw err;
+    });
+  return dataManifestPromise;
+}
+
+async function buildDataUrl(relativePath) {
+  const manifest = await loadDataManifest();
+  const builtAt = String(manifest?.built_at || "").trim();
+  if (!builtAt) {
+    return `${DATA_ROOT}/${relativePath}`;
+  }
+  return `${DATA_ROOT}/${relativePath}?v=${encodeURIComponent(builtAt)}`;
 }
 
 async function loadGeoProfile(season) {
@@ -51,9 +71,8 @@ async function loadGeoProfile(season) {
     return geoProfileCache.data;
   }
   try {
-    const resp = await fetch(
-      `${API_BASE}/v1/dashboard/overview?season=${season}`
-    );
+    const url = await buildDataUrl(`overview/${season}.json`);
+    const resp = await fetch(url);
     if (!resp.ok) {
       return null;
     }
@@ -1004,30 +1023,19 @@ function applyMeta(payload) {
 }
 
 async function loadData(teamId, season) {
-  const apiUrl = buildTeamDetailUrl(teamId, season);
+  const seasonUrl = await buildDataUrl(`season/${season}.json`);
   try {
-    const live = await fetch(apiUrl);
-    if (!live.ok) {
-      let detail = `status ${live.status}`;
-      try {
-        const errorPayload = await live.json();
-        if (errorPayload && errorPayload.error) {
-          detail = String(errorPayload.error);
-        }
-      } catch (_err) {
-        // Ignore JSON parse errors and keep HTTP status detail.
-      }
-      throw new Error(`Live API request failed: ${detail}`);
+    const resp = await fetch(seasonUrl);
+    if (!resp.ok) {
+      throw new Error(`Static data request failed: status ${resp.status}`);
     }
 
-    const livePayload = await live.json();
-    if (isTeamDetailPayload(livePayload)) {
-      return livePayload;
+    const seasonPayload = await resp.json();
+    const payload = seasonPayload?.[teamId] || null;
+    if (isTeamDetailPayload(payload)) {
+      return payload;
     }
-    if (livePayload && livePayload.error) {
-      throw new Error(`Live API error: ${livePayload.error}`);
-    }
-    throw new Error("Live API returned an invalid team detail payload format.");
+    throw new Error("Static data returned an invalid team detail payload format.");
   } catch (err) {
     const detail = err instanceof Error ? err.message : "request failed";
     throw new Error(`Data collection failed. Please check source data coverage and pipeline outputs. ${detail}`);

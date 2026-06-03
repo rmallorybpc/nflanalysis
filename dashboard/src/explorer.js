@@ -4,7 +4,7 @@ import {
   loadTeamOutcomesIndex,
 } from "./seasonStatus.js";
 
-const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
+const DATA_ROOT = "./data";
 
 const TEAM_IDS = [
   "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
@@ -12,9 +12,6 @@ const TEAM_IDS = [
   "LAC", "LAR", "LV", "MIA", "MIN", "NE", "NO", "NYG",
   "NYJ", "PHI", "PIT", "SEA", "SF", "TB", "TEN", "WAS",
 ];
-
-const TEAM_REQUEST_BATCH_SIZE = 8;
-const TEAM_REQUEST_BATCH_DELAY_MS = 250;
 
 const POSITION_GROUPS = [
   "offense_skill",
@@ -50,15 +47,42 @@ function seasonLabel(year) {
 let allEvents = [];
 let failedTeamCount = 0;
 const seasonSummaryCache = {};
+let dataManifestPromise = null;
+
+async function loadDataManifest() {
+  if (dataManifestPromise) {
+    return dataManifestPromise;
+  }
+  dataManifestPromise = fetch(`${DATA_ROOT}/manifest.json?t=${Date.now()}`, { cache: "no-store" })
+    .then(async (resp) => {
+      if (!resp.ok) {
+        throw new Error(`status ${resp.status}`);
+      }
+      return resp.json();
+    })
+    .catch((err) => {
+      dataManifestPromise = null;
+      throw err;
+    });
+  return dataManifestPromise;
+}
+
+async function buildDataUrl(relativePath) {
+  const manifest = await loadDataManifest();
+  const builtAt = String(manifest?.built_at || "").trim();
+  if (!builtAt) {
+    return `${DATA_ROOT}/${relativePath}`;
+  }
+  return `${DATA_ROOT}/${relativePath}?v=${encodeURIComponent(builtAt)}`;
+}
 
 async function loadGeoProfile(season) {
   if (geoProfileCache && geoProfileCache.season === season) {
     return geoProfileCache.data;
   }
   try {
-    const resp = await fetch(
-      `${API_BASE}/v1/dashboard/overview?season=${season}`
-    );
+    const url = await buildDataUrl(`overview/${season}.json`);
+    const resp = await fetch(url);
     if (!resp.ok) {
       return null;
     }
@@ -679,62 +703,38 @@ async function loadAllTeams(season) {
   failedTeamCount = 0;
   const progressEl = document.getElementById("loadProgress");
   let settledCount = 0;
-  progressEl.textContent = `Loading... (${settledCount} of ${TEAM_IDS.length} teams)`;
+  progressEl.textContent = `Loading... (${settledCount} of 1 season file)`;
 
-  const buildTeamRequest = (teamId) => {
-    const params = new URLSearchParams({
-      team_id: teamId,
-      season: String(season),
+  const seasonUrl = await buildDataUrl(`season/${season}.json`);
+  const seasonPayload = await fetch(seasonUrl)
+    .then(async (resp) => {
+      if (!resp.ok) {
+        throw new Error(`status ${resp.status}`);
+      }
+      return resp.json();
+    })
+    .finally(() => {
+      settledCount += 1;
+      progressEl.textContent = `Loading... (${settledCount} of 1 season file)`;
     });
-    const url = `${API_BASE}/v1/dashboard/team-detail?${params.toString()}`;
-
-    return fetch(url)
-      .then(async (resp) => {
-        if (!resp.ok) {
-          throw new Error(`status ${resp.status}`);
-        }
-        const payload = await resp.json();
-        const timeline = Array.isArray(payload?.timeline) ? payload.timeline : null;
-        if (!timeline) {
-          throw new Error("invalid payload");
-        }
-        return timeline.map((event) => ({
-          ...event,
-          team_id: teamId,
-        }));
-      })
-      .finally(() => {
-        settledCount += 1;
-        progressEl.textContent = `Loading... (${settledCount} of ${TEAM_IDS.length} teams)`;
-      });
-  };
-
-  const delay = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
-  const results = [];
-  for (let i = 0; i < TEAM_IDS.length; i += TEAM_REQUEST_BATCH_SIZE) {
-    const batchTeamIds = TEAM_IDS.slice(i, i + TEAM_REQUEST_BATCH_SIZE);
-    const batchResults = await Promise.allSettled(batchTeamIds.map((teamId) => buildTeamRequest(teamId)));
-    results.push(...batchResults);
-
-    const hasMoreBatches = i + TEAM_REQUEST_BATCH_SIZE < TEAM_IDS.length;
-    if (hasMoreBatches) {
-      await delay(TEAM_REQUEST_BATCH_DELAY_MS);
-    }
-  }
-
-  const rejected = results.filter((result) => result.status === "rejected");
-  failedTeamCount = rejected.length;
-
-  if (rejected.length === TEAM_IDS.length) {
-    throw new Error("Failed to load movement events for all teams.");
-  }
 
   const merged = [];
-  results.forEach((result) => {
-    if (result.status === "fulfilled") {
-      merged.push(...result.value);
+  TEAM_IDS.forEach((teamId) => {
+    const payload = seasonPayload?.[teamId];
+    const timeline = Array.isArray(payload?.timeline) ? payload.timeline : null;
+    if (!timeline) {
+      failedTeamCount += 1;
+      return;
     }
+    merged.push(...timeline.map((event) => ({
+      ...event,
+      team_id: teamId,
+    })));
   });
+
+  if (merged.length === 0) {
+    throw new Error("Failed to load movement events for all teams.");
+  }
 
   const deduped = [];
   const seenMoveIds = new Set();

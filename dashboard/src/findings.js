@@ -4,7 +4,7 @@ import {
   getSeasonSummary,
   loadTeamOutcomesIndex,
 } from "./seasonStatus.js";
-const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
+const DATA_ROOT = "./data";
 
 const TEAM_IDS = [
   "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
@@ -17,6 +17,7 @@ const overviewPayloadCache = {};
 const seasonSpendIndexCache = {};
 let teamOutcomesCache = null;
 let findingsLoadInFlight = false;
+let dataManifestPromise = null;
 
 const DEFAULT_FINDINGS_SEASONS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
 const FETCH_TIMEOUT_MS = 18000;
@@ -26,9 +27,31 @@ function seasonLabel(year) {
   return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
 }
 
-function buildOverviewUrl(season) {
-  const params = new URLSearchParams({ season: String(season) });
-  return `${API_BASE}/v1/dashboard/overview?${params.toString()}`;
+async function loadDataManifest() {
+  if (dataManifestPromise) {
+    return dataManifestPromise;
+  }
+  dataManifestPromise = fetch(`${DATA_ROOT}/manifest.json?t=${Date.now()}`, { cache: "no-store" })
+    .then(async (resp) => {
+      if (!resp.ok) {
+        throw new Error(`status ${resp.status}`);
+      }
+      return resp.json();
+    })
+    .catch((err) => {
+      dataManifestPromise = null;
+      throw err;
+    });
+  return dataManifestPromise;
+}
+
+async function buildDataUrl(relativePath) {
+  const manifest = await loadDataManifest();
+  const builtAt = String(manifest?.built_at || "").trim();
+  if (!builtAt) {
+    return `${DATA_ROOT}/${relativePath}`;
+  }
+  return `${DATA_ROOT}/${relativePath}?v=${encodeURIComponent(builtAt)}`;
 }
 
 function toTeamId(value) {
@@ -298,22 +321,13 @@ async function loadTeamOutcomes() {
 }
 
 async function loadOverviewData(season) {
-  const apiUrl = buildOverviewUrl(season);
-  const live = await fetchWithRetry(apiUrl);
-  if (!live.ok) {
-    let detail = `status ${live.status}`;
-    try {
-      const errorPayload = await live.json();
-      if (errorPayload && errorPayload.error) {
-        detail = String(errorPayload.error);
-      }
-    } catch (_err) {
-      // Ignore JSON parse errors and keep HTTP status detail.
-    }
-    throw new Error(`Live API request failed: ${detail}`);
+  const overviewUrl = await buildDataUrl(`overview/${season}.json`);
+  const resp = await fetchWithRetry(overviewUrl);
+  if (!resp.ok) {
+    throw new Error(`Static data request failed: status ${resp.status}`);
   }
 
-  return live.json();
+  return resp.json();
 }
 
 async function loadOverviewBySeason(season) {
@@ -330,52 +344,49 @@ async function loadSeasonSpendIndex() {
     return seasonSpendIndexCache.index;
   }
 
-  const candidates = [
-    "../../data/processed/movement_events.csv",
-    "/data/processed/movement_events.csv",
-    "/nflanalysis/data/processed/movement_events.csv",
-  ];
+  const manifest = await loadDataManifest();
+  const seasonList = Array.isArray(manifest?.seasons) && manifest.seasons.length > 0
+    ? manifest.seasons
+    : DEFAULT_FINDINGS_SEASONS;
 
-  let csvText = "";
-  for (const path of candidates) {
-    try {
-      const resp = await fetchWithRetry(path);
-      if (resp.ok) {
-        csvText = await resp.text();
-        break;
-      }
-    } catch (_err) {
-      // Try the next candidate.
-    }
-  }
-
-  if (!csvText) {
-    throw new Error("Unable to load movement events for spending lookup.");
-  }
-
-  const rows = parseCsvRows(csvText);
   const indexed = {};
 
-  rows.forEach((row) => {
-    const season = Number(row.nfl_season);
-    const teamId = toTeamId(row.to_team_id);
-    const moveType = String(row.move_type || "").toLowerCase();
-    if (!Number.isFinite(season) || !teamId || moveType !== "free_agency") {
-      return;
+  for (const season of seasonList) {
+    try {
+      const seasonUrl = await buildDataUrl(`season/${season}.json`);
+      const resp = await fetchWithRetry(seasonUrl);
+      if (!resp.ok) {
+        continue;
+      }
+      const seasonPayload = await resp.json();
+      TEAM_IDS.forEach((teamId) => {
+        const timeline = Array.isArray(seasonPayload?.[teamId]?.timeline)
+          ? seasonPayload[teamId].timeline
+          : [];
+        const inbound = timeline.filter((event) => (
+          String(event.move_type || "").toLowerCase() === "free_agency"
+            && toTeamId(event.to_team_id) === teamId
+        ));
+
+        const key = `${season}:${teamId}`;
+        const current = indexed[key] || {
+          teamId,
+          season,
+          totalSpendRaw: 0,
+          moveCount: 0,
+        };
+
+        current.totalSpendRaw += inbound.reduce(
+          (sum, event) => sum + getContractTotalSpendRaw(event),
+          0
+        );
+        current.moveCount += inbound.length;
+        indexed[key] = current;
+      });
+    } catch (_err) {
+      // Leave this season out and allow downstream rows to surface partial coverage.
     }
-
-    const key = `${season}:${teamId}`;
-    const current = indexed[key] || {
-      teamId,
-      season,
-      totalSpendRaw: 0,
-      moveCount: 0,
-    };
-
-    current.totalSpendRaw += getContractTotalSpendRaw(row);
-    current.moveCount += 1;
-    indexed[key] = current;
-  });
+  }
 
   seasonSpendIndexCache.index = indexed;
   return indexed;

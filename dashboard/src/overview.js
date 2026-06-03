@@ -4,7 +4,7 @@ import {
   loadTeamOutcomesIndex,
 } from "./seasonStatus.js";
 
-const API_BASE = (window.NFL_API_BASE || "https://nflanalysis.onrender.com").replace(/\/$/, "");
+const DATA_ROOT = "./data";
 
 const TEAM_IDS = [
   "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
@@ -43,14 +43,37 @@ let teamOutcomesCache = null;
 let spendingResizeBound = false;
 let activeSpendingSeason = null;
 let rankingExpanded = false;
+let dataManifestPromise = null;
 
 function seasonLabel(year) {
   return `${year} Season (Super Bowl Feb ${Number(year) + 1})`;
 }
 
-function buildOverviewUrl(season) {
-  const params = new URLSearchParams({ season: String(season) });
-  return `${API_BASE}/v1/dashboard/overview?${params.toString()}`;
+async function loadDataManifest() {
+  if (dataManifestPromise) {
+    return dataManifestPromise;
+  }
+  dataManifestPromise = fetch(`${DATA_ROOT}/manifest.json?t=${Date.now()}`, { cache: "no-store" })
+    .then(async (resp) => {
+      if (!resp.ok) {
+        throw new Error(`status ${resp.status}`);
+      }
+      return resp.json();
+    })
+    .catch((err) => {
+      dataManifestPromise = null;
+      throw err;
+    });
+  return dataManifestPromise;
+}
+
+async function buildDataUrl(relativePath) {
+  const manifest = await loadDataManifest();
+  const builtAt = String(manifest?.built_at || "").trim();
+  if (!builtAt) {
+    return `${DATA_ROOT}/${relativePath}`;
+  }
+  return `${DATA_ROOT}/${relativePath}?v=${encodeURIComponent(builtAt)}`;
 }
 
 function toTeamId(value) {
@@ -381,54 +404,43 @@ async function loadSeasonSpendingByTeam(season, onProgress) {
 
   const promise = (async () => {
     let settledCount = 0;
-    const total = TEAM_IDS.length;
+    const total = 1;
     onProgress?.(settledCount, total);
 
-    const requests = TEAM_IDS.map((teamId) => {
-      const params = new URLSearchParams({
-        team_id: teamId,
-        season: String(season),
+    const seasonUrl = await buildDataUrl(`season/${season}.json`);
+    const results = await fetch(seasonUrl)
+      .then(async (resp) => {
+        if (!resp.ok) {
+          throw new Error(`status ${resp.status}`);
+        }
+        return resp.json();
+      })
+      .finally(() => {
+        settledCount += 1;
+        onProgress?.(settledCount, total);
       });
 
-      return fetch(`${API_BASE}/v1/dashboard/team-detail?${params.toString()}`)
-        .then(async (resp) => {
-          if (!resp.ok) {
-            throw new Error(`status ${resp.status}`);
-          }
-
-          const payload = await resp.json();
-          const timeline = Array.isArray(payload?.timeline) ? payload.timeline : [];
-          const inboundFreeAgency = timeline.filter(
-            (event) => String(event.move_type || "").toLowerCase() === "free_agency"
-              && toTeamId(event.to_team_id) === teamId
-          );
-
-          const totalAavDollars = inboundFreeAgency.reduce(
-            (sum, event) => sum + toFiniteNumber(event.contract_aav),
-            0
-          );
-
-          return {
-            teamId,
-            totalAavM: totalAavDollars / 1_000_000,
-            moveCount: inboundFreeAgency.length,
-          };
-        })
-        .finally(() => {
-          settledCount += 1;
-          onProgress?.(settledCount, total);
-        });
-    });
-
-    const results = await Promise.allSettled(requests);
     const spendByTeam = {};
     let fulfilledCount = 0;
 
-    results.forEach((result) => {
-      if (result.status === "fulfilled") {
-        spendByTeam[result.value.teamId] = result.value;
-        fulfilledCount += 1;
-      }
+    TEAM_IDS.forEach((teamId) => {
+      const payload = results?.[teamId] || null;
+      const timeline = Array.isArray(payload?.timeline) ? payload.timeline : [];
+      const inboundFreeAgency = timeline.filter(
+        (event) => String(event.move_type || "").toLowerCase() === "free_agency"
+          && toTeamId(event.to_team_id) === teamId
+      );
+      const totalAavDollars = inboundFreeAgency.reduce(
+        (sum, event) => sum + toFiniteNumber(event.contract_aav),
+        0
+      );
+
+      spendByTeam[teamId] = {
+        teamId,
+        totalAavM: totalAavDollars / 1_000_000,
+        moveCount: inboundFreeAgency.length,
+      };
+      fulfilledCount += 1;
     });
 
     if (fulfilledCount === 0) {
@@ -1189,30 +1201,18 @@ function applyMeta(payload) {
 }
 
 async function loadOverviewData(season) {
-  const apiUrl = buildOverviewUrl(season);
+  const overviewUrl = await buildDataUrl(`overview/${season}.json`);
   try {
-    const live = await fetch(apiUrl);
-    if (!live.ok) {
-      let detail = `status ${live.status}`;
-      try {
-        const errorPayload = await live.json();
-        if (errorPayload && errorPayload.error) {
-          detail = String(errorPayload.error);
-        }
-      } catch (_err) {
-        // Ignore JSON parse errors and keep HTTP status detail.
-      }
-      throw new Error(`Live API request failed: ${detail}`);
+    const resp = await fetch(overviewUrl);
+    if (!resp.ok) {
+      throw new Error(`Static data request failed: status ${resp.status}`);
     }
 
-    const livePayload = await live.json();
-    if (isOverviewPayload(livePayload)) {
-      return livePayload;
+    const payload = await resp.json();
+    if (isOverviewPayload(payload)) {
+      return payload;
     }
-    if (livePayload && livePayload.error) {
-      throw new Error(`Live API error: ${livePayload.error}`);
-    }
-    throw new Error("Live API returned an invalid overview payload format.");
+    throw new Error("Static data returned an invalid overview payload format.");
   } catch (err) {
     const detail = err instanceof Error ? err.message : "request failed";
     throw new Error(`Data collection failed. Please check source data coverage and pipeline outputs. ${detail}`);
