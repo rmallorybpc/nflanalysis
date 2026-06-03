@@ -10,9 +10,10 @@ The overview page is implemented as static assets under `dashboard/src`:
 
 Data source priority:
 
-1. Live API endpoint: `GET /v1/dashboard/overview?season=2024`
+1. Static payload: `./data/overview/<season>.json`
+2. Cache-busting key source: `./data/manifest.json` (`built_at` appended as `?v=`)
 
-If the API payload is missing/unavailable, the page shows a data collection failure status and does not load sample fallback data.
+If the payload is missing/unavailable, the page shows a data collection failure status and does not load sample fallback data.
 
 Quick local preview using Python static server:
 
@@ -37,9 +38,11 @@ Team detail assets are implemented under `dashboard/src`:
 
 Data source priority:
 
-1. Live API endpoint: `GET /v1/dashboard/team-detail?team_id=BUF&season=2024`
+1. Static season bundle: `./data/season/<season>.json`
+2. Team lookup key: `payload[team_id]`
+3. Cache-busting key source: `./data/manifest.json`
 
-If the API payload is missing/unavailable, the page shows a data collection failure status and does not load sample fallback data.
+If the payload is missing/unavailable, the page shows a data collection failure status and does not load sample fallback data.
 
 Quick local preview:
 
@@ -59,14 +62,22 @@ Open in browser:
 Scenario sandbox assets are implemented under `dashboard/src`:
 
 - `scenario.html`
-- `scenario.css`
-- `scenario.js`
 
 Data source priority:
 
-1. Live API endpoint: `POST /v1/dashboard/scenario-sandbox`
+1. Placeholder page only (Scenario Sandbox is currently being rebuilt)
 
-If the API payload is missing/unavailable, the page shows a data collection failure status and does not load sample fallback data.
+No live compute requests are issued from the current placeholder page.
+
+## Static Payload Build
+
+Generate payloads with:
+
+```bash
+python3 scripts/build_static_payloads.py
+```
+
+Generated outputs live in `dashboard/src/data/` and are served directly by GitHub Pages.
 
 Quick local preview:
 
